@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  // URL configured in prisma.config.ts (Prisma 7+)
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum EntityType {
+  CHARACTER
+  LOCATION
+  ITEM
+  EVENT
+  FACTION
+  WORLDBUILDING
+  NOTE
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  settings    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  documents   Document[]
+  entities    Entity[]
+
+  @@index([title])
+}
+
+model Entity {
+  id          String     @id @default(uuid())
+  projectId   String
+  type        EntityType
+  name        String
+  description String?
+  attributes  Json       @default("{}")
+  content     Json?      // Tiptap JSON content for entity document
+  imageUrl    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scenes      SceneEntity[]
+
+  @@index([projectId, type])
+  @@index([name])
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  projectId String
+  title     String
+  content   Json     @default("{}")
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scenes    Scene[]
+
+  @@index([projectId, order])
+}
+
+model Scene {
+  id          String   @id @default(uuid())
+  documentId  String
+  title       String?
+  summary     String?
+  startOffset Int?
+  endOffset   Int?
+  metadata    Json     @default("{}")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  document    Document      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  entities    SceneEntity[]
+
+  @@index([documentId, order])
+}
+
+model SceneEntity {
+  id        String   @id @default(uuid())
+  sceneId   String
+  entityId  String
+  role      String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  scene     Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  entity    Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@unique([sceneId, entityId])
+  @@index([sceneId])
+  @@index([entityId])
+}
