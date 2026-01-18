@@ -3,7 +3,7 @@
 import { useCallback, useState, useRef, useEffect, useMemo, useTransition } from 'react';
 import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
-import { GripVertical, Pencil, ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
+import { GripVertical, ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
 import type { SceneStatus } from './SceneExtension';
 import { useEntityStore } from '@/presentation/stores/useEntityStore';
 import { useProjectStore } from '@/presentation/stores/useProjectStore';
@@ -305,11 +305,19 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
 
   const statusConfig = STATUS_CONFIG[(status || 'draft') as SceneStatus];
 
-  // Calculate word count
-  const wordCount = useMemo(() => {
-    const text = node.textContent || '';
-    return text.trim().split(/\s+/).filter(Boolean).length;
-  }, [node.textContent]);
+  // Calculate word count (no memo - updates on every render for real-time count)
+  const text = node.textContent || '';
+  const wordCount = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+  
+  // Russian word declension
+  const getWordLabel = (count: number) => {
+    const lastTwo = count % 100;
+    const lastOne = count % 10;
+    if (lastTwo >= 11 && lastTwo <= 19) return 'слов';
+    if (lastOne === 1) return 'слово';
+    if (lastOne >= 2 && lastOne <= 4) return 'слова';
+    return 'слов';
+  };
 
   // Clean mode: minimal
   if (isCleanMode) {
@@ -379,24 +387,19 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
           {/* Right: Word count + Status + Actions */}
           <div className="flex items-center gap-3">
             {/* Word count */}
-            <span className="text-xs text-[#8b949e]">{wordCount} слов</span>
+            <span className="text-xs text-[#8b949e]">{wordCount} {getWordLabel(wordCount)}</span>
             
-            {/* Status dot */}
+            {/* Status label */}
             <button
               onClick={cycleStatus}
-              className="flex items-center gap-1.5"
-              title={`Статус: ${statusConfig.label}`}
+              className={`text-xs px-2 py-0.5 rounded transition-colors ${
+                status === 'draft' ? 'bg-zinc-700 text-zinc-300' :
+                status === 'review' ? 'bg-amber-900/50 text-amber-400' :
+                'bg-emerald-900/50 text-emerald-400'
+              }`}
+              title="Клик для смены статуса"
             >
-              <span className={`w-2 h-2 rounded-full ${statusConfig.dotColor}`} />
-            </button>
-
-            {/* Edit button */}
-            <button
-              onClick={() => setIsEditingSlug(true)}
-              className="p-1 text-[#8b949e] hover:text-white transition-colors"
-              title="Редактировать"
-            >
-              <Pencil className="w-3.5 h-3.5" />
+              {statusConfig.label}
             </button>
 
             {/* Delete button with confirmation */}
@@ -560,7 +563,7 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
         {/* Collapsed preview */}
         {collapsed && (
           <div className="px-3 py-2 text-sm text-[#8b949e]" contentEditable={false}>
-            {node.textContent.slice(0, 120)}{node.textContent.length > 120 && '...'}
+            {(node.textContent || '').slice(0, 120)}{(node.textContent || '').length > 120 && '...'}
           </div>
         )}
       </div>

@@ -1,5 +1,21 @@
 # Progress
 
+## EDITOR-001: Улучшения блочной архитектуры — ARCHIVED ✅
+
+**Дата завершения**: 2026-01-18
+
+### Результаты
+- ✅ Строгая схема: `content: 'semanticBlock+'` в SceneExtension
+- ✅ Миграция документов с правильной структурой
+- ✅ UI блоков: разделительная линия, всегда видимые границы
+- ✅ BubbleMenu: иконки вместо текста, zero-lag скролл
+
+### Архив
+- Рефлексия: `reflection/reflection-EDITOR-001.md`
+- Архив: `archive/archive-EDITOR-001.md`
+
+---
+
 ## BUILD-02: Clean Architecture — COMPLETE ✅
 
 **Дата завершения**: 2026-01-17

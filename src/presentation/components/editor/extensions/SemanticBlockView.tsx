@@ -3,7 +3,7 @@
 import { useCallback, useState, useMemo, useRef, useEffect } from 'react';
 import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
-import { MessageCircle, Mountain, Zap, Brain, X, GripVertical, Plus, FileText } from 'lucide-react';
+import { MessageCircle, Mountain, Zap, Brain, X, GripVertical, Plus, FileText, Film } from 'lucide-react';
 import type { SemanticBlockType } from './SemanticBlock';
 import { useEntityStore } from '@/presentation/stores/useEntityStore';
 import { useEditorStore } from '@/presentation/stores/useEditorStore';
@@ -29,6 +29,14 @@ const BLOCK_TYPE_CONFIG: Record<SemanticBlockType, BlockTypeConfig> = {
     bgColor: '',
     borderColor: 'border-[#3a3f4b]',
     textColor: 'text-[#6e7681]',
+  },
+  unmarked: {
+    icon: FileText,
+    label: '',
+    labelFull: 'Неразмеченный',
+    bgColor: '',
+    borderColor: 'border-[#5a6c7d]',
+    textColor: 'text-[#8b949e]',
   },
   dialogue: {
     icon: MessageCircle,
@@ -80,18 +88,38 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
   const { 
     blockType = 'description',
     speakers = [],
+    isNew = false,
   } = node.attrs as { 
     blockType: SemanticBlockType; 
     speakers: Speaker[];
+    isNew?: boolean;
   };
 
   const config = BLOCK_TYPE_CONFIG[blockType] || BLOCK_TYPE_CONFIG.description;
+  console.log('[SemanticBlockView] Rendering block:', blockType);
   const viewMode = useEditorStore((s) => s.viewMode);
   const isCleanMode = viewMode === 'clean';
 
   const [isHovered, setIsHovered] = useState(false);
   const [showSpeakerPicker, setShowSpeakerPicker] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
+
+  // Remove isNew flag on hover or after timeout
+  useEffect(() => {
+    if (isNew && isHovered) {
+      updateAttributes({ isNew: false });
+    }
+  }, [isNew, isHovered, updateAttributes]);
+
+  // Auto-remove isNew flag after 5 seconds
+  useEffect(() => {
+    if (isNew) {
+      const timer = setTimeout(() => {
+        updateAttributes({ isNew: false });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isNew, updateAttributes]);
 
   // Get characters from store
   const allEntities = useEntityStore((state) => state.entities);
@@ -154,12 +182,70 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
 
   // Change block type
   const handleChangeType = useCallback((newType: SemanticBlockType) => {
+    console.log('[SemanticBlockView] handleChangeType:', blockType, '->', newType);
     updateAttributes({ blockType: newType });
-  }, [updateAttributes]);
+  }, [blockType, updateAttributes]);
+
+  // Move entire block to a new scene
+  const handleMoveToNewScene = useCallback(() => {
+    if (!editor || typeof getPos !== 'function') return;
+    
+    const pos = getPos();
+    
+    if (!node.textContent.trim()) return;
+    
+    console.log('[SemanticBlockView] Moving block to new scene');
+    
+    // Find parent scene position
+    const $pos = editor.state.doc.resolve(pos);
+    let sceneAfterPos = -1;
+    
+    for (let depth = $pos.depth; depth >= 0; depth--) {
+      const parentNode = $pos.node(depth);
+      if (parentNode.type.name === 'scene') {
+        sceneAfterPos = $pos.after(depth);
+        break;
+      }
+    }
+    
+    if (sceneAfterPos === -1) return;
+    
+    editor
+      .chain()
+      .focus()
+      .command(({ tr, dispatch }) => {
+        if (dispatch) {
+          const schema = editor.state.schema;
+          
+          // Copy the block's content as-is (preserves paragraphs structure)
+          const blockContent = node.content;
+          
+          // Create new scene with unmarked block containing the same content
+          const newScene = schema.nodes.scene.create(
+            { title: 'Новая сцена' },
+            schema.nodes.semanticBlock.create(
+              { blockType: 'unmarked', speakers: [], isNew: false },
+              blockContent
+            )
+          );
+          
+          // Delete current block
+          const nodeSize = node.nodeSize;
+          tr.delete(pos, pos + nodeSize);
+          
+          // Insert new scene (adjust position after deletion)
+          const adjustedPos = sceneAfterPos - nodeSize;
+          tr.insert(adjustedPos, newScene);
+        }
+        return true;
+      })
+      .run();
+  }, [editor, getPos, node]);
 
   // Show speaker picker only for dialogue and thought
   const showSpeakerField = blockType === 'dialogue' || blockType === 'thought';
   const isEmptyBlock = blockType === 'empty';
+  const isUnmarkedBlock = blockType === 'unmarked';
   const Icon = config.icon;
 
   // Clean mode: minimal wrapper with just content
@@ -174,8 +260,13 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
   // Syntax mode: Clean neutral style - compact with always visible border
   return (
     <NodeViewWrapper
-      className="semantic-block relative mt-1 mb-3 group/semantic rounded border border-[#3a3f4b] hover:border-[#444c56] transition-colors"
+      className={`semantic-block relative mt-1 mb-3 group/semantic rounded border transition-all ${
+        isNew 
+          ? 'border-purple-500/50 bg-purple-500/5 animate-pulse' 
+          : 'border-[#3a3f4b] hover:border-[#444c56]'
+      }`}
       data-block-type={blockType}
+      data-is-new={isNew}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -214,6 +305,34 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
                 </button>
               );
             })}
+          </div>
+        ) : isUnmarkedBlock ? (
+          /* Unmarked block: show hint + quick type buttons + move to scene */
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[#8b949e]">Неразмеченный</span>
+            <span className="text-xs text-[#6e7681]">—</span>
+            {BLOCK_TYPES.map((type) => {
+              const typeConfig = BLOCK_TYPE_CONFIG[type];
+              const TypeIcon = typeConfig.icon;
+              return (
+                <button
+                  key={type}
+                  onClick={() => handleChangeType(type)}
+                  className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-[#6e7681] hover:text-white hover:bg-[#3a3f4b] rounded transition-colors"
+                  title={typeConfig.labelFull}
+                >
+                  <TypeIcon className="w-3 h-3" />
+                </button>
+              );
+            })}
+            <span className="text-xs text-[#6e7681]">|</span>
+            <button
+              onClick={handleMoveToNewScene}
+              className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-[#6e7681] hover:text-white hover:bg-[#3a3f4b] rounded transition-colors"
+              title="Перенести в новую сцену"
+            >
+              <Film className="w-3 h-3" />
+            </button>
           </div>
         ) : (
           <>

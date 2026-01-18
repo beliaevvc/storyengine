@@ -1,33 +1,15 @@
 # Active Context
 
 ## Current Status
-**VIEW-001 COMPLETE — Режим "Чистый текст"**
+**Готов к новой задаче**
 
-## Последняя реализация
+## Последние завершённые задачи
 
-### VIEW-001: Режим просмотра "Чистый текст"
-Добавлен переключатель режимов в тулбаре редактора.
-
-**Режимы:**
-- **Синтаксис** — полный UI с лейблами `[DLG]`, `[DSC]`, спикерами, метаданными
-- **Чистый** — минималистичный режим для чтения
-
-**Изменённые файлы:**
-- `useEditorStore.ts` — viewMode state
-- `Toolbar.tsx` — переключатель
-- `SemanticBlockView.tsx` — conditional rendering
-- `SceneView.tsx` — conditional rendering
-- `EntityMentionComponent.tsx` — conditional rendering
-
----
-
-### SCENE-003: Scene-Centric Document Architecture (предыдущая)
-Архитектурное переосмысление документа — весь контент внутри сцен.
-
-**Команды:**
-- `/scene` — новая сцена
-- `/dialogue`, `/description`, `/action`, `/thought` — семантические блоки
-- `/h1`, `/h2`, `/h3`, `/bullet`, `/ordered`, `/quote` — форматирование
+| Задача | Описание | Архив |
+|--------|----------|-------|
+| EDITOR-001 | Улучшения блочной архитектуры | `archive/archive-EDITOR-001.md` ✅ |
+| VIEW-001 | Режим "Чистый текст" | (pending archive) |
+| SCENE-003 | Scene-Centric Architecture | (pending archive) |
 
 ## Recent Completions
 

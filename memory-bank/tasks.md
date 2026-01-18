@@ -2,6 +2,17 @@
 
 ## Current Task
 
+## Completed Tasks
+
+### EDITOR-001: Улучшения блочной архитектуры редактора
+- **Status**: ✅ ARCHIVED
+- **Level**: 3 (Intermediate Feature)
+- **Date**: 2026-01-18
+- **Reflection**: `reflection/reflection-EDITOR-001.md` ✅
+- **Archive**: `archive/archive-EDITOR-001.md` ✅
+
+---
+
 ### VIEW-001: Режим просмотра "Чистый текст"
 - **Status**: ✅ COMPLETE
 - **Level**: 2 (Basic Enhancement)

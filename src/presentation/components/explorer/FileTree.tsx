@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { FileTreeItem } from './FileTreeItem';
 import { useDocumentStore } from '@/presentation/stores';
 import { createDocument, updateDocument, deleteDocument } from '@/app/actions/supabase/document-actions';
+import { createDefaultDocumentContent } from '@/presentation/utils/migrateDocument';
 import { createClient } from '@/lib/supabase/client';
 import type { Document } from '@/core/entities/document';
 import { cn } from '@/lib/utils';
@@ -77,10 +78,7 @@ export function FileTree({
         parent_id: parentId,
         title: `Документ ${parentChildren.length + 1}`,
         type: 'DOCUMENT',
-        content: {
-          type: 'doc',
-          content: [{ type: 'paragraph', content: [] }],
-        },
+        content: createDefaultDocumentContent(),
       });
 
       if (data && !error) {

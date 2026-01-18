@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { Extension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Typography from '@tiptap/extension-typography';
@@ -13,8 +14,6 @@ import {
   createMentionSuggestion,
   SceneExtension,
   SemanticBlock,
-  SlashCommands,
-  createSlashCommandSuggestion,
 } from './extensions';
 import { Toolbar } from './Toolbar';
 import { StatusBar } from './StatusBar';
@@ -24,6 +23,16 @@ import { useEditorStore } from '@/presentation/stores';
 import { useEntityDetection } from '@/presentation/hooks';
 import { cn } from '@/lib/utils';
 import { migrateDocument } from '@/presentation/utils/migrateDocument';
+
+// Extension to store viewMode in editor storage
+const ViewModeStorage = Extension.create({
+  name: 'viewMode',
+  addStorage() {
+    return {
+      current: 'clean' as 'clean' | 'syntax',
+    };
+  },
+});
 
 // ============================================================================
 // Types
@@ -80,12 +89,12 @@ export function StoryEditor({
       Placeholder.configure({
         placeholder: ({ node }) => {
           if (node.type.name === 'scene') {
-            return 'Начните писать... Используйте / для команд';
+            return 'Начните писать...';
           }
           if (node.type.name === 'semanticBlock') {
             return 'Введите текст...';
           }
-          return 'Используйте / для вызова меню команд...';
+          return 'Введите текст...';
         },
         includeChildren: true,
       }),
@@ -103,10 +112,8 @@ export function StoryEditor({
       SceneExtension,
       SemanticBlock,
       
-      // Slash commands (Notion-style)
-      SlashCommands.configure({
-        suggestion: createSlashCommandSuggestion(),
-      }),
+      // View mode storage for extensions
+      ViewModeStorage,
     ],
     content: migratedContent,
     onUpdate: ({ editor }) => {
@@ -155,6 +162,14 @@ export function StoryEditor({
 
   const wordCount = useEditorStore((s) => s.wordCount);
   const characterCount = useEditorStore((s) => s.characterCount);
+  const viewMode = useEditorStore((s) => s.viewMode);
+
+  // Sync viewMode to editor storage for extensions
+  useEffect(() => {
+    if (editor && editor.storage.viewMode) {
+      editor.storage.viewMode.current = viewMode;
+    }
+  }, [editor, viewMode]);
 
   // Enable entity detection at cursor position
   useEntityDetection();

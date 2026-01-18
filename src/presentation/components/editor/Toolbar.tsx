@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import type { Editor } from '@tiptap/core';
 import {
   Undo,
@@ -37,6 +38,85 @@ export function Toolbar({ editor, className }: ToolbarProps) {
     const results = await scan();
     console.log('[Toolbar] AI Scan found:', results.length, 'matches');
   };
+
+  // Handle mode switch
+  const handleModeSwitch = useCallback((mode: ViewMode) => {
+    if (!editor) {
+      setViewMode(mode);
+      return;
+    }
+    
+    if (mode === 'syntax') {
+      // Convert empty blocks with text to unmarked
+      const { doc } = editor.state;
+      const positions: number[] = [];
+      
+      doc.descendants((node, pos) => {
+        if (node.type.name === 'semanticBlock' && 
+            node.attrs.blockType === 'empty' && 
+            node.textContent.trim()) {
+          positions.push(pos);
+        }
+        return true;
+      });
+      
+      if (positions.length > 0) {
+        console.log('[Toolbar] Converting', positions.length, 'empty blocks to unmarked');
+        editor.chain().focus().command(({ tr, dispatch }) => {
+          if (dispatch) {
+            positions.reverse().forEach((pos) => {
+              const node = tr.doc.nodeAt(pos);
+              if (node) {
+                tr.setNodeMarkup(pos, undefined, { 
+                  ...node.attrs, 
+                  blockType: 'unmarked' 
+                });
+              }
+            });
+          }
+          return true;
+        }).run();
+      }
+    } else if (mode === 'clean') {
+      // Check if last block is already unmarked - if not, add one
+      const { doc } = editor.state;
+      let lastSceneEnd = -1;
+      let lastBlockType: string | null = null;
+      
+      doc.descendants((node, pos) => {
+        if (node.type.name === 'scene') {
+          lastSceneEnd = pos + node.nodeSize - 1;
+          // Find the last semantic block in this scene
+          node.descendants((child) => {
+            if (child.type.name === 'semanticBlock') {
+              lastBlockType = child.attrs.blockType;
+            }
+            return true;
+          });
+        }
+        return true;
+      });
+      
+      console.log('[Toolbar] Last block type:', lastBlockType);
+      
+      // Only add unmarked block if last block is NOT unmarked
+      if (lastSceneEnd > 0 && lastBlockType !== 'unmarked') {
+        console.log('[Toolbar] Adding unmarked block at end of scene');
+        editor.chain().focus().insertContentAt(lastSceneEnd, {
+          type: 'semanticBlock',
+          attrs: { blockType: 'unmarked' },
+          content: [{ type: 'paragraph' }],
+        }).run();
+      }
+      
+      // Move cursor to the end
+      setTimeout(() => {
+        editor.commands.focus('end');
+      }, 10);
+    }
+    
+    setViewMode(mode);
+  }, [setViewMode, editor]);
 
   if (!editor) return null;
 
@@ -82,7 +162,7 @@ export function Toolbar({ editor, className }: ToolbarProps) {
       {/* View Mode Toggle */}
       <div className="flex items-center bg-[#282c34] rounded-lg border border-[#3a3f4b] overflow-hidden ml-2">
         <button
-          onClick={() => setViewMode('syntax')}
+          onClick={() => handleModeSwitch('syntax')}
           className={cn(
             'px-3 py-1.5 text-xs transition-colors',
             viewMode === 'syntax'
@@ -93,7 +173,7 @@ export function Toolbar({ editor, className }: ToolbarProps) {
           Синтаксис
         </button>
         <button
-          onClick={() => setViewMode('clean')}
+          onClick={() => handleModeSwitch('clean')}
           className={cn(
             'px-3 py-1.5 text-xs transition-colors',
             viewMode === 'clean'

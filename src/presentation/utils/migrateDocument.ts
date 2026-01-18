@@ -114,6 +114,7 @@ export function migrateDocument(content: unknown): TiptapDocument {
   const allScenes = doc.content.every(isSceneNode);
   if (allScenes) {
     console.log('[migrateDocument] Document already scene-centric, no migration needed');
+    console.log('[migrateDocument] Scenes content:', JSON.stringify(doc.content.map(s => s.content?.map(b => b.attrs)), null, 2));
     return doc;
   }
 
@@ -183,7 +184,7 @@ export function createDefaultDocumentContent(): TiptapDocument {
         type: 'scene',
         attrs: {
           id: uuidv4(),
-          slug: 'Начало',
+          slug: 'Новая сцена',
           location: '',
           locationId: null,
           status: 'draft',
@@ -198,17 +199,7 @@ export function createDefaultDocumentContent(): TiptapDocument {
           {
             type: 'semanticBlock',
             attrs: { blockType: 'empty' },
-            content: [
-              {
-                type: 'paragraph',
-                content: [
-                  {
-                    type: 'text',
-                    text: 'Начните писать здесь... Используйте / для вызова меню команд.',
-                  },
-                ],
-              },
-            ],
+            content: [{ type: 'paragraph' }],
           },
         ],
       },

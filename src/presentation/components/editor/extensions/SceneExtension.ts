@@ -62,7 +62,7 @@ export const SceneExtension = Node.create({
   // НЕ входит в группу 'block' — сцена может быть только на top level документа
   // Это обеспечивается DocumentExtension с content: 'scene*'
   
-  // Внутри сцены могут быть ТОЛЬКО семантические блоки (включая empty)
+  // Внутри сцены могут быть ТОЛЬКО семантические блоки
   content: 'semanticBlock+',
 
   draggable: true,
@@ -202,7 +202,7 @@ export const SceneExtension = Node.create({
             content: [
               {
                 type: 'semanticBlock',
-                attrs: { blockType: 'empty' },
+                attrs: { blockType: 'unmarked' },
                 content: [{ type: 'paragraph' }],
               },
             ],
@@ -246,7 +246,7 @@ export const SceneExtension = Node.create({
           
           const defaultContent = [{
             type: 'semanticBlock',
-            attrs: { blockType: 'empty' },
+            attrs: { blockType: 'unmarked' },
             content: [{ type: 'paragraph' }],
           }];
           

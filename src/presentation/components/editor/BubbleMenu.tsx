@@ -15,11 +15,11 @@ import {
   Mountain,
   Zap,
   Brain,
-  FileText,
+  Film,
 } from 'lucide-react';
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { useEditorStore } from '@/presentation/stores/useEditorStore';
+import { useEditorStore } from '@/presentation/stores';
 
 // ============================================================================
 // Types
@@ -41,9 +41,9 @@ interface MenuPosition {
 export function BubbleMenu({ editor }: BubbleMenuProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState<MenuPosition>({ top: 0, left: 0 });
+  const [isInsideUnmarkedBlock, setIsInsideUnmarkedBlock] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const viewMode = useEditorStore((s) => s.viewMode);
-  const isCleanMode = viewMode === 'clean';
 
   const updatePositionRef = useRef<() => void>();
 
@@ -58,6 +58,18 @@ export function BubbleMenu({ editor }: BubbleMenuProps) {
         setIsVisible(false);
         return;
       }
+
+      // Check if selection is inside an unmarked semantic block
+      let insideUnmarked = false;
+      editor.state.doc.nodesBetween(from, to, (node, pos) => {
+        if (node.type.name === 'semanticBlock' && node.attrs.blockType === 'unmarked') {
+          console.log('[BubbleMenu] Found unmarked block');
+          insideUnmarked = true;
+          return false; // Stop searching
+        }
+      });
+      console.log('[BubbleMenu] Inside unmarked:', insideUnmarked, 'viewMode:', viewMode);
+      setIsInsideUnmarkedBlock(insideUnmarked);
 
       const { view } = editor;
       const start = view.coordsAtPos(from);
@@ -112,79 +124,139 @@ export function BubbleMenu({ editor }: BubbleMenuProps) {
     return () => document.removeEventListener('scroll', handleScroll, true);
   }, [isVisible, editor]);
 
-  const wrapInSemanticBlock = useCallback(
-    (blockType: 'dialogue' | 'description' | 'action' | 'thought') => {
-      if (!editor) return;
-      
-      const { from, to } = editor.state.selection;
-      
-      // Collect all block nodes in selection to preserve paragraph structure
-      const blocks: Array<{ type: string; content?: Array<{ type: string; text?: string; attrs?: Record<string, unknown> }> }> = [];
-      
-      editor.state.doc.nodesBetween(from, to, (node, pos) => {
-        // Only collect block-level nodes (paragraphs, headings, etc.)
-        if (node.isBlock && node.type.name !== 'doc' && node.type.name !== 'scene' && node.type.name !== 'semanticBlock') {
-          // Check if this node is within our selection
-          const nodeFrom = pos;
-          const nodeTo = pos + node.nodeSize;
+  // Extract selected text into a new typed block
+  const markBlock = (blockType: 'dialogue' | 'description' | 'action' | 'thought') => {
+    console.log('[BubbleMenu] markBlock called:', blockType);
+    if (!editor) return;
+    
+    const { selection } = editor.state;
+    const { from, to, $from } = selection;
+    
+    // Get selected text
+    const selectedText = editor.state.doc.textBetween(from, to, '\n');
+    if (!selectedText.trim()) return;
+    
+    console.log('[BubbleMenu] Selected text:', selectedText.substring(0, 50));
+    
+    // Find parent unmarked block
+    let blockPos = -1;
+    let blockDepth = -1;
+    for (let depth = $from.depth; depth >= 0; depth--) {
+      const node = $from.node(depth);
+      if (node.type.name === 'semanticBlock' && node.attrs.blockType === 'unmarked') {
+        blockPos = $from.before(depth);
+        blockDepth = depth;
+        break;
+      }
+    }
+    
+    if (blockPos === -1) {
+      console.log('[BubbleMenu] No unmarked block found');
+      return;
+    }
+    
+    console.log('[BubbleMenu] Creating new', blockType, 'block at', blockPos);
+    
+    // Create new block with selected content, then delete selection
+    editor
+      .chain()
+      .focus()
+      .command(({ tr, dispatch }) => {
+        if (dispatch) {
+          // First delete the selected text
+          tr.delete(from, to);
           
-          // Only include if node overlaps with selection
-          if (nodeFrom < to && nodeTo > from) {
-            const blockContent: Array<{ type: string; text?: string; attrs?: Record<string, unknown> }> = [];
-            
-            // Get text content of this block
-            node.forEach((child) => {
-              if (child.isText) {
-                blockContent.push({ type: 'text', text: child.text || '' });
-              } else if (child.type.name === 'entityMention') {
-                // Preserve @mentions
-                blockContent.push({
-                  type: 'entityMention',
-                  attrs: child.attrs as Record<string, unknown>,
-                });
-              }
-            });
-            
-            if (blockContent.length > 0) {
-              blocks.push({
-                type: node.type.name,
-                content: blockContent,
-              });
+          // Insert new block before the unmarked block
+          const newBlock = editor.state.schema.nodes.semanticBlock.create(
+            { blockType, speakers: [], isNew: false },
+            editor.state.schema.nodes.paragraph.create(
+              null,
+              selectedText ? editor.state.schema.text(selectedText) : null
+            )
+          );
+          
+          tr.insert(blockPos, newBlock);
+        }
+        return true;
+      })
+      .run();
+  };
+
+  // Create new scene from selected text
+  const createSceneFromSelection = () => {
+    console.log('[BubbleMenu] createSceneFromSelection called');
+    if (!editor) return;
+    
+    const { selection } = editor.state;
+    const { from, to, $from } = selection;
+    
+    // Get selected content as slice (preserves structure)
+    const slice = editor.state.doc.slice(from, to);
+    if (!slice.content.size) return;
+    
+    console.log('[BubbleMenu] Creating scene from selection');
+    
+    // Find parent scene
+    let scenePos = -1;
+    for (let depth = $from.depth; depth >= 0; depth--) {
+      const node = $from.node(depth);
+      if (node.type.name === 'scene') {
+        scenePos = $from.after(depth);
+        break;
+      }
+    }
+    
+    if (scenePos === -1) return;
+    
+    editor
+      .chain()
+      .focus()
+      .command(({ tr, dispatch }) => {
+        if (dispatch) {
+          const schema = editor.state.schema;
+          
+          // Convert slice content to array of paragraph nodes
+          const paragraphs: any[] = [];
+          slice.content.forEach((node) => {
+            if (node.type.name === 'paragraph') {
+              paragraphs.push(node);
+            } else if (node.isText) {
+              paragraphs.push(schema.nodes.paragraph.create(null, node));
+            }
+          });
+          
+          // If no paragraphs found, create one from text
+          if (paragraphs.length === 0) {
+            const text = editor.state.doc.textBetween(from, to);
+            if (text) {
+              paragraphs.push(schema.nodes.paragraph.create(null, schema.text(text)));
             }
           }
+          
+          // Create new scene with unmarked block
+          const newScene = schema.nodes.scene.create(
+            { title: 'Новая сцена' },
+            schema.nodes.semanticBlock.create(
+              { blockType: 'unmarked', speakers: [], isNew: false },
+              paragraphs
+            )
+          );
+          
+          // Delete selection first
+          tr.delete(from, to);
+          
+          // Insert new scene (adjust position after deletion)
+          const adjustedPos = scenePos - (to - from);
+          tr.insert(adjustedPos, newScene);
         }
-        return true; // Continue traversing
-      });
-      
-      if (blocks.length === 0) {
-        setIsVisible(false);
-        return;
-      }
-      
-      // Delete selection and insert semantic block preserving structure
-      editor
-        .chain()
-        .focus()
-        .deleteRange({ from, to })
-        .insertContent({
-          type: 'semanticBlock',
-          attrs: { blockType },
-          content: blocks,
-        })
-        .run();
-      
-      setIsVisible(false);
-    },
-    [editor]
-  );
-
-  const convertToPlainText = useCallback(() => {
-    if (!editor) return;
-    editor.commands.unsetSemanticBlock();
-    setIsVisible(false);
-  }, [editor]);
+        return true;
+      })
+      .run();
+  };
 
   if (!editor || !isVisible) return null;
+
+  const showSemanticButtons = viewMode === 'syntax' && isInsideUnmarkedBlock;
 
   return (
     <div
@@ -277,38 +349,35 @@ export function BubbleMenu({ editor }: BubbleMenuProps) {
         tooltip="Цитата"
       />
 
-      {/* Semantic block conversions - hidden in clean mode */}
-      {!isCleanMode && (
+      {/* Semantic block buttons - only in Syntax mode and inside unmarked block */}
+      {showSemanticButtons && (
         <>
           <div className="w-px h-5 bg-[#4a5568] mx-1" />
-
           <MenuButton
             icon={MessageCircle}
-            onClick={() => wrapInSemanticBlock('dialogue')}
+            onClick={() => markBlock('dialogue')}
             tooltip="Диалог"
           />
           <MenuButton
             icon={Mountain}
-            onClick={() => wrapInSemanticBlock('description')}
+            onClick={() => markBlock('description')}
             tooltip="Описание"
           />
           <MenuButton
             icon={Zap}
-            onClick={() => wrapInSemanticBlock('action')}
+            onClick={() => markBlock('action')}
             tooltip="Действие"
           />
           <MenuButton
             icon={Brain}
-            onClick={() => wrapInSemanticBlock('thought')}
+            onClick={() => markBlock('thought')}
             tooltip="Мысли"
           />
-
           <div className="w-px h-5 bg-[#4a5568] mx-1" />
-
           <MenuButton
-            icon={FileText}
-            onClick={convertToPlainText}
-            tooltip="Обычный текст"
+            icon={Film}
+            onClick={createSceneFromSelection}
+            tooltip="Создать сцену"
           />
         </>
       )}

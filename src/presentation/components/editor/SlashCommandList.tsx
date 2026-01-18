@@ -29,12 +29,11 @@ export interface SlashCommandListProps {
 
 const GROUP_LABELS: Record<string, string> = {
   format: 'Форматирование',
-  semantic: 'Семантические блоки',
   entity: 'Упоминания',
   scene: 'Сцены',
 };
 
-const GROUP_ORDER: string[] = ['format', 'semantic', 'entity', 'scene'];
+const GROUP_ORDER: string[] = ['format', 'entity', 'scene'];
 
 // ============================================================================
 // Component

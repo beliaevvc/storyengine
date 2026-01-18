@@ -8,6 +8,7 @@ import { SearchInput } from './SearchInput';
 import { FileTree } from './FileTree';
 import { useDocumentStore, useWorkspaceStore } from '@/presentation/stores';
 import { createDocument } from '@/app/actions/supabase/document-actions';
+import { createDefaultDocumentContent } from '@/presentation/utils/migrateDocument';
 import type { Document } from '@/core/entities/document';
 
 export function FilesTab() {
@@ -68,10 +69,7 @@ export function FilesTab() {
         project_id: projectId,
         title: `Документ ${rootDocsCount + 1}`,
         type: 'DOCUMENT',
-        content: {
-          type: 'doc',
-          content: [{ type: 'paragraph', content: [] }],
-        },
+        content: createDefaultDocumentContent(),
       });
 
       if (data && !error) {
