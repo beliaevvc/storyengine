@@ -11,6 +11,8 @@ interface CursorPosition {
   to: number;
 }
 
+export type ViewMode = 'syntax' | 'clean';
+
 interface EditorState {
   // Editor instance
   editor: Editor | null;
@@ -29,6 +31,9 @@ interface EditorState {
   // Cursor position
   cursorPosition: CursorPosition | null;
 
+  // View mode: syntax (with markup) or clean (plain text)
+  viewMode: ViewMode;
+
   // Actions
   actions: {
     setEditor: (editor: Editor | null) => void;
@@ -39,6 +44,7 @@ interface EditorState {
     addActiveEntityId: (id: string) => void;
     clearActiveEntityIds: () => void;
     setCursorPosition: (position: CursorPosition | null) => void;
+    setViewMode: (mode: ViewMode) => void;
     reset: () => void;
   };
 }
@@ -55,6 +61,7 @@ const initialState = {
   isDirty: false,
   activeEntityIds: [] as string[],
   cursorPosition: null as CursorPosition | null,
+  viewMode: 'syntax' as ViewMode,
 };
 
 // ============================================================================
@@ -97,6 +104,9 @@ export const useEditorStore = create<EditorState>()(
         setCursorPosition: (cursorPosition) =>
           set({ cursorPosition }, false, 'setCursorPosition'),
 
+        setViewMode: (viewMode) =>
+          set({ viewMode }, false, 'setViewMode'),
+
         reset: () => set(initialState, false, 'reset'),
       },
     }),
@@ -115,3 +125,4 @@ export const selectEditorDocumentId = (state: EditorState) => state.currentDocum
 export const selectIsDirty = (state: EditorState) => state.isDirty;
 export const selectActiveEntityIds = (state: EditorState) => state.activeEntityIds;
 export const selectCursorPosition = (state: EditorState) => state.cursorPosition;
+export const selectViewMode = (state: EditorState) => state.viewMode;

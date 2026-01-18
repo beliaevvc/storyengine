@@ -1,18 +1,29 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Typography from '@tiptap/extension-typography';
 import CharacterCount from '@tiptap/extension-character-count';
-import { EntityMark, SceneExtension } from './extensions';
+import {
+  DocumentExtension,
+  EntityMark,
+  EntityMention,
+  createMentionSuggestion,
+  SceneExtension,
+  SemanticBlock,
+  SlashCommands,
+  createSlashCommandSuggestion,
+} from './extensions';
 import { Toolbar } from './Toolbar';
 import { StatusBar } from './StatusBar';
+import { BubbleMenu } from './BubbleMenu';
+import { BlockHandle } from './BlockHandle';
 import { useEditorStore } from '@/presentation/stores';
 import { useEntityDetection } from '@/presentation/hooks';
 import { cn } from '@/lib/utils';
-import type { SceneAttributes } from './extensions/SceneExtension';
+import { migrateDocument } from '@/presentation/utils/migrateDocument';
 
 // ============================================================================
 // Types
@@ -37,34 +48,67 @@ export function StoryEditor({
   const updateCounts = useEditorStore((s) => s.actions.updateCounts);
   const setDirty = useEditorStore((s) => s.actions.setDirty);
 
-  // DEBUG: Log initial content
-  const contentObj = content as { type?: string; content?: unknown[] } | undefined;
-  const sceneNodes = contentObj?.content?.filter((n: any) => n.type === 'scene') || [];
-  console.log('[StoryEditor] Initializing with content:', {
-    hasContent: !!content,
-    contentType: contentObj?.type,
-    totalNodes: contentObj?.content?.length || 0,
-    sceneCount: sceneNodes.length,
-    scenes: sceneNodes.map((s: any) => ({ id: s.attrs?.id, slug: s.attrs?.slug })),
-  });
+  // Migrate document to scene-centric format if needed
+  const migratedContent = useMemo(() => {
+    const migrated = migrateDocument(content);
+    console.log('[StoryEditor] Content migration:', {
+      original: content,
+      migrated,
+      sceneCount: migrated.content?.length || 0,
+    });
+    return migrated;
+  }, [content]);
 
   const editor = useEditor({
     // CRITICAL: Prevents SSR hydration mismatches in Next.js
     immediatelyRender: false,
     extensions: [
+      // Override default document with scene-centric version
+      DocumentExtension,
+      
+      // StarterKit without document (we use our own)
       StarterKit.configure({
+        document: false, // Use our DocumentExtension instead
         heading: { levels: [1, 2, 3] },
+        dropcursor: {
+          color: '#539bf5', // accent color
+          width: 2,
+        },
       }),
+      
+      // Placeholder for empty states
       Placeholder.configure({
-        placeholder: 'Нажмите Cmd+Shift+S чтобы создать первую сцену...',
+        placeholder: ({ node }) => {
+          if (node.type.name === 'scene') {
+            return 'Начните писать... Используйте / для команд';
+          }
+          if (node.type.name === 'semanticBlock') {
+            return 'Введите текст...';
+          }
+          return 'Используйте / для вызова меню команд...';
+        },
         includeChildren: true,
       }),
+      
       Typography,
       CharacterCount,
       EntityMark,
+      
+      // @mentions for entities (inline speaker markers in dialogues)
+      EntityMention.configure({
+        suggestion: createMentionSuggestion(),
+      }),
+      
+      // Scene-centric architecture
       SceneExtension,
+      SemanticBlock,
+      
+      // Slash commands (Notion-style)
+      SlashCommands.configure({
+        suggestion: createSlashCommandSuggestion(),
+      }),
     ],
-    content,
+    content: migratedContent,
     onUpdate: ({ editor }) => {
       onUpdate?.(editor.getJSON());
       setDirty(true);
@@ -118,8 +162,12 @@ export function StoryEditor({
   return (
     <div className={cn('h-full flex flex-col bg-canvas', className)}>
       <Toolbar editor={editor} />
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-3xl mx-auto">
+      <div className="flex-1 overflow-auto p-4">
+        <div className="max-w-5xl mx-auto relative">
+          {/* Bubble Menu - appears on text selection */}
+          <BubbleMenu editor={editor} />
+          {/* Block Handle - plus button on hover for adding blocks */}
+          <BlockHandle editor={editor} />
           <EditorContent editor={editor} />
         </div>
       </div>

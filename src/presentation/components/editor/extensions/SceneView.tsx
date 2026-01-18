@@ -3,43 +3,18 @@
 import { useCallback, useState, useRef, useEffect, useMemo, useTransition } from 'react';
 import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
-import {
-  GripVertical,
-  ChevronDown,
-  ChevronRight,
-  MapPin,
-  Circle,
-  Trash2,
-  Users,
-  Plus,
-  X,
-  Sparkles,
-  Target,
-  Zap,
-  ArrowRightLeft,
-  Loader2,
-} from 'lucide-react';
+import { GripVertical, Pencil, ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
 import type { SceneStatus } from './SceneExtension';
 import { useEntityStore } from '@/presentation/stores/useEntityStore';
 import { useProjectStore } from '@/presentation/stores/useProjectStore';
+import { useEditorStore } from '@/presentation/stores/useEditorStore';
 import { createEntity } from '@/app/actions/supabase/entity-actions';
 
-const STATUS_COLORS: Record<SceneStatus, string> = {
-  draft: 'bg-zinc-500',
-  review: 'bg-amber-500',
-  final: 'bg-emerald-500',
-};
-
-const STATUS_BORDER_COLORS: Record<SceneStatus, string> = {
-  draft: 'border-l-zinc-600',
-  review: 'border-l-amber-500',
-  final: 'border-l-emerald-500',
-};
-
-const STATUS_LABELS: Record<SceneStatus, string> = {
-  draft: 'Черновик',
-  review: 'На проверке',
-  final: 'Готово',
+// Status config - clean style
+const STATUS_CONFIG: Record<SceneStatus, { label: string; dotColor: string }> = {
+  draft: { label: 'Черновик', dotColor: 'bg-zinc-400' },
+  review: { label: 'Проверка', dotColor: 'bg-amber-400' },
+  final: { label: 'Готово', dotColor: 'bg-emerald-400' },
 };
 
 export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }: NodeViewProps) {
@@ -57,6 +32,10 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
     change = '',
     metaExpanded = false,
   } = node.attrs;
+
+  // View mode
+  const viewMode = useEditorStore((s) => s.viewMode);
+  const isCleanMode = viewMode === 'clean';
   
   // State for editing fields
   const [isEditingSlug, setIsEditingSlug] = useState(false);
@@ -269,7 +248,7 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
   const addCharacter = useCallback((characterId: string) => {
     const newCharacters = [...sceneCharacters, characterId];
     updateAttributes({ characters: newCharacters });
-    setShowCharacterPicker(false);
+    // Don't close picker - allow adding multiple characters
   }, [sceneCharacters, updateAttributes]);
 
   const removeCharacter = useCallback((characterId: string) => {
@@ -285,6 +264,33 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
     updateAttributes({ [field]: value });
   }, [updateAttributes]);
 
+  // Add new scene after this one
+  const handleAddAfterScene = useCallback(() => {
+    if (!editor || typeof getPos !== 'function') return;
+    
+    const pos = getPos();
+    const endPos = pos + node.nodeSize;
+    
+    // Insert a new scene with empty block after this one
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(endPos, {
+        type: 'scene',
+        attrs: {
+          slug: 'Новая сцена',
+          status: 'draft',
+        },
+        content: [{
+          type: 'semanticBlock',
+          attrs: { blockType: 'empty' },
+          content: [{ type: 'paragraph' }],
+        }],
+      })
+      .setTextSelection(endPos + 3)
+      .run();
+  }, [editor, getPos, node.nodeSize]);
+
   // Get character names for display
   const getCharacterName = useCallback((charId: string) => {
     const char = allCharacters.find(c => c.id === charId);
@@ -297,307 +303,115 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
     [allCharacters, sceneCharacters]
   );
 
+  const statusConfig = STATUS_CONFIG[(status || 'draft') as SceneStatus];
+
+  // Calculate word count
+  const wordCount = useMemo(() => {
+    const text = node.textContent || '';
+    return text.trim().split(/\s+/).filter(Boolean).length;
+  }, [node.textContent]);
+
+  // Clean mode: minimal
+  if (isCleanMode) {
+    return (
+      <NodeViewWrapper className="scene-node my-8" data-scene-id={id}>
+        <div className="pb-2 mb-4 border-b border-[#30363d]" contentEditable={false}>
+          <h2 className="text-lg font-serif text-[#c9d1d9]">{slug}</h2>
+        </div>
+        <div className="scene-content">
+          <NodeViewContent className="prose prose-invert prose-sm max-w-none" />
+        </div>
+      </NodeViewWrapper>
+    );
+  }
+
+  // Syntax mode: Clean card style - compact
   return (
     <NodeViewWrapper
-      className={`
-        scene-node 
-        relative 
-        my-4 
-        rounded-md 
-        border-l-4 
-        ${STATUS_BORDER_COLORS[(status || 'draft') as SceneStatus]} 
-        bg-[#1e2329] 
-        transition-all
-        group
-      `}
+      className="scene-node relative my-2 group/scene"
       data-scene-id={id}
     >
-      {/* Drag Handle */}
+      {/* Drag Handle - appears on hover */}
       <div
-        className="
-          absolute 
-          -left-6 
-          top-0 
-          h-full 
-          w-5 
-          flex 
-          items-center 
-          justify-center 
-          opacity-0 
-          group-hover:opacity-100 
-          transition-opacity
-          cursor-grab
-          active:cursor-grabbing
-        "
+        className="absolute -left-6 top-2 opacity-0 group-hover/scene:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
         contentEditable={false}
         draggable
         data-drag-handle
       >
-        <GripVertical className="w-4 h-4 text-fg-muted" />
+        <GripVertical className="w-4 h-4 text-[#6e7681]" />
       </div>
 
-      {/* Header / Meta Bar */}
-      <div
-        className="
-          flex 
-          items-center 
-          justify-between 
-          px-3 
-          py-2 
-          bg-[#282d35] 
-          border-b 
-          border-border 
-          rounded-t-md
-          select-none
-        "
-        contentEditable={false}
-      >
-        {/* Left side: Scene number, slug, location */}
-        <div className="flex items-center gap-3 text-sm">
-          {/* Scene Number */}
-          <span className="text-fg-muted font-mono text-xs">
-            #{sceneNumber}
-          </span>
-
-          {/* Slug / Title */}
-          {isEditingSlug ? (
-            <input
-              ref={slugInputRef}
-              type="text"
-              value={slugValue}
-              onChange={(e) => setSlugValue(e.target.value)}
-              onBlur={handleSlugSave}
-              onKeyDown={handleSlugKeyDown}
-              className="
-                bg-surface 
-                border 
-                border-accent 
-                rounded 
-                px-2 
-                py-0.5 
-                text-sm 
-                text-fg 
-                outline-none
-                w-32
-              "
-            />
-          ) : (
+      {/* Main Card */}
+      <div className="bg-[#282c34] rounded-lg shadow-md border border-[#3a3f4b] overflow-hidden">
+        
+        {/* Card Header */}
+        <div className="flex items-center justify-between px-3 py-2 border-b border-[#3a3f4b]" contentEditable={false}>
+          {/* Left: Collapse + Title */}
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsEditingSlug(true)}
-              className="
-                text-fg 
-                hover:text-accent 
-                font-medium 
-                transition-colors
-              "
+              onClick={toggleCollapse}
+              className="p-0.5 text-[#8b949e] hover:text-white transition-colors"
             >
-              {slug}
+              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-          )}
-
-          {/* Location Picker */}
-          <div className="relative flex items-center gap-1" ref={locationPickerRef}>
-            <MapPin className="w-3 h-3 text-fg-muted" />
-            {currentLocation ? (
-              <span className="
-                inline-flex 
-                items-center 
-                gap-1 
-                px-2 
-                py-0.5 
-                bg-green-500/20 
-                text-green-300 
-                rounded 
-                text-xs
-                group/loc
-              ">
-                {currentLocation.name}
-                <button
-                  onClick={clearLocation}
-                  className="opacity-0 group-hover/loc:opacity-100 hover:text-red-400 transition-opacity"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
+            
+            {isEditingSlug ? (
+              <input
+                ref={slugInputRef}
+                type="text"
+                value={slugValue}
+                onChange={(e) => setSlugValue(e.target.value)}
+                onBlur={handleSlugSave}
+                onKeyDown={handleSlugKeyDown}
+                className="bg-[#22272e] border border-[#444c56] rounded px-2 py-1 text-sm text-white outline-none focus:border-[#58a6ff] w-48"
+              />
             ) : (
               <button
-                onClick={() => setShowLocationPicker(!showLocationPicker)}
-                className="
-                  text-xs 
-                  text-fg-muted
-                  hover:text-fg 
-                  transition-colors
-                  flex
-                  items-center
-                  gap-1
-                "
+                onClick={() => setIsEditingSlug(true)}
+                className="text-sm font-medium text-white hover:text-[#58a6ff] transition-colors"
               >
-                Локация...
-                <Plus className="w-3 h-3" />
+                Сцена {sceneNumber}
+                {slug !== 'Новая сцена' && `: ${slug}`}
               </button>
             )}
-            
-            {/* Location Picker Dropdown */}
-            {showLocationPicker && (
-              <div className="
-                absolute 
-                left-0 
-                top-full 
-                mt-1 
-                w-56 
-                bg-[#22272e] 
-                border 
-                border-border 
-                rounded-md 
-                shadow-lg 
-                z-50
-                max-h-64
-                overflow-hidden
-              ">
-                {/* Create new location */}
-                <div className="p-2 border-b border-border">
-                  <div className="flex items-center gap-1">
-                    <input
-                      ref={newLocationInputRef}
-                      type="text"
-                      value={newLocationName}
-                      onChange={(e) => setNewLocationName(e.target.value)}
-                      onKeyDown={handleNewLocationKeyDown}
-                      placeholder="Новая локация..."
-                      disabled={isCreatingLocation}
-                      className="
-                        flex-1
-                        bg-[#1e2329] 
-                        border 
-                        border-border 
-                        rounded 
-                        px-2 
-                        py-1 
-                        text-xs 
-                        text-fg 
-                        placeholder:text-fg-muted
-                        focus:border-green-500
-                        focus:outline-none
-                        disabled:opacity-50
-                      "
-                    />
-                    <button
-                      onClick={handleCreateLocation}
-                      disabled={!newLocationName.trim() || isCreatingLocation}
-                      className="
-                        p-1
-                        rounded
-                        bg-green-500/20
-                        text-green-400
-                        hover:bg-green-500/30
-                        disabled:opacity-50
-                        disabled:cursor-not-allowed
-                        transition-colors
-                      "
-                    >
-                      {isCreatingLocation ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Plus className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Existing locations */}
-                <div className="max-h-40 overflow-y-auto">
-                  {allLocations.length === 0 ? (
-                    <div className="px-3 py-2 text-xs text-fg-muted">
-                      Нет локаций в проекте
-                    </div>
-                  ) : (
-                    allLocations.map((loc) => (
-                      <button
-                        key={loc.id}
-                        onClick={() => selectLocation(loc)}
-                        className="
-                          w-full 
-                          text-left 
-                          px-3 
-                          py-2 
-                          text-sm 
-                          text-fg 
-                          hover:bg-overlay 
-                          transition-colors
-                          flex
-                          items-center
-                          gap-2
-                        "
-                      >
-                        <MapPin className="w-3 h-3 text-green-400" />
-                        {loc.name}
-                      </button>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
           </div>
-        </div>
 
-        {/* Right side: Status, AI Toggle, Delete & Collapse */}
-        <div className="flex items-center gap-2">
-          {/* Meta Fields Toggle */}
-          <button
-            onClick={toggleMeta}
-            className={`
-              p-1 
-              rounded 
-              hover:bg-overlay 
-              transition-colors
-              ${metaExpanded ? 'text-purple-400' : 'text-fg-muted hover:text-fg'}
-            `}
-            title="Метаданные сцены"
-          >
-            <Sparkles className="w-4 h-4" />
-          </button>
+          {/* Right: Word count + Status + Actions */}
+          <div className="flex items-center gap-3">
+            {/* Word count */}
+            <span className="text-xs text-[#8b949e]">{wordCount} слов</span>
+            
+            {/* Status dot */}
+            <button
+              onClick={cycleStatus}
+              className="flex items-center gap-1.5"
+              title={`Статус: ${statusConfig.label}`}
+            >
+              <span className={`w-2 h-2 rounded-full ${statusConfig.dotColor}`} />
+            </button>
 
-          {/* Status Indicator */}
-          <button
-            onClick={cycleStatus}
-            className="
-              flex 
-              items-center 
-              gap-1.5 
-              text-xs 
-              text-fg-muted 
-              hover:text-fg 
-              transition-colors
-              px-2
-              py-1
-              rounded
-              hover:bg-overlay
-            "
-            title={`Статус: ${STATUS_LABELS[(status || 'draft') as SceneStatus]}`}
-          >
-            <Circle
-              className={`w-2 h-2 ${STATUS_COLORS[(status || 'draft') as SceneStatus]} rounded-full`}
-              fill="currentColor"
-            />
-            <span className="hidden sm:inline">
-              {STATUS_LABELS[(status || 'draft') as SceneStatus]}
-            </span>
-          </button>
+            {/* Edit button */}
+            <button
+              onClick={() => setIsEditingSlug(true)}
+              className="p-1 text-[#8b949e] hover:text-white transition-colors"
+              title="Редактировать"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
 
-          {/* Delete Button */}
-          <div className="relative">
+            {/* Delete button with confirmation */}
             {showDeleteConfirm ? (
-              <div className="flex items-center gap-1 bg-red-500/20 rounded px-2 py-1">
-                <span className="text-xs text-red-400">Удалить?</span>
+              <div className="flex items-center gap-1 text-xs">
+                <span className="text-red-400">Удалить?</span>
                 <button
                   onClick={handleDelete}
-                  className="text-red-400 hover:text-red-300 text-xs font-medium"
+                  className="px-1.5 py-0.5 text-red-400 hover:bg-red-400/20 rounded transition-colors"
                 >
                   Да
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="text-fg-muted hover:text-fg text-xs"
+                  className="px-1.5 py-0.5 text-[#6e7681] hover:bg-[#3a3f4b] rounded transition-colors"
                 >
                   Нет
                 </button>
@@ -605,288 +419,164 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
             ) : (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="
-                  p-1 
-                  rounded 
-                  hover:bg-red-500/20 
-                  text-fg-muted 
-                  hover:text-red-400 
-                  transition-colors
-                "
+                className="p-1 text-[#6e7681] hover:text-red-400 transition-colors"
                 title="Удалить сцену"
               >
-                <Trash2 className="w-4 h-4" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
-
-          {/* Collapse Button */}
-          <button
-            onClick={toggleCollapse}
-            className="
-              p-1 
-              rounded 
-              hover:bg-overlay 
-              text-fg-muted 
-              hover:text-fg 
-              transition-colors
-            "
-            title={collapsed ? 'Развернуть' : 'Свернуть'}
-          >
-            {collapsed ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
         </div>
-      </div>
 
-      {/* Characters Bar */}
-      <div
-        className="
-          flex 
-          items-center 
-          gap-2 
-          px-3 
-          py-1.5 
-          bg-[#252a32] 
-          border-b 
-          border-border
-          select-none
-        "
-        contentEditable={false}
-      >
-        <Users className="w-3.5 h-3.5 text-fg-muted" />
-        <div className="flex items-center gap-1.5 flex-wrap flex-1">
-          {sceneCharacters.length === 0 ? (
-            <span className="text-xs text-fg-muted italic">Нет персонажей</span>
-          ) : (
-            sceneCharacters.map((charId) => (
-              <span
-                key={charId}
-                className="
-                  inline-flex 
-                  items-center 
-                  gap-1 
-                  px-2 
-                  py-0.5 
-                  bg-blue-500/20 
-                  text-blue-300 
-                  rounded 
-                  text-xs
-                  group/char
-                "
-              >
-                {getCharacterName(charId)}
-                <button
-                  onClick={() => removeCharacter(charId)}
-                  className="opacity-0 group-hover/char:opacity-100 hover:text-red-400 transition-opacity"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))
-          )}
-        </div>
-        
-        {/* Add Character Button */}
-        <div className="relative" ref={characterPickerRef}>
-          <button
-            onClick={() => setShowCharacterPicker(!showCharacterPicker)}
-            className="
-              p-1 
-              rounded 
-              hover:bg-overlay 
-              text-fg-muted 
-              hover:text-fg 
-              transition-colors
-            "
-            title="Добавить персонажа"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-          
-          {/* Character Picker Dropdown */}
-          {showCharacterPicker && (
-            <div className="
-              absolute 
-              right-0 
-              top-full 
-              mt-1 
-              w-48 
-              bg-[#22272e] 
-              border 
-              border-border 
-              rounded-md 
-              shadow-lg 
-              z-50
-              max-h-48
-              overflow-y-auto
-            ">
-              {availableCharacters.length === 0 ? (
-                <div className="px-3 py-2 text-xs text-fg-muted">
-                  {allCharacters.length === 0 
-                    ? 'Нет персонажей в проекте' 
-                    : 'Все персонажи добавлены'}
-                </div>
+        {/* Location & Characters row - always visible */}
+        {!collapsed && (
+          <div className="flex items-center gap-4 px-3 py-1.5 border-b border-[#3a3f4b] text-xs" contentEditable={false}>
+            {/* Location */}
+            <div className="relative flex items-center gap-1.5" ref={locationPickerRef}>
+              <span className="text-[#6e7681]">📍</span>
+              {currentLocation ? (
+                <span className="text-[#58a6ff] flex items-center gap-1">
+                  {currentLocation.name}
+                  <button onClick={clearLocation} className="text-[#6e7681] hover:text-red-400">×</button>
+                </span>
               ) : (
-                availableCharacters.map((char) => (
-                  <button
-                    key={char.id}
-                    onClick={() => addCharacter(char.id)}
-                    className="
-                      w-full 
-                      text-left 
-                      px-3 
-                      py-2 
-                      text-sm 
-                      text-fg 
-                      hover:bg-overlay 
-                      transition-colors
-                    "
-                  >
-                    {char.name}
-                  </button>
-                ))
+                <button
+                  onClick={() => setShowLocationPicker(!showLocationPicker)}
+                  className="text-[#6e7681] hover:text-[#58a6ff] transition-colors"
+                >
+                  + локация
+                </button>
+              )}
+              {showLocationPicker && (
+                <div className="absolute left-0 top-full mt-1 bg-[#22272e] border border-[#444c56] rounded shadow-lg z-50 min-w-[160px]">
+                  <div className="p-2 border-b border-[#444c56]">
+                    <input
+                      ref={newLocationInputRef}
+                      value={newLocationName}
+                      onChange={(e) => setNewLocationName(e.target.value)}
+                      onKeyDown={handleNewLocationKeyDown}
+                      placeholder="Новая локация..."
+                      className="w-full bg-[#2d333b] border border-[#444c56] rounded px-2 py-1 text-xs text-white placeholder:text-[#6e7681] focus:outline-none focus:border-[#58a6ff]"
+                    />
+                  </div>
+                  <div className="max-h-[120px] overflow-y-auto">
+                    {allLocations.map((loc) => (
+                      <button
+                        key={loc.id}
+                        onClick={() => selectLocation(loc)}
+                        className="w-full text-left px-3 py-1.5 text-xs text-[#c9d1d9] hover:bg-[#2d333b]"
+                      >
+                        {loc.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* Meta Fields Section (Collapsible) */}
-      {metaExpanded && (
-        <div
-          className="
-            px-3 
-            py-2 
-            bg-[#1a1f26] 
-            border-b 
-            border-border
-            space-y-2
-          "
-          contentEditable={false}
-        >
-          <div className="text-xs text-purple-400 font-medium flex items-center gap-1.5 mb-2">
-            <Sparkles className="w-3 h-3" />
-            Метаданные сцены
+            <span className="text-[#3a3f4b]">|</span>
+
+            {/* Characters */}
+            <div className="flex items-center gap-1.5 flex-wrap" ref={characterPickerRef}>
+              <span className="text-[#6e7681]">👤</span>
+              {sceneCharacters.map((charId) => (
+                <span key={charId} className="bg-[#3a3f4b] px-1.5 py-0.5 rounded text-[#c9d1d9] flex items-center gap-1">
+                  {getCharacterName(charId)}
+                  <button onClick={() => removeCharacter(charId)} className="text-[#6e7681] hover:text-red-400">×</button>
+                </span>
+              ))}
+              <div className="relative">
+                <button
+                  onClick={() => setShowCharacterPicker(!showCharacterPicker)}
+                  className="text-[#6e7681] hover:text-[#58a6ff] transition-colors"
+                >
+                  +
+                </button>
+                {showCharacterPicker && (
+                  <div className="absolute left-0 top-full mt-1 bg-[#22272e] border border-[#444c56] rounded shadow-lg z-50 min-w-[140px]">
+                    {availableCharacters.length === 0 ? (
+                      <div className="px-3 py-2 text-xs text-[#6e7681]">Все добавлены</div>
+                    ) : (
+                      availableCharacters.map((char) => (
+                        <button
+                          key={char.id}
+                          onClick={() => addCharacter(char.id)}
+                          className="w-full text-left px-3 py-1.5 text-xs text-[#c9d1d9] hover:bg-[#2d333b]"
+                        >
+                          {char.name}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          
-          {/* Goal */}
-          <div className="flex items-start gap-2">
-            <Target className="w-3.5 h-3.5 text-fg-muted mt-1.5 flex-shrink-0" />
-            <div className="flex-1">
-              <label className="text-xs text-fg-muted block mb-1">Цель сцены</label>
+        )}
+
+        {/* Meta Section - Goal/Event/Change - always visible */}
+        {!collapsed && (
+          <div className="px-3 py-2 bg-[#21252b] border-b border-[#3a3f4b] space-y-1.5" contentEditable={false}>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#6e7681] w-20">Цель:</span>
               <input
-                type="text"
                 value={goalValue}
                 onChange={(e) => setGoalValue(e.target.value)}
                 onBlur={() => handleMetaFieldSave('goal', goalValue)}
-                placeholder="Что должна достичь эта сцена..."
-                className="
-                  w-full 
-                  bg-[#282d35] 
-                  border 
-                  border-border 
-                  rounded 
-                  px-2 
-                  py-1.5 
-                  text-xs 
-                  text-fg 
-                  placeholder:text-fg-muted
-                  focus:border-purple-500
-                  focus:outline-none
-                  transition-colors
-                "
+                placeholder="..."
+                className="flex-1 bg-transparent text-xs text-[#c9d1d9] placeholder:text-[#6e7681] focus:outline-none"
               />
             </div>
-          </div>
-          
-          {/* Event */}
-          <div className="flex items-start gap-2">
-            <Zap className="w-3.5 h-3.5 text-fg-muted mt-1.5 flex-shrink-0" />
-            <div className="flex-1">
-              <label className="text-xs text-fg-muted block mb-1">Ключевое событие</label>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#6e7681] w-20">Событие:</span>
               <input
-                type="text"
                 value={eventValue}
                 onChange={(e) => setEventValue(e.target.value)}
                 onBlur={() => handleMetaFieldSave('event', eventValue)}
-                placeholder="Что происходит в этой сцене..."
-                className="
-                  w-full 
-                  bg-[#282d35] 
-                  border 
-                  border-border 
-                  rounded 
-                  px-2 
-                  py-1.5 
-                  text-xs 
-                  text-fg 
-                  placeholder:text-fg-muted
-                  focus:border-purple-500
-                  focus:outline-none
-                  transition-colors
-                "
+                placeholder="..."
+                className="flex-1 bg-transparent text-xs text-[#c9d1d9] placeholder:text-[#6e7681] focus:outline-none"
               />
             </div>
-          </div>
-          
-          {/* Change */}
-          <div className="flex items-start gap-2">
-            <ArrowRightLeft className="w-3.5 h-3.5 text-fg-muted mt-1.5 flex-shrink-0" />
-            <div className="flex-1">
-              <label className="text-xs text-fg-muted block mb-1">Изменение</label>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#6e7681] w-20">Изменение:</span>
               <input
-                type="text"
                 value={changeValue}
                 onChange={(e) => setChangeValue(e.target.value)}
                 onBlur={() => handleMetaFieldSave('change', changeValue)}
-                placeholder="Что изменилось в результате..."
-                className="
-                  w-full 
-                  bg-[#282d35] 
-                  border 
-                  border-border 
-                  rounded 
-                  px-2 
-                  py-1.5 
-                  text-xs 
-                  text-fg 
-                  placeholder:text-fg-muted
-                  focus:border-purple-500
-                  focus:outline-none
-                  transition-colors
-                "
+                placeholder="..."
+                className="flex-1 bg-transparent text-xs text-[#c9d1d9] placeholder:text-[#6e7681] focus:outline-none"
               />
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Content Area */}
-      <div
-        className={`
-          scene-content 
-          px-4 
-          py-3 
-          ${collapsed ? 'hidden' : 'block'}
-        `}
-      >
-        <NodeViewContent className="prose prose-invert prose-sm max-w-none" />
+        {/* Content */}
+        {!collapsed && (
+          <div className="scene-content px-2 py-2">
+            <NodeViewContent className="prose prose-invert prose-sm max-w-none [&>*]:my-1" />
+          </div>
+        )}
+
+        {/* Collapsed preview */}
+        {collapsed && (
+          <div className="px-3 py-2 text-sm text-[#8b949e]" contentEditable={false}>
+            {node.textContent.slice(0, 120)}{node.textContent.length > 120 && '...'}
+          </div>
+        )}
       </div>
 
-      {/* Collapsed Preview */}
-      {collapsed && (
-        <div
-          className="px-4 py-2 text-sm text-fg-muted italic truncate"
-          contentEditable={false}
+      {/* Add Scene Button - appears between scenes */}
+      <div
+        className="flex items-center justify-center h-4 opacity-0 group-hover/scene:opacity-100 transition-opacity"
+        contentEditable={false}
+      >
+        <button
+          onClick={handleAddAfterScene}
+          className="flex items-center gap-1 px-2 py-0.5 text-xs text-[#6e7681] hover:text-white hover:bg-[#2d333b] rounded transition-colors"
         >
-          {node.textContent.slice(0, 100)}
-          {node.textContent.length > 100 && '...'}
-        </div>
-      )}
+          <Plus className="w-3 h-3" />
+        </button>
+      </div>
     </NodeViewWrapper>
   );
 }

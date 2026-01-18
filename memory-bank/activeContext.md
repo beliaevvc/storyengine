@@ -1,12 +1,40 @@
 # Active Context
 
 ## Current Status
-**READY FOR NEW TASK**
+**VIEW-001 COMPLETE — Режим "Чистый текст"**
+
+## Последняя реализация
+
+### VIEW-001: Режим просмотра "Чистый текст"
+Добавлен переключатель режимов в тулбаре редактора.
+
+**Режимы:**
+- **Синтаксис** — полный UI с лейблами `[DLG]`, `[DSC]`, спикерами, метаданными
+- **Чистый** — минималистичный режим для чтения
+
+**Изменённые файлы:**
+- `useEditorStore.ts` — viewMode state
+- `Toolbar.tsx` — переключатель
+- `SemanticBlockView.tsx` — conditional rendering
+- `SceneView.tsx` — conditional rendering
+- `EntityMentionComponent.tsx` — conditional rendering
+
+---
+
+### SCENE-003: Scene-Centric Document Architecture (предыдущая)
+Архитектурное переосмысление документа — весь контент внутри сцен.
+
+**Команды:**
+- `/scene` — новая сцена
+- `/dialogue`, `/description`, `/action`, `/thought` — семантические блоки
+- `/h1`, `/h2`, `/h3`, `/bullet`, `/ordered`, `/quote` — форматирование
 
 ## Recent Completions
 
 | Task | Description | Archive |
 |------|-------------|---------|
+| SCENE-003 | Scene-Centric Architecture | (pending archive) |
+| GIT-001 | Подключение GitHub репозитория | `archive/archive-GIT-001.md` ✅ |
 | DND-001 | Drag & Drop файлов в sidebar | `archive/archive-DND-001.md` ✅ |
 | SCENE-002 | Исчезновение сцен после обновления | `archive/archive-SCENE-002.md` ✅ |
 | DB-001 | Переименование и удаление сущностей | `archive/archive-DB-001.md` ✅ |
@@ -54,6 +82,9 @@ npm run dev
 ### Реализовано
 - ✅ 3-panel IDE layout
 - ✅ Tiptap rich text editor
+- ✅ **Scene-centric document architecture** (NEW)
+- ✅ **Slash commands** — Notion-style `/` menu (NEW)
+- ✅ **Semantic blocks** — dialogue/description/action/thought (NEW)
 - ✅ Entity management (CRUD)
 - ✅ Mock AI Scan (regex-based)
 - ✅ Two-way binding (entity ↔ text)

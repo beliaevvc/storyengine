@@ -172,6 +172,43 @@
   .inline-comment:hover {
     @apply bg-yellow-500/30;
   }
+
+  /* Drag & Drop styles */
+  .ProseMirror .is-dragging {
+    @apply opacity-50;
+  }
+
+  .ProseMirror [data-drag-handle] {
+    cursor: grab;
+  }
+
+  .ProseMirror [data-drag-handle]:active {
+    cursor: grabbing;
+  }
+
+  /* Drop indicator */
+  .ProseMirror-gapcursor {
+    @apply relative;
+  }
+
+  .ProseMirror-gapcursor:after {
+    @apply absolute bg-accent;
+    content: "";
+    width: 100%;
+    height: 2px;
+  }
+
+  /* Draggable block indicator */
+  .ProseMirror .semantic-block.ProseMirror-selectednode {
+    @apply ring-2 ring-accent ring-offset-2 ring-offset-canvas;
+  }
+
+  /* Drop cursor for dragging */
+  .ProseMirror-dropcursor {
+    @apply bg-accent;
+    width: 100% !important;
+    height: 2px !important;
+  }
 }
 
 @layer utilities {

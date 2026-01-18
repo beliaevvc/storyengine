@@ -59,9 +59,11 @@ declare module '@tiptap/core' {
 export const SceneExtension = Node.create({
   name: 'scene',
 
-  group: 'block',
-
-  content: 'block+',
+  // НЕ входит в группу 'block' — сцена может быть только на top level документа
+  // Это обеспечивается DocumentExtension с content: 'scene*'
+  
+  // Внутри сцены могут быть ТОЛЬКО семантические блоки (включая empty)
+  content: 'semanticBlock+',
 
   draggable: true,
 
@@ -199,7 +201,9 @@ export const SceneExtension = Node.create({
             },
             content: [
               {
-                type: 'paragraph',
+                type: 'semanticBlock',
+                attrs: { blockType: 'empty' },
+                content: [{ type: 'paragraph' }],
               },
             ],
           });
@@ -240,13 +244,19 @@ export const SceneExtension = Node.create({
           // Delete old scene and insert two new ones
           const newSceneId = uuidv4();
           
+          const defaultContent = [{
+            type: 'semanticBlock',
+            attrs: { blockType: 'empty' },
+            content: [{ type: 'paragraph' }],
+          }];
+          
           return commands.insertContentAt(
             { from: scenePos, to: scenePos + sceneNode.nodeSize },
             [
               {
                 type: 'scene',
                 attrs: { ...sceneNode.attrs },
-                content: beforeContent.content.toJSON() || [{ type: 'paragraph' }],
+                content: beforeContent.content.toJSON() || defaultContent,
               },
               {
                 type: 'scene',
@@ -257,7 +267,7 @@ export const SceneExtension = Node.create({
                   status: 'draft',
                   collapsed: false,
                 },
-                content: afterContent.content.toJSON() || [{ type: 'paragraph' }],
+                content: afterContent.content.toJSON() || defaultContent,
               },
             ]
           );

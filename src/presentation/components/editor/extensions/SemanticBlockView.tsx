@@ -1,0 +1,311 @@
+'use client';
+
+import { useCallback, useState, useMemo, useRef, useEffect } from 'react';
+import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
+import type { NodeViewProps } from '@tiptap/react';
+import { MessageCircle, Mountain, Zap, Brain, X, GripVertical, Plus, FileText } from 'lucide-react';
+import type { SemanticBlockType } from './SemanticBlock';
+import { useEntityStore } from '@/presentation/stores/useEntityStore';
+import { useEditorStore } from '@/presentation/stores/useEditorStore';
+
+// ============================================================================
+// Configuration - Clean card style
+// ============================================================================
+
+interface BlockTypeConfig {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  labelFull: string;
+  bgColor: string;
+  borderColor: string;
+  textColor: string;
+}
+
+const BLOCK_TYPE_CONFIG: Record<SemanticBlockType, BlockTypeConfig> = {
+  empty: {
+    icon: FileText,
+    label: '',
+    labelFull: 'Блок',
+    bgColor: '',
+    borderColor: 'border-[#3a3f4b]',
+    textColor: 'text-[#6e7681]',
+  },
+  dialogue: {
+    icon: MessageCircle,
+    label: 'DLG',
+    labelFull: 'Диалог',
+    bgColor: '',
+    borderColor: 'border-[#444c56]',
+    textColor: 'text-[#8b949e]',
+  },
+  description: {
+    icon: Mountain,
+    label: 'DSC',
+    labelFull: 'Описание',
+    bgColor: '',
+    borderColor: 'border-[#444c56]',
+    textColor: 'text-[#8b949e]',
+  },
+  action: {
+    icon: Zap,
+    label: 'ACT',
+    labelFull: 'Действие',
+    bgColor: '',
+    borderColor: 'border-[#444c56]',
+    textColor: 'text-[#8b949e]',
+  },
+  thought: {
+    icon: Brain,
+    label: 'THT',
+    labelFull: 'Мысли',
+    bgColor: '',
+    borderColor: 'border-[#444c56]',
+    textColor: 'text-[#8b949e]',
+  },
+};
+
+// Available types for conversion (excluding empty)
+const BLOCK_TYPES: SemanticBlockType[] = ['dialogue', 'description', 'action', 'thought'];
+
+// ============================================================================
+// Component
+// ============================================================================
+
+interface Speaker {
+  id: string;
+  name: string;
+}
+
+export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttributes }: NodeViewProps) {
+  const { 
+    blockType = 'description',
+    speakers = [],
+  } = node.attrs as { 
+    blockType: SemanticBlockType; 
+    speakers: Speaker[];
+  };
+
+  const config = BLOCK_TYPE_CONFIG[blockType] || BLOCK_TYPE_CONFIG.description;
+  const viewMode = useEditorStore((s) => s.viewMode);
+  const isCleanMode = viewMode === 'clean';
+
+  const [isHovered, setIsHovered] = useState(false);
+  const [showSpeakerPicker, setShowSpeakerPicker] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  // Get characters from store
+  const allEntities = useEntityStore((state) => state.entities);
+  const characters = useMemo(
+    () => allEntities.filter((e) => e.type === 'CHARACTER'),
+    [allEntities]
+  );
+
+  // Filter out already added speakers
+  const availableCharacters = useMemo(
+    () => characters.filter((c) => !speakers.some((s) => s.id === c.id)),
+    [characters, speakers]
+  );
+
+  // Close picker on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowSpeakerPicker(false);
+      }
+    };
+    if (showSpeakerPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSpeakerPicker]);
+
+  const handleRemove = useCallback(() => {
+    deleteNode();
+  }, [deleteNode]);
+
+  const handleAddBlock = useCallback(() => {
+    if (!editor || typeof getPos !== 'function') return;
+    
+    const pos = getPos();
+    const endPos = pos + node.nodeSize;
+    
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(endPos, {
+        type: 'semanticBlock',
+        attrs: { blockType: 'empty' },
+        content: [{ type: 'paragraph' }],
+      })
+      .setTextSelection(endPos + 2)
+      .run();
+  }, [editor, getPos, node.nodeSize]);
+
+  const handleAddSpeaker = useCallback((char: { id: string; name: string }) => {
+    const newSpeakers = [...speakers, { id: char.id, name: char.name }];
+    updateAttributes({ speakers: newSpeakers });
+    setShowSpeakerPicker(false);
+  }, [speakers, updateAttributes]);
+
+  const handleRemoveSpeaker = useCallback((speakerId: string) => {
+    const newSpeakers = speakers.filter((s) => s.id !== speakerId);
+    updateAttributes({ speakers: newSpeakers });
+  }, [speakers, updateAttributes]);
+
+  // Change block type
+  const handleChangeType = useCallback((newType: SemanticBlockType) => {
+    updateAttributes({ blockType: newType });
+  }, [updateAttributes]);
+
+  // Show speaker picker only for dialogue and thought
+  const showSpeakerField = blockType === 'dialogue' || blockType === 'thought';
+  const isEmptyBlock = blockType === 'empty';
+  const Icon = config.icon;
+
+  // Clean mode: minimal wrapper with just content
+  if (isCleanMode) {
+    return (
+      <NodeViewWrapper className="semantic-block my-3" data-block-type={blockType}>
+        <NodeViewContent className="prose prose-invert prose-sm max-w-none" />
+      </NodeViewWrapper>
+    );
+  }
+
+  // Syntax mode: Clean neutral style - compact with always visible border
+  return (
+    <NodeViewWrapper
+      className="semantic-block relative mt-1 mb-3 group/semantic rounded border border-[#3a3f4b] hover:border-[#444c56] transition-colors"
+      data-block-type={blockType}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Drag handle */}
+      <div
+        className="absolute -left-6 top-2 opacity-0 group-hover/semantic:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+        contentEditable={false}
+        data-drag-handle
+        draggable="true"
+      >
+        <GripVertical className="w-4 h-4 text-[#6e7681]" />
+      </div>
+
+      {/* Block header */}
+      <div
+        className="flex items-center gap-2 px-2 py-1"
+        contentEditable={false}
+        ref={pickerRef}
+      >
+        {/* Empty block: show type selector */}
+        {isEmptyBlock ? (
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-[#6e7681] mr-1">Тип:</span>
+            {BLOCK_TYPES.map((type) => {
+              const typeConfig = BLOCK_TYPE_CONFIG[type];
+              const TypeIcon = typeConfig.icon;
+              return (
+                <button
+                  key={type}
+                  onClick={() => handleChangeType(type)}
+                  className="flex items-center gap-1 px-2 py-0.5 text-xs text-[#8b949e] hover:text-white hover:bg-[#3a3f4b] rounded transition-colors"
+                  title={typeConfig.labelFull}
+                >
+                  <TypeIcon className="w-3.5 h-3.5" />
+                  {typeConfig.labelFull}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <>
+            {/* Regular block: show icon + label */}
+            <Icon className={`w-4 h-4 ${config.textColor}`} />
+            <span className={`text-xs font-medium ${config.textColor}`}>
+              {config.labelFull}
+            </span>
+            
+            {/* Speakers for dialogue/thought */}
+            {showSpeakerField && speakers.length > 0 && (
+              <div className="flex items-center gap-1.5 ml-2">
+                {speakers.map((speaker) => (
+                  <span key={speaker.id} className="text-xs bg-[#2d333b] px-2 py-0.5 rounded text-[#c9d1d9] flex items-center gap-1">
+                    {speaker.name}
+                    <button
+                      onClick={() => handleRemoveSpeaker(speaker.id)}
+                      className="text-[#6e7681] hover:text-red-400"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            
+            {showSpeakerField && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowSpeakerPicker(!showSpeakerPicker)}
+                  className="text-xs text-[#6e7681] hover:text-[#c9d1d9] transition-colors"
+                >
+                  + персонаж
+                </button>
+                {showSpeakerPicker && (
+                  <div className="absolute top-full left-0 mt-1 bg-[#22272e] border border-[#444c56] rounded shadow-lg z-50 min-w-[140px]">
+                    {availableCharacters.length === 0 ? (
+                      <div className="px-3 py-2 text-xs text-[#6e7681]">Все добавлены</div>
+                    ) : (
+                      availableCharacters.map((char) => (
+                        <button
+                          key={char.id}
+                          onClick={() => handleAddSpeaker(char)}
+                          className="w-full text-left px-3 py-1.5 text-xs text-[#c9d1d9] hover:bg-[#2d333b] transition-colors"
+                        >
+                          {char.name}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Delete button - always present, opacity changes */}
+        <button
+          onClick={handleRemove}
+          className={`p-1 text-[#6e7681] hover:text-red-400 transition-all ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+          contentEditable={false}
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* Divider line */}
+      <div className="mx-2 border-t border-[#3a3f4b]" contentEditable={false} />
+
+      {/* Content */}
+      <div className="px-2 py-1">
+        <NodeViewContent className="prose prose-invert prose-sm max-w-none [&>*]:my-0.5" />
+      </div>
+
+      {/* Add block button between blocks */}
+      <div
+        className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 opacity-0 group-hover/semantic:opacity-100 transition-opacity z-10"
+        contentEditable={false}
+      >
+        <button
+          onClick={handleAddBlock}
+          className="w-5 h-5 flex items-center justify-center rounded bg-[#2d333b] border border-[#444c56] text-[#6e7681] hover:text-white hover:border-[#6e7681] transition-colors"
+          title="Добавить блок"
+        >
+          <Plus className="w-3 h-3" />
+        </button>
+      </div>
+    </NodeViewWrapper>
+  );
+}
+
+export default SemanticBlockView;

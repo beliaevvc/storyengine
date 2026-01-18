@@ -2,20 +2,20 @@ import { ReactRenderer } from '@tiptap/react';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { MentionList, MentionListRef } from '../MentionList';
 import type { SuggestionOptions, SuggestionProps } from '@tiptap/suggestion';
-import type { Entity } from '@/types/supabase';
+import { useEntityStore } from '@/presentation/stores/useEntityStore';
 
-export interface MentionSuggestionOptions {
-  entities: Entity[];
-}
-
-export function createMentionSuggestion({
-  entities,
-}: MentionSuggestionOptions): Omit<SuggestionOptions, 'editor'> {
+/**
+ * Creates mention suggestion config that dynamically fetches entities from store.
+ * This ensures entities are always up-to-date when the suggestion is triggered.
+ */
+export function createMentionSuggestion(): Omit<SuggestionOptions, 'editor'> {
   return {
     char: '@',
     allowSpaces: true,
 
     items: ({ query }) => {
+      // Get entities from store dynamically
+      const entities = useEntityStore.getState().entities;
       const searchQuery = query.toLowerCase();
       return entities
         .filter((entity) =>
