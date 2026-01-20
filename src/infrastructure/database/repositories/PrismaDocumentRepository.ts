@@ -71,7 +71,9 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     return {
       id: data.id,
       projectId: data.projectId,
+      parentId: null, // Prisma schema doesn't have parentId yet
       title: data.title,
+      type: 'DOCUMENT' as const, // Default type
       content: data.content as unknown as TiptapContent,
       order: data.order,
       createdAt: data.createdAt,
