@@ -93,7 +93,7 @@ export const createAttributeSchema = z.object({
     .max(100, 'Название не должно превышать 100 символов')
     .transform((val) => val.trim()),
   type: attributeTypeSchema,
-  config: z.record(z.unknown()).default({}),
+  config: z.record(z.string(), z.unknown()).default({}),
   entityTypes: z.array(z.string()).default([]),
   color: z.string().optional(),
   icon: z.string().optional(),
@@ -108,7 +108,7 @@ export const updateAttributeSchema = z.object({
     .transform((val) => val.trim())
     .optional(),
   type: attributeTypeSchema.optional(),
-  config: z.record(z.unknown()).optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
   entityTypes: z.array(z.string()).optional(),
   color: z.string().nullable().optional(),
   icon: z.string().nullable().optional(),
