@@ -34,12 +34,15 @@ export const EntityMention = Mention.extend({
       renderText({ node }: { node: any }) {
         return `@${node.attrs.label ?? node.attrs.id}`;
       },
+      renderHTML({ node }: { node: any }) {
+        return ['span', { class: 'entity-mention' }, `@${node.attrs.label ?? node.attrs.id}`];
+      },
       suggestion: {
         char: '@',
         pluginKey: new PluginKey('entityMention'),
         allowSpaces: true,
       } as Partial<SuggestionOptions>,
-    };
+    } as any;
   },
 
   addAttributes() {
