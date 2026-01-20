@@ -39,6 +39,14 @@ function mapRowToAttribute(row: AttributeRow): AttributeDefinition {
   };
 }
 
+// Helper to get untyped table access (table not in generated types yet)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getTable() {
+  const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase as any).from('attribute_definitions');
+}
+
 /**
  * Получить все атрибуты проекта
  */
@@ -46,10 +54,9 @@ export async function getAttributeDefinitionsAction(
   projectId: string
 ): Promise<ActionResult<AttributeDefinition[]>> {
   try {
-    const supabase = await createClient();
+    const table = await getTable();
 
-    const { data, error } = await supabase
-      .from('attribute_definitions')
+    const { data, error } = await table
       .select('*')
       .eq('project_id', projectId)
       .order('order', { ascending: true });
@@ -79,11 +86,10 @@ export async function createAttributeDefinitionAction(
   input: CreateAttributeInput
 ): Promise<ActionResult<AttributeDefinition>> {
   try {
-    const supabase = await createClient();
+    const table = await getTable();
 
     // Get max order
-    const { data: existingAttrs } = await supabase
-      .from('attribute_definitions')
+    const { data: existingAttrs } = await table
       .select('order')
       .eq('project_id', input.projectId)
       .order('order', { ascending: false })
@@ -93,8 +99,7 @@ export async function createAttributeDefinitionAction(
       ? (existingAttrs[0] as { order: number }).order + 1 
       : 0;
 
-    const { data, error } = await supabase
-      .from('attribute_definitions')
+    const { data, error } = await table
       .insert({
         project_id: input.projectId,
         name: input.name,
@@ -131,7 +136,7 @@ export async function updateAttributeDefinitionAction(
   input: UpdateAttributeInput
 ): Promise<ActionResult<AttributeDefinition>> {
   try {
-    const supabase = await createClient();
+    const table = await getTable();
 
     const updateData: Record<string, unknown> = {};
     if (input.name !== undefined) updateData.name = input.name;
@@ -142,8 +147,7 @@ export async function updateAttributeDefinitionAction(
     if (input.icon !== undefined) updateData.icon = input.icon;
     if (input.order !== undefined) updateData.order = input.order;
 
-    const { data, error } = await supabase
-      .from('attribute_definitions')
+    const { data, error } = await table
       .update(updateData)
       .eq('id', id)
       .select()
@@ -172,17 +176,15 @@ export async function deleteAttributeDefinitionAction(
   id: string
 ): Promise<ActionResult<void>> {
   try {
-    const supabase = await createClient();
+    const table = await getTable();
 
     // Get projectId before delete for revalidation
-    const { data: existing } = await supabase
-      .from('attribute_definitions')
+    const { data: existing } = await table
       .select('project_id')
       .eq('id', id)
       .single();
 
-    const { error } = await supabase
-      .from('attribute_definitions')
+    const { error } = await table
       .delete()
       .eq('id', id);
 
@@ -208,12 +210,11 @@ export async function reorderAttributeDefinitionsAction(
   orderedIds: string[]
 ): Promise<ActionResult<AttributeDefinition[]>> {
   try {
-    const supabase = await createClient();
+    const table = await getTable();
 
     // Update order for each attribute
     for (let i = 0; i < orderedIds.length; i++) {
-      const { error } = await supabase
-        .from('attribute_definitions')
+      const { error } = await table
         .update({ order: i })
         .eq('id', orderedIds[i]);
 
@@ -223,8 +224,7 @@ export async function reorderAttributeDefinitionsAction(
     }
 
     // Fetch updated list
-    const { data, error } = await supabase
-      .from('attribute_definitions')
+    const { data, error } = await table
       .select('*')
       .eq('project_id', projectId)
       .order('order', { ascending: true });

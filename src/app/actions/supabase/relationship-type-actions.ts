@@ -40,6 +40,14 @@ function mapDbToRelationshipType(db: DbRelationshipType): RelationshipType {
   };
 }
 
+// Helper to get untyped table access (table not in generated types yet)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getTable() {
+  const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase as any).from('relationship_types');
+}
+
 // ============================================================================
 // CRUD Operations
 // ============================================================================
@@ -50,10 +58,9 @@ function mapDbToRelationshipType(db: DbRelationshipType): RelationshipType {
 export async function getRelationshipTypesAction(
   projectId: string
 ): Promise<{ success: true; data: RelationshipType[] } | { success: false; error: string }> {
-  const supabase = await createClient();
+  const table = await getTable();
 
-  const { data, error } = await supabase
-    .from('relationship_types')
+  const { data, error } = await table
     .select('*')
     .eq('project_id', projectId)
     .order('order', { ascending: true });
@@ -74,10 +81,9 @@ export async function getRelationshipTypesAction(
 export async function getRelationshipTypeAction(
   typeId: string
 ): Promise<{ success: true; data: RelationshipType } | { success: false; error: string }> {
-  const supabase = await createClient();
+  const table = await getTable();
 
-  const { data, error } = await supabase
-    .from('relationship_types')
+  const { data, error } = await table
     .select('*')
     .eq('id', typeId)
     .single();
@@ -98,10 +104,9 @@ export async function getRelationshipTypeAction(
 export async function createRelationshipTypeAction(
   data: CreateRelationshipTypeData
 ): Promise<{ success: true; data: RelationshipType } | { success: false; error: string }> {
-  const supabase = await createClient();
+  const table = await getTable();
 
-  const { data: created, error } = await supabase
-    .from('relationship_types')
+  const { data: created, error } = await table
     .insert({
       project_id: data.projectId,
       name: data.name,
@@ -134,7 +139,7 @@ export async function updateRelationshipTypeAction(
   projectId: string,
   data: UpdateRelationshipTypeData
 ): Promise<{ success: true; data: RelationshipType } | { success: false; error: string }> {
-  const supabase = await createClient();
+  const table = await getTable();
 
   const updateData: Record<string, unknown> = {};
   if (data.name !== undefined) updateData.name = data.name;
@@ -144,8 +149,7 @@ export async function updateRelationshipTypeAction(
   if (data.color !== undefined) updateData.color = data.color;
   if (data.order !== undefined) updateData.order = data.order;
 
-  const { data: updated, error } = await supabase
-    .from('relationship_types')
+  const { data: updated, error } = await table
     .update(updateData)
     .eq('id', typeId)
     .select()
@@ -170,10 +174,9 @@ export async function deleteRelationshipTypeAction(
   typeId: string,
   projectId: string
 ): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient();
+  const table = await getTable();
 
-  const { error } = await supabase
-    .from('relationship_types')
+  const { error } = await table
     .delete()
     .eq('id', typeId);
 
@@ -193,21 +196,17 @@ export async function reorderRelationshipTypesAction(
   projectId: string,
   orderedIds: string[]
 ): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient();
+  const table = await getTable();
 
   // Update order for each type
-  const updates = orderedIds.map((id, index) =>
-    supabase
-      .from('relationship_types')
-      .update({ order: index })
-      .eq('id', id)
-  );
+  for (let i = 0; i < orderedIds.length; i++) {
+    const { error } = await table
+      .update({ order: i })
+      .eq('id', orderedIds[i]);
 
-  const results = await Promise.all(updates);
-  const firstError = results.find((r) => r.error);
-
-  if (firstError?.error) {
-    return { success: false, error: firstError.error.message };
+    if (error) {
+      return { success: false, error: error.message };
+    }
   }
 
   revalidatePath(`/projects/${projectId}/settings`);
@@ -222,10 +221,10 @@ export async function seedDefaultRelationshipTypesAction(
   projectId: string
 ): Promise<{ success: boolean; error: string | null }> {
   const supabase = await createClient();
+  const table = await getTable();
 
   // Check if types already exist
-  const { data: existing } = await supabase
-    .from('relationship_types')
+  const { data: existing } = await table
     .select('id')
     .eq('project_id', projectId)
     .limit(1);
