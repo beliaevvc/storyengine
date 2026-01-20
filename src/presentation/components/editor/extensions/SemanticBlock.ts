@@ -203,7 +203,7 @@ export const SemanticBlock = Node.create({
       
       // Enter in Clean mode: create new unmarked block after blocks with text
       Enter: ({ editor }) => {
-        const viewMode = editor.storage.viewMode?.current;
+        const viewMode = (editor.storage as any).viewMode?.current;
         
         // Only apply in Clean mode
         if (viewMode !== 'clean') return false;
