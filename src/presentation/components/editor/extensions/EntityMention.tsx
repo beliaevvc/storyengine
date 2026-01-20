@@ -28,7 +28,10 @@ export const EntityMention = Mention.extend({
       HTMLAttributes: {
         class: 'entity-mention',
       },
-      renderLabel({ options, node }) {
+      renderLabel({ node }: { node: any }) {
+        return `@${node.attrs.label ?? node.attrs.id}`;
+      },
+      renderText({ node }: { node: any }) {
         return `@${node.attrs.label ?? node.attrs.id}`;
       },
       suggestion: {
