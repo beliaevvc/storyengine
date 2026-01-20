@@ -269,6 +269,7 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
     if (!editor || typeof getPos !== 'function') return;
     
     const pos = getPos();
+    if (pos === undefined) return;
     const endPos = pos + node.nodeSize;
     
     // Insert a new scene with empty block after this one
