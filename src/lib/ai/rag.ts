@@ -41,14 +41,14 @@ export async function searchContext({
   const embeddingString = `[${queryEmbedding.join(',')}]`;
 
   // Search entities using vector similarity
-  const { data: matchedEntities } = await supabase.rpc('match_entities', {
+  const { data: matchedEntities } = await (supabase as any).rpc('match_entities', {
     query_embedding: embeddingString,
     match_count: maxEntities,
     filter_project_id: projectId,
   });
 
   // Search documents using vector similarity
-  const { data: matchedDocuments } = await supabase.rpc('match_documents', {
+  const { data: matchedDocuments } = await (supabase as any).rpc('match_documents', {
     query_embedding: embeddingString,
     match_count: maxDocuments,
     filter_project_id: projectId,
