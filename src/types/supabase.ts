@@ -311,8 +311,11 @@ export interface Database {
           id: string;
           project_id: string;
           name: string;
-          directed: boolean;
+          reverse_name: string | null;
+          source_entity_types: string[] | null;
+          target_entity_types: string[] | null;
           color: string | null;
+          order: number;
           created_at: string;
           updated_at: string;
         };
@@ -320,8 +323,11 @@ export interface Database {
           id?: string;
           project_id: string;
           name: string;
-          directed?: boolean;
+          reverse_name?: string | null;
+          source_entity_types?: string[] | null;
+          target_entity_types?: string[] | null;
           color?: string | null;
+          order?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -329,8 +335,11 @@ export interface Database {
           id?: string;
           project_id?: string;
           name?: string;
-          directed?: boolean;
+          reverse_name?: string | null;
+          source_entity_types?: string[] | null;
+          target_entity_types?: string[] | null;
           color?: string | null;
+          order?: number;
           created_at?: string;
           updated_at?: string;
         };

@@ -99,10 +99,10 @@ export async function createAttributeDefinitionAction(
         project_id: input.projectId,
         name: input.name,
         type: input.type,
-        config: input.config,
-        entity_types: input.entityTypes,
-        color: input.color,
-        icon: input.icon,
+        config: input.config ?? {},
+        entity_types: input.entityTypes ?? [],
+        color: input.color ?? null,
+        icon: input.icon ?? null,
         order: nextOrder,
       })
       .select()
