@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { entityTypeSchema } from './entitySchemas';
 
 // ============================================
 // BASE SCHEMAS
@@ -6,17 +7,6 @@ import { z } from 'zod';
 
 /** Типы атрибутов */
 export const attributeTypeSchema = z.enum(['number', 'text', 'boolean', 'enum', 'list']);
-
-/** Типы сущностей (для привязки атрибутов) */
-export const entityTypeSchema = z.enum([
-  'CHARACTER',
-  'LOCATION',
-  'ITEM',
-  'EVENT',
-  'FACTION',
-  'WORLDBUILDING',
-  'NOTE',
-]);
 
 // ============================================
 // CONFIG SCHEMAS (для каждого типа атрибута)
