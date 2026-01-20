@@ -31,8 +31,9 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
 export async function updateEntityEmbedding(entityId: string): Promise<void> {
   const supabase = await createClient();
 
-  // Get entity
-  const { data: entity, error: fetchError } = await supabase
+  // Get entity (use type assertion for untyped table)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: entity, error: fetchError } = await (supabase as any)
     .from('entities')
     .select('name, description, attributes')
     .eq('id', entityId)
@@ -54,8 +55,9 @@ export async function updateEntityEmbedding(entityId: string): Promise<void> {
   // Generate embedding
   const embedding = await generateEmbedding(text);
 
-  // Update entity
-  const { error: updateError } = await supabase
+  // Update entity (use type assertion)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (supabase as any)
     .from('entities')
     .update({ embedding: `[${embedding.join(',')}]` })
     .eq('id', entityId);
@@ -69,8 +71,9 @@ export async function updateEntityEmbedding(entityId: string): Promise<void> {
 export async function updateDocumentEmbedding(documentId: string): Promise<void> {
   const supabase = await createClient();
 
-  // Get document
-  const { data: document, error: fetchError } = await supabase
+  // Get document (use type assertion for untyped table)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: document, error: fetchError } = await (supabase as any)
     .from('documents')
     .select('title, content')
     .eq('id', documentId)
@@ -93,8 +96,9 @@ export async function updateDocumentEmbedding(documentId: string): Promise<void>
   // Generate embedding
   const embedding = await generateEmbedding(text);
 
-  // Update document
-  const { error: updateError } = await supabase
+  // Update document (use type assertion)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (supabase as any)
     .from('documents')
     .update({ embedding: `[${embedding.join(',')}]` })
     .eq('id', documentId);
@@ -132,14 +136,16 @@ export async function updateProjectEmbeddings(projectId: string): Promise<{
 }> {
   const supabase = await createClient();
 
-  // Get all entities
-  const { data: entities } = await supabase
+  // Get all entities (use type assertion)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: entities } = await (supabase as any)
     .from('entities')
     .select('id')
     .eq('project_id', projectId);
 
-  // Get all documents
-  const { data: documents } = await supabase
+  // Get all documents (use type assertion)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: documents } = await (supabase as any)
     .from('documents')
     .select('id')
     .eq('project_id', projectId);
