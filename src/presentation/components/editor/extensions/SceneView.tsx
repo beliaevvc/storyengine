@@ -205,7 +205,7 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
       
       if (data && !error) {
         // Add to local store
-        useEntityStore.getState().actions.addEntity(data);
+        useEntityStore.getState().actions.addEntity(data as any);
         // Select the new location
         updateAttributes({ locationId: data.id, location: data.name });
         setShowLocationPicker(false);
