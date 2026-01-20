@@ -234,7 +234,8 @@ export async function seedDefaultRelationshipTypesAction(
   }
 
   // Call the database function to seed defaults
-  const { error } = await supabase.rpc('seed_default_relationship_types', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any).rpc('seed_default_relationship_types', {
     p_project_id: projectId,
   });
 
