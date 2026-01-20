@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useChat } from '@ai-sdk/react';
+import { useState, useRef, useEffect, FormEvent } from 'react';
 import { Send, Loader2, Bot, User, Settings, Trash2 } from 'lucide-react';
 import { Button } from '@/presentation/components/ui/button';
 import { Input } from '@/presentation/components/ui/input';
 import type { AIProvider, AIModel } from '@/lib/ai/providers';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 interface AIChatProps {
   projectId: string;
@@ -15,23 +20,53 @@ export function AIChat({ projectId }: AIChatProps) {
   const [provider, setProvider] = useState<AIProvider>('openai');
   const [model, setModel] = useState<AIModel>('gpt-4o');
   const [showSettings, setShowSettings] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    isLoading,
-    setMessages,
-  } = useChat({
-    api: '/api/ai/chat',
-    body: {
-      projectId,
-      provider,
-      model,
-    },
-  });
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input,
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content })),
+          projectId,
+          provider,
+          model,
+        }),
+      });
+
+      const text = await response.text();
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: text,
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Chat error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Scroll to bottom on new messages
   useEffect(() => {

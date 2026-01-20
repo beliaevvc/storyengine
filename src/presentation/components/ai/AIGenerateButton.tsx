@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useCompletion } from '@ai-sdk/react';
 import {
   Sparkles,
   Loader2,
@@ -61,27 +60,35 @@ export function AIGenerateButton({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<GenerationType>('continueScene');
   const [customPrompt, setCustomPrompt] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { complete, isLoading, completion } = useCompletion({
-    api: '/api/ai/generate',
-    body: {
-      projectId,
-      type: selectedType,
-      currentText,
-    },
-    onFinish: (_, completion) => {
-      if (completion) {
-        onGenerate(completion);
+  const handleGenerate = async () => {
+    const option = GENERATION_OPTIONS.find((o) => o.type === selectedType);
+    const prompt = customPrompt || option?.placeholder || 'Продолжи';
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          projectId,
+          type: selectedType,
+          currentText,
+        }),
+      });
+      const text = await response.text();
+      if (text) {
+        onGenerate(text);
         setIsOpen(false);
         setCustomPrompt('');
       }
-    },
-  });
-
-  const handleGenerate = () => {
-    const option = GENERATION_OPTIONS.find((o) => o.type === selectedType);
-    const prompt = customPrompt || option?.placeholder || 'Продолжи';
-    complete(prompt);
+    } catch (error) {
+      console.error('Generation error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const selectedOption = GENERATION_OPTIONS.find((o) => o.type === selectedType);
