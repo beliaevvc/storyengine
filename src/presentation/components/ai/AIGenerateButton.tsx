@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCompletion } from 'ai/react';
+import { useCompletion } from '@ai-sdk/react';
 import {
   Sparkles,
   Loader2,
