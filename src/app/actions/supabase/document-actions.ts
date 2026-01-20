@@ -2,7 +2,15 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import type { Document, InsertTables, UpdateTables, DocumentType } from '@/types/supabase';
+import type { Document, InsertTables, UpdateTables } from '@/types/supabase';
+
+// Helper to get untyped table access (workaround for type issues)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getTable() {
+  const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase as any).from('documents');
+}
 
 // Get all documents for a project (flat list)
 export async function getDocuments(
@@ -22,7 +30,8 @@ export async function getDocuments(
   }
 
   // DEBUG: Log what we're loading
-  console.log('[getDocuments] Loaded from Supabase:', data?.map(d => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  console.log('[getDocuments] Loaded from Supabase:', (data as any[])?.map((d: any) => ({
     id: d.id,
     title: d.title,
     hasContent: !!d.content,
