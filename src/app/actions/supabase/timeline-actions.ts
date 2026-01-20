@@ -6,6 +6,21 @@ export type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
 
+// Helper to get untyped table access
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getEventsTable() {
+  const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase as any).from('events');
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getDocumentsTable() {
+  const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase as any).from('documents');
+}
+
 export interface TimelineEvent {
   id: string;
   name: string;
@@ -18,18 +33,15 @@ export interface TimelineEvent {
 
 /**
  * Получить все события, в которых участвует entity
- * Для отображения в Timeline на странице профиля сущности
  */
 export async function getEventsByEntityAction(
   entityId: string,
   projectId: string
 ): Promise<ActionResult<TimelineEvent[]>> {
   try {
-    const supabase = await createClient();
+    const table = await getEventsTable();
 
-    // Get all events where this entity is linked
-    const { data: events, error } = await supabase
-      .from('events')
+    const { data: events, error } = await table
       .select(`
         id,
         name,
@@ -48,11 +60,11 @@ export async function getEventsByEntityAction(
       .order('position', { ascending: true });
 
     if (error) {
-      // Table might not exist or other error
       console.warn('getEventsByEntityAction error:', error);
       return { success: true, data: [] };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: TimelineEvent[] = (events || []).map((e: any) => ({
       id: e.id,
       name: e.name,
@@ -74,9 +86,9 @@ export interface BlockReference {
   type: 'scene' | 'block' | 'mention';
   sceneSlug: string | null;
   sceneStatus: string | null;
-  blockType: string | null;  // dialogue, description, action, thought
-  speakerRole: string | null;  // For dialogue blocks
-  textPreview: string | null;  // First ~100 chars of block text
+  blockType: string | null;
+  speakerRole: string | null;
+  textPreview: string | null;
 }
 
 export interface SceneReference {
@@ -84,27 +96,20 @@ export interface SceneReference {
   documentTitle: string;
   documentOrder: number;
   parentTitle: string | null;
-  // Nested references within document
   references: BlockReference[];
 }
 
 /**
  * Получить все документы и сцены, где entity упоминается
- * Ищет:
- * 1. scene ноды с characters массивом или locationId
- * 2. semanticBlock ноды с speakers
- * 3. entityMention ноды (inline @mentions)
  */
 export async function getSceneDocumentsByEntityAction(
   entityId: string,
   projectId: string
 ): Promise<ActionResult<SceneReference[]>> {
   try {
-    const supabase = await createClient();
+    const table = await getDocumentsTable();
 
-    // Get all documents for the project
-    const { data: documents, error } = await supabase
-      .from('documents')
+    const { data: documents, error } = await table
       .select(`
         id,
         title,
@@ -122,21 +127,21 @@ export async function getSceneDocumentsByEntityAction(
     }
 
     // Get parent titles for context
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allParentIds = [...new Set((documents || []).map((d: any) => d.parent_id).filter(Boolean))];
     let parentMap: Record<string, string> = {};
     if (allParentIds.length > 0) {
-      const { data: parents } = await supabase
-        .from('documents')
+      const { data: parents } = await table
         .select('id, title')
         .in('id', allParentIds);
       
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parentMap = (parents || []).reduce((acc: Record<string, string>, p: any) => {
         acc[p.id] = p.title;
         return acc;
       }, {});
     }
 
-    // Find all references to this entity
     const results: SceneReference[] = [];
 
     for (const doc of documents || []) {
@@ -162,9 +167,6 @@ export async function getSceneDocumentsByEntityAction(
   }
 }
 
-/**
- * Extract plain text from Tiptap content, limited to maxLength
- */
 function extractTextPreview(content: unknown, maxLength: number): string | null {
   if (!content) return null;
   
@@ -209,10 +211,6 @@ function extractTextPreview(content: unknown, maxLength: number): string | null 
   return text || null;
 }
 
-/**
- * Find all references to entity in document content
- * Returns structured list of where entity appears
- */
 function findAllEntityReferences(
   content: unknown,
   entityId: string
@@ -226,7 +224,6 @@ function findAllEntityReferences(
     const n = node as Record<string, unknown>;
     const attrs = n.attrs as Record<string, unknown> | undefined;
 
-    // Track current scene context
     if (n.type === 'scene' && attrs) {
       currentScene = {
         slug: (attrs.slug as string) || 'Сцена',
@@ -251,7 +248,6 @@ function findAllEntityReferences(
       }
     }
 
-    // Check semanticBlock for speakers
     if (n.type === 'semanticBlock') {
       const blockType = attrs?.blockType as string | undefined;
       const speakers = attrs?.speakers as Array<{ id: string; name: string }> | undefined;
@@ -273,7 +269,6 @@ function findAllEntityReferences(
       }
     }
 
-    // Check entityMention
     if (n.type === 'entityMention' && attrs) {
       if (attrs.id === entityId) {
         results.push({
@@ -287,14 +282,12 @@ function findAllEntityReferences(
       }
     }
 
-    // Recursively check content
     if (Array.isArray(n.content)) {
       for (const child of n.content) {
         traverse(child);
       }
     }
     
-    // Reset scene context when leaving scene node
     if (n.type === 'scene') {
       currentScene = null;
     }
@@ -303,4 +296,3 @@ function findAllEntityReferences(
   traverse(content);
   return results;
 }
-

@@ -2,12 +2,41 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import type { InsertTables, UpdateTables, Project } from '@/types/supabase';
+import type { Project } from '@/types/supabase';
 
 export type ProjectWithCounts = Project & {
   entities_count: number;
   documents_count: number;
 };
+
+// Helper to get untyped table access
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getProjectsTable() {
+  const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase as any).from('projects');
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getEntitiesTable() {
+  const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase as any).from('entities');
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getDocumentsTable() {
+  const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase as any).from('documents');
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getRelationsTable() {
+  const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase as any).from('entity_relations');
+}
 
 // Get all projects for current user
 export async function getProjects(): Promise<{
@@ -24,8 +53,8 @@ export async function getProjects(): Promise<{
     return { data: null, error: 'Not authenticated' };
   }
 
-  const { data: projects, error } = await supabase
-    .from('projects')
+  const projectsTable = await getProjectsTable();
+  const { data: projects, error } = await projectsTable
     .select('*')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false });
@@ -34,16 +63,18 @@ export async function getProjects(): Promise<{
     return { data: null, error: error.message };
   }
 
+  const entitiesTable = await getEntitiesTable();
+  const documentsTable = await getDocumentsTable();
+
   // Get counts for each project
   const projectsWithCounts = await Promise.all(
-    projects.map(async (project) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (projects as any[]).map(async (project: any) => {
       const [entitiesResult, documentsResult] = await Promise.all([
-        supabase
-          .from('entities')
+        entitiesTable
           .select('id', { count: 'exact', head: true })
           .eq('project_id', project.id),
-        supabase
-          .from('documents')
+        documentsTable
           .select('id', { count: 'exact', head: true })
           .eq('project_id', project.id),
       ]);
@@ -56,17 +87,16 @@ export async function getProjects(): Promise<{
     })
   );
 
-  return { data: projectsWithCounts, error: null };
+  return { data: projectsWithCounts as ProjectWithCounts[], error: null };
 }
 
 // Get single project by ID
 export async function getProject(
   projectId: string
 ): Promise<{ data: Project | null; error: string | null }> {
-  const supabase = await createClient();
+  const table = await getProjectsTable();
 
-  const { data, error } = await supabase
-    .from('projects')
+  const { data, error } = await table
     .select('*')
     .eq('id', projectId)
     .single();
@@ -75,12 +105,19 @@ export async function getProject(
     return { data: null, error: error.message };
   }
 
-  return { data, error: null };
+  return { data: data as Project, error: null };
+}
+
+// Create project input
+interface CreateProjectInput {
+  title: string;
+  description?: string | null;
+  settings?: unknown;
 }
 
 // Create new project
 export async function createProject(
-  input: Omit<InsertTables<'projects'>, 'user_id'>
+  input: CreateProjectInput
 ): Promise<{ data: Project | null; error: string | null }> {
   const supabase = await createClient();
 
@@ -92,8 +129,8 @@ export async function createProject(
     return { data: null, error: 'Not authenticated' };
   }
 
-  const { data, error } = await supabase
-    .from('projects')
+  const table = await getProjectsTable();
+  const { data, error } = await table
     .insert({
       ...input,
       user_id: user.id,
@@ -106,18 +143,24 @@ export async function createProject(
   }
 
   revalidatePath('/projects');
-  return { data, error: null };
+  return { data: data as Project, error: null };
+}
+
+// Update project input
+interface UpdateProjectInput {
+  title?: string;
+  description?: string | null;
+  settings?: unknown;
 }
 
 // Update project
 export async function updateProject(
   projectId: string,
-  input: UpdateTables<'projects'>
+  input: UpdateProjectInput
 ): Promise<{ data: Project | null; error: string | null }> {
-  const supabase = await createClient();
+  const table = await getProjectsTable();
 
-  const { data, error } = await supabase
-    .from('projects')
+  const { data, error } = await table
     .update(input)
     .eq('id', projectId)
     .select()
@@ -129,17 +172,16 @@ export async function updateProject(
 
   revalidatePath('/projects');
   revalidatePath(`/projects/${projectId}`);
-  return { data, error: null };
+  return { data: data as Project, error: null };
 }
 
 // Delete project
 export async function deleteProject(
   projectId: string
 ): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient();
+  const table = await getProjectsTable();
 
-  const { error } = await supabase
-    .from('projects')
+  const { error } = await table
     .delete()
     .eq('id', projectId);
 
@@ -165,9 +207,13 @@ export async function duplicateProject(
     return { data: null, error: 'Not authenticated' };
   }
 
+  const projectsTable = await getProjectsTable();
+  const entitiesTable = await getEntitiesTable();
+  const documentsTable = await getDocumentsTable();
+  const relationsTable = await getRelationsTable();
+
   // Get original project
-  const { data: original, error: fetchError } = await supabase
-    .from('projects')
+  const { data: original, error: fetchError } = await projectsTable
     .select('*')
     .eq('id', projectId)
     .single();
@@ -177,8 +223,7 @@ export async function duplicateProject(
   }
 
   // Create new project
-  const { data: newProject, error: createError } = await supabase
-    .from('projects')
+  const { data: newProject, error: createError } = await projectsTable
     .insert({
       user_id: user.id,
       title: `${original.title} (копия)`,
@@ -193,17 +238,16 @@ export async function duplicateProject(
   }
 
   // Copy entities
-  const { data: entities } = await supabase
-    .from('entities')
+  const { data: entities } = await entitiesTable
     .select('*')
     .eq('project_id', projectId);
 
   if (entities && entities.length > 0) {
     const entityIdMap = new Map<string, string>();
     
-    for (const entity of entities) {
-      const { data: newEntity } = await supabase
-        .from('entities')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const entity of entities as any[]) {
+      const { data: newEntity } = await entitiesTable
         .insert({
           project_id: newProject.id,
           type: entity.type,
@@ -220,14 +264,14 @@ export async function duplicateProject(
     }
 
     // Copy entity relations with new IDs
-    const { data: relations } = await supabase
-      .from('entity_relations')
+    const { data: relations } = await relationsTable
       .select('*')
       .in('source_id', Array.from(entityIdMap.keys()));
 
     if (relations && relations.length > 0) {
-      await supabase.from('entity_relations').insert(
-        relations.map((rel) => ({
+      await relationsTable.insert(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (relations as any[]).map((rel: any) => ({
           source_id: entityIdMap.get(rel.source_id)!,
           target_id: entityIdMap.get(rel.target_id)!,
           relation_type: rel.relation_type,
@@ -239,8 +283,7 @@ export async function duplicateProject(
   }
 
   // Copy documents (handling parent-child relationships)
-  const { data: documents } = await supabase
-    .from('documents')
+  const { data: documents } = await documentsTable
     .select('*')
     .eq('project_id', projectId)
     .order('order');
@@ -249,9 +292,9 @@ export async function duplicateProject(
     const docIdMap = new Map<string, string>();
 
     // First pass: create all documents without parent_id
-    for (const doc of documents) {
-      const { data: newDoc } = await supabase
-        .from('documents')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const doc of documents as any[]) {
+      const { data: newDoc } = await documentsTable
         .insert({
           project_id: newProject.id,
           title: doc.title,
@@ -268,14 +311,14 @@ export async function duplicateProject(
     }
 
     // Second pass: update parent_id references
-    for (const doc of documents) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const doc of documents as any[]) {
       if (doc.parent_id && docIdMap.has(doc.parent_id)) {
         const newDocId = docIdMap.get(doc.id);
         const newParentId = docIdMap.get(doc.parent_id);
         
         if (newDocId && newParentId) {
-          await supabase
-            .from('documents')
+          await documentsTable
             .update({ parent_id: newParentId })
             .eq('id', newDocId);
         }
@@ -284,5 +327,5 @@ export async function duplicateProject(
   }
 
   revalidatePath('/projects');
-  return { data: newProject, error: null };
+  return { data: newProject as Project, error: null };
 }
