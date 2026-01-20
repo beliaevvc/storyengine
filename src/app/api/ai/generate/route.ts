@@ -57,7 +57,7 @@ ${contextPrompt ? `\n## Контекст из проекта:\n${contextPrompt}`
     const config: ProviderConfig = { provider, model };
     const result = await streamAIText(fullPrompt, systemPrompt, config);
 
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
   } catch (error: any) {
     console.error('AI Generation Error:', error);
     return new Response(error.message || 'Internal Server Error', { status: 500 });
