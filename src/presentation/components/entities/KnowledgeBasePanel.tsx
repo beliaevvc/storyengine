@@ -43,9 +43,9 @@ export function KnowledgeBasePanel({ projectId }: KnowledgeBasePanelProps) {
     setLoading(false);
   };
 
-  const handleCreate = async (data: InsertTables<'entities'>) => {
+  const handleCreate = async (data: InsertTables<'entities'> | UpdateTables<'entities'>) => {
     setActionLoading(true);
-    const { error } = await createEntity(data);
+    const { error } = await createEntity(data as InsertTables<'entities'>);
     if (!error) {
       await loadEntities();
       setShowCreateModal(false);
@@ -53,11 +53,11 @@ export function KnowledgeBasePanel({ projectId }: KnowledgeBasePanelProps) {
     setActionLoading(false);
   };
 
-  const handleUpdate = async (data: UpdateTables<'entities'>) => {
+  const handleUpdate = async (data: InsertTables<'entities'> | UpdateTables<'entities'>) => {
     if (!editingEntity) return;
     
     setActionLoading(true);
-    const { error } = await updateEntity(editingEntity.id, data);
+    const { error } = await updateEntity(editingEntity.id, data as UpdateTables<'entities'>);
     if (!error) {
       await loadEntities();
       setEditingEntity(null);

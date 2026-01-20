@@ -3,6 +3,7 @@
 import { useEffect, useCallback } from 'react';
 import { getProject } from '@/app/actions/supabase/project-actions';
 import { useProjectStore } from '@/presentation/stores';
+import { mapSupabaseToProject } from '@/lib/mappers';
 
 interface UseProjectLoaderOptions {
   /** Auto-load on mount */
@@ -42,15 +43,7 @@ export function useProjectLoader(
         if (supabaseError) {
           setError(supabaseError);
         } else if (data) {
-          // Map Supabase data to domain entity
-          setProject({
-            id: data.id,
-            title: data.title,
-            description: data.description || undefined,
-            settings: data.settings || {},
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at),
-          });
+          setProject(mapSupabaseToProject(data));
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load project');

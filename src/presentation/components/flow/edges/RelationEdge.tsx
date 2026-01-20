@@ -8,7 +8,7 @@ import {
   BaseEdge,
 } from '@xyflow/react';
 
-export interface RelationEdgeData {
+export interface RelationEdgeData extends Record<string, unknown> {
   label?: string;
   relationType?: string;
 }
@@ -24,7 +24,7 @@ function RelationEdgeComponent({
   data,
   markerEnd,
   selected,
-}: EdgeProps<RelationEdgeData>) {
+}: EdgeProps) {
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
@@ -34,7 +34,8 @@ function RelationEdgeComponent({
     targetPosition,
   });
 
-  const label = data?.label || data?.relationType;
+  const edgeData = data as RelationEdgeData | undefined;
+  const label = edgeData?.label || edgeData?.relationType;
 
   return (
     <>

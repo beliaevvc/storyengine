@@ -1,22 +1,14 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { getDocumentsTable } from '@/lib/supabase/tables';
 import type { Document } from '@/types/supabase';
-
-// Helper to get untyped table access (workaround for Supabase type issues)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getTable() {
-  const supabase = await createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('documents');
-}
 
 // Get all documents for a project (flat list)
 export async function getDocuments(
   projectId: string
 ): Promise<{ data: Document[] | null; error: string | null }> {
-  const table = await getTable();
+  const table = await getDocumentsTable();
 
   const { data, error } = await table
     .select('*')
@@ -35,7 +27,7 @@ export async function getDocuments(
 export async function getDocumentsTree(
   projectId: string
 ): Promise<{ data: Document[] | null; error: string | null }> {
-  const table = await getTable();
+  const table = await getDocumentsTable();
 
   const { data, error } = await table
     .select('*')
@@ -54,7 +46,7 @@ export async function getDocumentsTree(
 export async function getDocumentChildren(
   parentId: string
 ): Promise<{ data: Document[] | null; error: string | null }> {
-  const table = await getTable();
+  const table = await getDocumentsTable();
 
   const { data, error } = await table
     .select('*')
@@ -72,7 +64,7 @@ export async function getDocumentChildren(
 export async function getDocument(
   documentId: string
 ): Promise<{ data: Document | null; error: string | null }> {
-  const table = await getTable();
+  const table = await getDocumentsTable();
 
   const { data, error } = await table
     .select('*')
@@ -100,7 +92,7 @@ interface CreateDocumentInput {
 export async function createDocument(
   input: CreateDocumentInput
 ): Promise<{ data: Document | null; error: string | null }> {
-  const table = await getTable();
+  const table = await getDocumentsTable();
 
   const { data, error } = await table
     .insert(input)
@@ -129,7 +121,7 @@ export async function updateDocument(
   documentId: string,
   input: UpdateDocumentInput
 ): Promise<{ data: Document | null; error: string | null }> {
-  const table = await getTable();
+  const table = await getDocumentsTable();
 
   const { data, error } = await table
     .update(input)
@@ -153,7 +145,7 @@ export async function updateDocumentContent(
   documentId: string,
   content: unknown
 ): Promise<{ success: boolean; error: string | null }> {
-  const table = await getTable();
+  const table = await getDocumentsTable();
 
   const { data, error } = await table
     .update({ content })
@@ -178,7 +170,7 @@ export async function deleteDocument(
   documentId: string,
   projectId: string
 ): Promise<{ success: boolean; error: string | null }> {
-  const table = await getTable();
+  const table = await getDocumentsTable();
 
   const { error } = await table
     .delete()
@@ -197,7 +189,7 @@ export async function reorderDocuments(
   projectId: string,
   documentIds: string[]
 ): Promise<{ success: boolean; error: string | null }> {
-  const table = await getTable();
+  const table = await getDocumentsTable();
 
   for (let i = 0; i < documentIds.length; i++) {
     const { error } = await table
@@ -219,7 +211,7 @@ export async function moveDocument(
   newParentId: string | null,
   projectId: string
 ): Promise<{ success: boolean; error: string | null }> {
-  const table = await getTable();
+  const table = await getDocumentsTable();
 
   // Get max order in new parent
   const { data: siblings } = await table

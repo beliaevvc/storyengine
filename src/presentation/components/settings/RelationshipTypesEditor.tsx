@@ -430,8 +430,10 @@ function RelationshipTypeForm({ type, onSubmit, onCancel, isLoading }: Relations
   const [sourceTypes, setSourceTypes] = useState<string[]>(type?.sourceEntityTypes ?? []);
   const [targetTypes, setTargetTypes] = useState<string[]>(type?.targetEntityTypes ?? []);
   const [restrictEntityTypes, setRestrictEntityTypes] = useState(
-    (type?.sourceEntityTypes && type.sourceEntityTypes.length > 0) ||
-    (type?.targetEntityTypes && type.targetEntityTypes.length > 0)
+    Boolean(
+      (type?.sourceEntityTypes && type.sourceEntityTypes.length > 0) ||
+      (type?.targetEntityTypes && type.targetEntityTypes.length > 0)
+    )
   );
 
   const toggleSourceType = (value: string) => {

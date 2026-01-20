@@ -155,6 +155,7 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
     if (!editor || typeof getPos !== 'function') return;
     
     const pos = getPos();
+    if (pos === undefined) return;
     const endPos = pos + node.nodeSize;
     
     editor
@@ -191,6 +192,7 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
     if (!editor || typeof getPos !== 'function') return;
     
     const pos = getPos();
+    if (pos === undefined) return;
     
     if (!node.textContent.trim()) return;
     

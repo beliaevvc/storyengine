@@ -1,25 +1,10 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { getEventsTable, getDocumentsTable } from '@/lib/supabase/tables';
 
 export type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
-
-// Helper to get untyped table access
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getEventsTable() {
-  const supabase = await createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('events');
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getDocumentsTable() {
-  const supabase = await createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('documents');
-}
 
 export interface TimelineEvent {
   id: string;

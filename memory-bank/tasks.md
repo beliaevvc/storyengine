@@ -6,6 +6,90 @@
 
 ---
 
+### TYPES-001: Рефакторинг системы типизации
+- **Status**: ✅ COMPLETE
+- **Level**: 4 (Architectural Refactoring)
+- **Date**: 2026-01-20
+
+#### Описание
+Комплексный рефакторинг системы типизации для успешного билда и улучшения maintainability.
+
+#### Выполнено
+- ✅ Диагностика — собраны все ошибки билда
+- ✅ Скрипт автогенерации типов Supabase (`npm run types:generate`)
+- ✅ Расширение типов TipTap (`src/types/tiptap.d.ts`)
+- ✅ Исправлены критические ошибки типов (20+ файлов)
+- ✅ Next.js Suspense для useSearchParams
+- ✅ ReactFlow v12 типы для nodes/edges
+- ✅ Слой маппинга snake_case ↔ camelCase (`src/lib/mappers/`)
+- ✅ Централизованные table helpers (`src/lib/supabase/tables.ts`)
+- ✅ Билд проходит успешно
+
+#### Результаты
+| Метрика | До | После |
+|---------|-----|-------|
+| Билд | Падает | Проходит |
+| `as any` | 44 | 38 (централизованы) |
+
+#### Оставшиеся `as any` (38 вхождений)
+- `tables.ts` (10) — централизованные helper для Supabase
+- AI/embeddings (8) — OpenAI API типы
+- FileTree (6) — Supabase client-side calls
+- project-actions (5) — Supabase RPC/auth calls
+- FilesTab (4) — DnD типы
+- Прочее (5) — мелкие кейсы
+
+#### Новые файлы
+```
+src/types/tiptap.d.ts                   # TipTap type extensions
+src/lib/mappers/index.ts                # Mapper layer
+src/lib/mappers/types.ts
+src/lib/mappers/entityMapper.ts
+src/lib/mappers/projectMapper.ts
+src/lib/mappers/documentMapper.ts
+src/lib/supabase/tables.ts              # Centralized table accessors
+```
+
+#### Изменённые файлы
+```
+package.json                            # + types:generate script
+src/app/(auth)/login/page.tsx           # Suspense wrapper
+src/presentation/components/editor/Editor.tsx
+src/presentation/components/editor/extensions/SemanticBlock.ts
+src/presentation/components/editor/extensions/SemanticBlockView.tsx
+src/presentation/components/entities/KnowledgeBasePanel.tsx
+src/presentation/components/entity-profile/AttributesEditor.tsx
+src/presentation/components/entity-profile/RelationshipsEditor.tsx
+src/presentation/components/explorer/DatabaseTab.tsx
+src/presentation/components/explorer/FileTree.tsx
+src/presentation/components/flow/edges/RelationEdge.tsx
+src/presentation/components/flow/nodes/SceneNode.tsx
+src/presentation/components/flow/nodes/CharacterNode.tsx
+src/presentation/components/flow/nodes/LocationNode.tsx
+src/presentation/components/flow/FlowCanvas.tsx
+src/presentation/components/settings/AttributeSchemaForm.tsx
+src/presentation/components/settings/RelationshipTypesEditor.tsx
+src/presentation/components/workspace/DocumentTabs.tsx
+src/presentation/components/workspace/WorkspacePanel.tsx
+src/presentation/hooks/useEntitiesLoader.ts
+src/presentation/hooks/useProjectLoader.ts
+src/presentation/hooks/useDocumentsLoader.ts
+src/app/actions/supabase/entity-actions.ts
+src/app/actions/supabase/project-actions.ts
+src/app/actions/supabase/document-actions.ts
+src/app/actions/supabase/timeline-actions.ts
+src/app/actions/supabase/relationship-type-actions.ts
+src/app/actions/supabase/attribute-actions.ts
+```
+
+#### Использование автогенерации типов
+```bash
+supabase login
+SUPABASE_PROJECT_ID=your_id npm run types:generate
+```
+
+---
+
 ### PROFILE-001: Страница профиля сущности (Entity Profile)
 - **Status**: ✅ COMPLETE
 - **Level**: 3 (Intermediate Feature)

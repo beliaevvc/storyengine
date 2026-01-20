@@ -4,7 +4,7 @@ import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { FileText, Folder, Film, MapPin, Circle, MoreHorizontal } from 'lucide-react';
 
-export interface SceneNodeData {
+export interface SceneNodeData extends Record<string, unknown> {
   title: string;
   summary?: string;
   preview?: string;
@@ -44,7 +44,8 @@ const HANDLE_COLORS = {
   NOTE: '!bg-[#768390]',
 };
 
-function SceneNodeComponent({ data, selected }: NodeProps<SceneNodeData>) {
+function SceneNodeComponent({ data: rawData, selected }: NodeProps) {
+  const data = rawData as SceneNodeData;
   const nodeType = data.isFolder ? 'FOLDER' : data.isDocument ? 'DOCUMENT' : data.isScene ? 'SCENE' : data.type;
   const isFolder = nodeType === 'FOLDER';
   const isDocument = nodeType === 'DOCUMENT';

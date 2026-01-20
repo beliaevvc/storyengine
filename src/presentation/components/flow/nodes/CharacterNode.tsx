@@ -4,14 +4,15 @@ import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { User, MoreHorizontal } from 'lucide-react';
 
-export interface CharacterNodeData {
+export interface CharacterNodeData extends Record<string, unknown> {
   name: string;
   description?: string;
   role?: string;
   imageUrl?: string;
 }
 
-function CharacterNodeComponent({ data, selected }: NodeProps<CharacterNodeData>) {
+function CharacterNodeComponent({ data: rawData, selected }: NodeProps) {
+  const data = rawData as CharacterNodeData;
   return (
     <div
       className={`

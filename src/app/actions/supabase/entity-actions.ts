@@ -1,30 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { 
+  getEntitiesTable, 
+  getEntityRelationsTable, 
+  getRelationshipTypesTable 
+} from '@/lib/supabase/tables';
 import type { Entity, EntityType } from '@/types/supabase';
-
-// Helper to get untyped table access (workaround for Supabase type issues)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getEntitiesTable() {
-  const supabase = await createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('entities');
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getRelationsTable() {
-  const supabase = await createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('entity_relations');
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getRelationshipTypesTable() {
-  const supabase = await createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('relationship_types');
-}
 
 // Get all entities for a project
 export async function getEntities(
@@ -196,7 +178,7 @@ export async function getEntityRelations(
   } | null; 
   error: string | null 
 }> {
-  const table = await getRelationsTable();
+  const table = await getEntityRelationsTable();
 
   // Get outgoing relations
   const { data: outgoing, error: outError } = await table
@@ -241,7 +223,7 @@ export async function createEntityRelation(
   input: CreateRelationInput
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<{ data: any | null; error: string | null }> {
-  const table = await getRelationsTable();
+  const table = await getEntityRelationsTable();
 
   const { data, error } = await table
     .insert(input)
@@ -259,7 +241,7 @@ export async function createEntityRelation(
 export async function deleteEntityRelation(
   relationId: string
 ): Promise<{ success: boolean; error: string | null }> {
-  const table = await getRelationsTable();
+  const table = await getEntityRelationsTable();
 
   const { error } = await table
     .delete()

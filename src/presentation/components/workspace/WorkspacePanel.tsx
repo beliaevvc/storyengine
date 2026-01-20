@@ -14,9 +14,9 @@ import {
   selectOpenTabs,
 } from '@/presentation/stores';
 import { updateDocumentContent } from '@/app/actions/supabase/document-actions';
-import type { TiptapContent, Document } from '@/core/entities/document';
-import type { Entity as SupabaseEntity } from '@/types/supabase';
+import type { TiptapContent, Document as DomainDocument } from '@/core/entities/document';
 import type { Entity as DomainEntity } from '@/core/entities/entity';
+import { mapEntitiesToSupabase, mapDocumentsToSupabase } from '@/lib/mappers';
 
 // ============================================================================
 // Types & Constants
@@ -27,7 +27,7 @@ export type WorkspaceMode = 'editor' | 'plot' | 'characters' | 'timeline';
 interface WorkspacePanelProps {
   projectId: string;
   projectTitle: string;
-  currentDocument: Document | null;
+  currentDocument: DomainDocument | null;
   activeMode: WorkspaceMode;
 }
 
@@ -76,7 +76,7 @@ export function WorkspacePanel({
   }, [activeTab, entities]);
 
   // Get document for active tab if it's a document tab
-  const activeDocument: Document | null = useMemo(() => {
+  const activeDocument: DomainDocument | null = useMemo(() => {
     if (!activeTab || activeTab.type !== 'document') return null;
     return documents.find((d) => d.id === activeTab.id) ?? null;
   }, [activeTab, documents]);
@@ -165,32 +165,9 @@ export function WorkspacePanel({
     [activeDocument?.id, updateDocument]
   );
 
-  // Convert domain entities to Supabase format for components
-  const supabaseEntities: SupabaseEntity[] = entities.map((e) => ({
-    id: e.id,
-    project_id: e.projectId,
-    type: e.type,
-    name: e.name,
-    description: e.description || null,
-    attributes: e.attributes || {},
-    content: e.content || null,
-    embedding: null,
-    created_at: e.createdAt.toISOString(),
-    updated_at: e.updatedAt.toISOString(),
-  }));
-
-  const supabaseDocuments = documents.map((d) => ({
-    id: d.id,
-    project_id: d.projectId,
-    parent_id: d.parentId || null,
-    title: d.title,
-    content: d.content || null,
-    type: d.type,
-    order: d.order,
-    embedding: null,
-    created_at: d.createdAt.toISOString(),
-    updated_at: d.updatedAt.toISOString(),
-  }));
+  // Convert domain entities/documents to Supabase format for legacy components
+  const supabaseEntities = mapEntitiesToSupabase(entities);
+  const supabaseDocuments = mapDocumentsToSupabase(documents);
 
   // Determine what to show in editor mode
   const renderEditorContent = () => {
@@ -220,8 +197,6 @@ export function WorkspacePanel({
           </div>
           <StoryEditor
             key={activeDocument.id}
-            projectName={projectTitle}
-            documentName={documentTitle}
             content={documentContent}
             onUpdate={handleContentUpdate}
           />

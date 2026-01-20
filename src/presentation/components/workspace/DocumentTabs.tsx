@@ -83,7 +83,7 @@ function TabItem({
   );
 
   // Determine icon
-  let Icon = FileText;
+  let Icon: React.ElementType = FileText;
   let iconColor = 'text-fg-muted';
 
   if (tab.type === 'entity' && tab.entityType) {

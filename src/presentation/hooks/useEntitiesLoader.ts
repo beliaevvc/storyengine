@@ -3,7 +3,7 @@
 import { useEffect, useCallback } from 'react';
 import { getEntities } from '@/app/actions/supabase/entity-actions';
 import { useEntityStore } from '@/presentation/stores';
-import type { Entity } from '@/core/entities';
+import { mapSupabaseToEntities } from '@/lib/mappers';
 
 interface UseEntitiesLoaderOptions {
   /** Auto-load on mount */
@@ -43,18 +43,7 @@ export function useEntitiesLoader(
         if (supabaseError) {
           setError(supabaseError);
         } else if (data) {
-          // Map Supabase data to domain entities
-          const mappedEntities: Entity[] = data.map((e) => ({
-            id: e.id,
-            projectId: e.project_id,
-            type: e.type,
-            name: e.name,
-            description: e.description || undefined,
-            attributes: e.attributes || {},
-            createdAt: new Date(e.created_at),
-            updatedAt: new Date(e.updated_at),
-          }));
-          setEntities(mappedEntities);
+          setEntities(mapSupabaseToEntities(data));
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load entities');

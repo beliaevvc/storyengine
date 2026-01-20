@@ -166,8 +166,8 @@ export function StoryEditor({
 
   // Sync viewMode to editor storage for extensions
   useEffect(() => {
-    if (editor && (editor.storage as any).viewMode) {
-      (editor.storage as any).viewMode.current = viewMode;
+    if (editor && editor.storage.viewMode) {
+      editor.storage.viewMode.current = viewMode;
     }
   }, [editor, viewMode]);
 

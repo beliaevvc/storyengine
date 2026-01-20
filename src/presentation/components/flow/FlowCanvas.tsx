@@ -163,7 +163,7 @@ export function FlowCanvas({
               let sceneCount = 0;
               documents.forEach((doc) => {
                 if (doc.content) {
-                  const content = doc.content as TiptapContent;
+                  const content = doc.content as unknown as TiptapContent;
                   if (content.content) {
                     sceneCount += content.content.filter((n) => n.type === 'scene').length;
                   }

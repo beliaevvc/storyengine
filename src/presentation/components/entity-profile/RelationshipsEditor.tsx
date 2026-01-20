@@ -9,7 +9,7 @@ import { Input } from '@/presentation/components/ui/input';
 import { Modal } from '@/presentation/components/ui/modal';
 import { updateEntityRelationships } from '@/app/actions/supabase/entity-actions';
 import { getRelationshipTypesAction } from '@/app/actions/supabase/relationship-type-actions';
-import type { Entity } from '@/core/entities/entity';
+import type { Entity, EntityType } from '@/core/entities/entity';
 import type { RelationshipType } from '@/core/types/relationship-types';
 import { useRouter } from 'next/navigation';
 
@@ -135,7 +135,7 @@ export function RelationshipsEditor({
       return true;
     }
     // Check if current entity type is allowed as source
-    return type.sourceEntityTypes.includes(entityType as RelationshipType['sourceEntityTypes'][number]);
+    return type.sourceEntityTypes.includes(entityType as EntityType);
   });
 
   // Create entity map for quick lookup

@@ -1,42 +1,19 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { 
+  createClient,
+  getProjectsTable, 
+  getEntitiesTable, 
+  getDocumentsTable, 
+  getEntityRelationsTable 
+} from '@/lib/supabase/tables';
 import type { Project } from '@/types/supabase';
 
 export type ProjectWithCounts = Project & {
   entities_count: number;
   documents_count: number;
 };
-
-// Helper to get untyped table access
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getProjectsTable() {
-  const supabase = await createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('projects');
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getEntitiesTable() {
-  const supabase = await createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('entities');
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getDocumentsTable() {
-  const supabase = await createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('documents');
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getRelationsTable() {
-  const supabase = await createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('entity_relations');
-}
 
 // Get all projects for current user
 export async function getProjects(): Promise<{
@@ -210,7 +187,7 @@ export async function duplicateProject(
   const projectsTable = await getProjectsTable();
   const entitiesTable = await getEntitiesTable();
   const documentsTable = await getDocumentsTable();
-  const relationsTable = await getRelationsTable();
+  const relationsTable = await getEntityRelationsTable();
 
   // Get original project
   const { data: original, error: fetchError } = await projectsTable

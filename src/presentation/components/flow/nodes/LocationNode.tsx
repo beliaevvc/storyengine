@@ -4,14 +4,15 @@ import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { MapPin, MoreHorizontal } from 'lucide-react';
 
-export interface LocationNodeData {
+export interface LocationNodeData extends Record<string, unknown> {
   name: string;
   description?: string;
   region?: string;
   imageUrl?: string;
 }
 
-function LocationNodeComponent({ data, selected }: NodeProps<LocationNodeData>) {
+function LocationNodeComponent({ data: rawData, selected }: NodeProps) {
+  const data = rawData as LocationNodeData;
   return (
     <div
       className={`

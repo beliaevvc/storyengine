@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { getAttributeDefinitionsTable } from '@/lib/supabase/tables';
 import type { AttributeDefinition, CreateAttributeInput, UpdateAttributeInput } from '@/core/types/attribute-schema';
 
 export type ActionResult<T> =
@@ -39,13 +39,6 @@ function mapRowToAttribute(row: AttributeRow): AttributeDefinition {
   };
 }
 
-// Helper to get untyped table access (table not in generated types yet)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getTable() {
-  const supabase = await createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('attribute_definitions');
-}
 
 /**
  * Получить все атрибуты проекта
@@ -54,7 +47,7 @@ export async function getAttributeDefinitionsAction(
   projectId: string
 ): Promise<ActionResult<AttributeDefinition[]>> {
   try {
-    const table = await getTable();
+    const table = await getAttributeDefinitionsTable();
 
     const { data, error } = await table
       .select('*')
@@ -86,7 +79,7 @@ export async function createAttributeDefinitionAction(
   input: CreateAttributeInput
 ): Promise<ActionResult<AttributeDefinition>> {
   try {
-    const table = await getTable();
+    const table = await getAttributeDefinitionsTable();
 
     // Get max order
     const { data: existingAttrs } = await table
@@ -136,7 +129,7 @@ export async function updateAttributeDefinitionAction(
   input: UpdateAttributeInput
 ): Promise<ActionResult<AttributeDefinition>> {
   try {
-    const table = await getTable();
+    const table = await getAttributeDefinitionsTable();
 
     const updateData: Record<string, unknown> = {};
     if (input.name !== undefined) updateData.name = input.name;
@@ -176,7 +169,7 @@ export async function deleteAttributeDefinitionAction(
   id: string
 ): Promise<ActionResult<void>> {
   try {
-    const table = await getTable();
+    const table = await getAttributeDefinitionsTable();
 
     // Get projectId before delete for revalidation
     const { data: existing } = await table
@@ -210,7 +203,7 @@ export async function reorderAttributeDefinitionsAction(
   orderedIds: string[]
 ): Promise<ActionResult<AttributeDefinition[]>> {
   try {
-    const table = await getTable();
+    const table = await getAttributeDefinitionsTable();
 
     // Update order for each attribute
     for (let i = 0; i < orderedIds.length; i++) {

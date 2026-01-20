@@ -11,6 +11,7 @@ import { EntityList } from './EntityList';
 import { useEntityStore, useUIStore, useWorkspaceStore } from '@/presentation/stores';
 import { createEntity, updateEntity, deleteEntity } from '@/app/actions/supabase/entity-actions';
 import type { Entity } from '@/core/entities';
+import { mapSupabaseToEntity } from '@/lib/mappers';
 
 // Entity type configurations with icons and default attributes
 const ENTITY_CONFIGS: Record<EntityType, {
@@ -117,17 +118,7 @@ export function DatabaseTab() {
       });
 
       if (data && !error) {
-        const newEntity: Entity = {
-          id: data.id,
-          projectId: data.project_id,
-          type: data.type,
-          name: data.name,
-          description: data.description || undefined,
-          attributes: data.attributes || {},
-          createdAt: new Date(data.created_at),
-          updatedAt: new Date(data.updated_at),
-        };
-        addEntity(newEntity);
+        addEntity(mapSupabaseToEntity(data));
         
         // Reset form
         setName('');

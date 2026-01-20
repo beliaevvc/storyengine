@@ -597,20 +597,20 @@ function AttributeForm({ projectId, entityType, attribute, onSuccess, onCancel }
   const [name, setName] = useState(attribute?.name ?? '');
   const [type, setType] = useState<AttributeType>(attribute?.type ?? 'enum');
   const [config, setConfig] = useState<Record<string, unknown>>(
-    attribute?.config ?? DEFAULT_ATTRIBUTE_CONFIGS.enum
+    (attribute?.config ?? DEFAULT_ATTRIBUTE_CONFIGS.enum) as Record<string, unknown>
   );
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!isEditing) {
-      setConfig(DEFAULT_ATTRIBUTE_CONFIGS[type]);
+      setConfig(DEFAULT_ATTRIBUTE_CONFIGS[type] as Record<string, unknown>);
     }
   }, [type, isEditing]);
 
   const handleTypeChange = (newType: AttributeType) => {
     setType(newType);
     if (!isEditing) {
-      setConfig(DEFAULT_ATTRIBUTE_CONFIGS[newType]);
+      setConfig(DEFAULT_ATTRIBUTE_CONFIGS[newType] as Record<string, unknown>);
     }
   };
 
