@@ -128,7 +128,7 @@ export async function getSceneDocumentsByEntityAction(
 
     // Get parent titles for context
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const allParentIds = [...new Set((documents || []).map((d: any) => d.parent_id).filter(Boolean))];
+    const allParentIds = Array.from(new Set((documents || []).map((d: any) => d.parent_id).filter(Boolean)));
     let parentMap: Record<string, string> = {};
     if (allParentIds.length > 0) {
       const { data: parents } = await table
