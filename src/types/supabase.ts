@@ -265,6 +265,76 @@ export interface Database {
           updated_at?: string;
         };
       };
+      attribute_definitions: {
+        Row: {
+          id: string;
+          project_id: string;
+          name: string;
+          type: string;
+          config: Json;
+          entity_types: string[];
+          color: string | null;
+          icon: string | null;
+          order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          name: string;
+          type: string;
+          config?: Json;
+          entity_types?: string[];
+          color?: string | null;
+          icon?: string | null;
+          order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          name?: string;
+          type?: string;
+          config?: Json;
+          entity_types?: string[];
+          color?: string | null;
+          icon?: string | null;
+          order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      relationship_types: {
+        Row: {
+          id: string;
+          project_id: string;
+          name: string;
+          directed: boolean;
+          color: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          name: string;
+          directed?: boolean;
+          color?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          name?: string;
+          directed?: boolean;
+          color?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
