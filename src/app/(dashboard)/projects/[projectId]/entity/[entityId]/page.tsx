@@ -23,7 +23,6 @@ function mapToDomainEntity(e: SupabaseEntity): Entity {
     description: e.description ?? undefined,
     attributes: (e.attributes as Record<string, unknown>) ?? {},
     content: e.content as Entity['content'],
-    documents: e.documents as Entity['documents'],
     createdAt: new Date(e.created_at),
     updatedAt: new Date(e.updated_at),
   };
