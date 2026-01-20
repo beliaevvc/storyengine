@@ -16,13 +16,14 @@ const MODE_TABS: { id: WorkspaceMode; label: string; icon: React.ElementType }[]
 ];
 
 interface HeaderProps {
+  projectId?: string;
   projectTitle?: string;
   className?: string;
   activeMode?: WorkspaceMode;
   onModeChange?: (mode: WorkspaceMode) => void;
 }
 
-export function Header({ projectTitle, className, activeMode = 'editor', onModeChange }: HeaderProps) {
+export function Header({ projectId, projectTitle, className, activeMode = 'editor', onModeChange }: HeaderProps) {
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -93,9 +94,16 @@ export function Header({ projectTitle, className, activeMode = 'editor', onModeC
             <span className="hidden sm:inline">Проекты</span>
           </Button>
         )}
-        <Button variant="ghost" size="icon">
-          <Settings className="w-4 h-4" />
-        </Button>
+        {projectId && (
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => router.push(`/projects/${projectId}/settings`)}
+            title="Настройки проекта"
+          >
+            <Settings className="w-4 h-4" />
+          </Button>
+        )}
         <Button variant="ghost" size="icon" onClick={handleSignOut}>
           <LogOut className="w-4 h-4" />
         </Button>

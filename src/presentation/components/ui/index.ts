@@ -12,3 +12,12 @@ export type { BadgeProps } from './badge';
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './tooltip';
 
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
+
+export { Avatar } from './avatar';
+export type { AvatarProps } from './avatar';
+
+export { ScrollArea } from './scroll-area';
+export type { ScrollAreaProps } from './scroll-area';
+
+export { Separator } from './separator';
+export type { SeparatorProps } from './separator';

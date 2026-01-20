@@ -17,7 +17,9 @@ enum EntityType {
   LOCATION
   ITEM
   EVENT
-  CONCEPT
+  FACTION
+  WORLDBUILDING
+  NOTE
 }
 
 // ============================================
@@ -29,25 +31,45 @@ model Project {
   title       String
   description String?
   settings    Json     @default("{}")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  documents Document[]
-  entities  Entity[]
+  documents            Document[]
+  entities             Entity[]
+  attributeDefinitions AttributeDefinition[]
 
   @@index([title])
 }
 
+model AttributeDefinition {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  name        String
+  type        String // 'number' | 'text' | 'boolean' | 'enum' | 'list'
+  config      Json     @default("{}")
+  entityTypes String[] @default([]) @map("entity_types")
+  color       String?
+  icon        String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, order])
+  @@map("attribute_definitions")
+}
+
 model Entity {
   id          String     @id @default(uuid())
-  projectId   String
+  projectId   String     @map("project_id")
   type        EntityType
   name        String
   description String?
   attributes  Json       @default("{}")
-  imageUrl    String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  content     Json? // Tiptap JSON content for entity document
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
 
   project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   scenes  SceneEntity[]

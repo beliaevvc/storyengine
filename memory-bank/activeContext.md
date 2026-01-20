@@ -7,6 +7,9 @@
 
 | Задача | Описание | Архив |
 |--------|----------|-------|
+| PROFILE-001 | Страница профиля сущности (3-колоночный layout) | ✅ COMPLETE |
+| SCHEMA-001 | Схема Мира (Project Schema Editor) | ✅ COMPLETE |
+| MARKUP-001 | Система ручной разметки блоков | `archive/archive-MARKUP-001.md` ✅ |
 | EDITOR-001 | Улучшения блочной архитектуры | `archive/archive-EDITOR-001.md` ✅ |
 | VIEW-001 | Режим "Чистый текст" | (pending archive) |
 | SCENE-003 | Scene-Centric Architecture | (pending archive) |

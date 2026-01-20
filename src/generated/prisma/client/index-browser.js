@@ -129,6 +129,20 @@ exports.Prisma.ProjectScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AttributeDefinitionScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  name: 'name',
+  type: 'type',
+  config: 'config',
+  entityTypes: 'entityTypes',
+  color: 'color',
+  icon: 'icon',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.EntityScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -136,7 +150,7 @@ exports.Prisma.EntityScalarFieldEnum = {
   name: 'name',
   description: 'description',
   attributes: 'attributes',
-  imageUrl: 'imageUrl',
+  content: 'content',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -182,6 +196,11 @@ exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -202,11 +221,14 @@ exports.EntityType = exports.$Enums.EntityType = {
   LOCATION: 'LOCATION',
   ITEM: 'ITEM',
   EVENT: 'EVENT',
-  CONCEPT: 'CONCEPT'
+  FACTION: 'FACTION',
+  WORLDBUILDING: 'WORLDBUILDING',
+  NOTE: 'NOTE'
 };
 
 exports.Prisma.ModelName = {
   Project: 'Project',
+  AttributeDefinition: 'AttributeDefinition',
   Entity: 'Entity',
   Document: 'Document',
   Scene: 'Scene',

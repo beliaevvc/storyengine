@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { MoreHorizontal, Edit, Trash2, Link, ChevronDown, ChevronUp } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { MoreHorizontal, Edit, Trash2, Link, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { EntityTypeIcon, getEntityTypeLabel } from './EntityTypeIcon';
 import { Button } from '@/presentation/components/ui/button';
 import type { Entity, EntityType, Json } from '@/types/supabase';
@@ -12,6 +13,8 @@ interface EntityCardProps {
   onDelete?: (entity: Entity) => void;
   onLinkClick?: (entity: Entity) => void;
   compact?: boolean;
+  /** Show "Open Profile" in menu (requires projectId) */
+  showProfileLink?: boolean;
 }
 
 export function EntityCard({
@@ -20,18 +23,26 @@ export function EntityCard({
   onDelete,
   onLinkClick,
   compact = false,
+  showProfileLink = true,
 }: EntityCardProps) {
+  const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
   const attributes = entity.attributes as Record<string, unknown> | null;
   const hasAttributes = attributes && Object.keys(attributes).length > 0;
 
+  const handleOpenProfile = () => {
+    const projectId = entity.project_id;
+    router.push(`/projects/${projectId}/entity/${entity.id}`);
+  };
+
   if (compact) {
     return (
       <div
         className="flex items-center gap-3 p-3 bg-[#2d333b] border border-[#444c56] rounded-lg hover:border-[#539bf5] transition-colors cursor-pointer"
         onClick={() => onLinkClick?.(entity)}
+        onDoubleClick={handleOpenProfile}
       >
         <EntityTypeIcon type={entity.type} size="sm" />
         <div className="flex-1 min-w-0">
@@ -54,7 +65,10 @@ export function EntityCard({
           <div className="flex items-start gap-3">
             <EntityTypeIcon type={entity.type} size="md" />
             <div>
-              <h3 className="text-base font-medium text-[#adbac7]">
+              <h3 
+                className="text-base font-medium text-[#adbac7] hover:text-[#539bf5] cursor-pointer transition-colors"
+                onClick={handleOpenProfile}
+              >
                 {entity.name}
               </h3>
               <p className="text-xs text-[#768390]">
@@ -81,6 +95,18 @@ export function EntityCard({
                   onClick={() => setShowMenu(false)}
                 />
                 <div className="absolute right-0 top-full mt-1 bg-[#22272e] border border-[#444c56] rounded-md shadow-lg z-20 py-1 min-w-[120px]">
+                  {showProfileLink && (
+                    <button
+                      onClick={() => {
+                        handleOpenProfile();
+                        setShowMenu(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#adbac7] hover:bg-[#373e47]"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Открыть профиль
+                    </button>
+                  )}
                   {onEdit && (
                     <button
                       onClick={() => {

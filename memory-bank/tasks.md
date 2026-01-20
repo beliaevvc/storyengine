@@ -2,7 +2,109 @@
 
 ## Current Task
 
+(нет активной задачи)
+
+---
+
+### PROFILE-001: Страница профиля сущности (Entity Profile)
+- **Status**: ✅ COMPLETE
+- **Level**: 3 (Intermediate Feature)
+- **Date**: 2026-01-19
+
+#### Описание
+Универсальная страница профиля сущности с 3-колоночным layout: Паспорт (левая), Контент с Tiptap (центральная), Timeline событий (правая). Интеграция с кастомными атрибутами и реальными данными SceneEntity.
+
+#### URL
+`/projects/[projectId]/entity/[entityId]`
+
+#### Реализовано
+- ✅ UI компоненты: Avatar, ScrollArea, Separator
+- ✅ Server Action `getScenesByEntityAction` для Timeline
+- ✅ 3-колоночный layout `EntityProfileLayout`
+- ✅ Левая колонка `EntityPassport` (аватар, мета, атрибуты, связи)
+- ✅ Центральная колонка `EntityContent` (Tabs + MinimalEditor)
+- ✅ Правая колонка `EntityTimeline` (хронология сцен)
+- ✅ `MinimalEditor` — упрощённый Tiptap без сцен/блоков
+- ✅ Навигация: двойной клик, контекстное меню, клик по имени
+
+#### Структура файлов
+```
+src/presentation/components/ui/
+├── avatar.tsx
+├── scroll-area.tsx
+└── separator.tsx
+
+src/presentation/components/entity-profile/
+├── index.ts
+├── EntityProfileLayout.tsx
+├── EntityPassport.tsx
+├── EntityContent.tsx
+├── EntityTimeline.tsx
+├── AttributesList.tsx
+├── RelationshipsList.tsx
+├── TimelineItem.tsx
+└── MinimalEditor.tsx
+
+src/app/(dashboard)/projects/[projectId]/entity/[entityId]/page.tsx
+src/app/actions/scene-actions.ts  # + getScenesByEntityAction
+```
+
+---
+
+### SCHEMA-001: Схема Мира (Project Schema Editor)
+- **Status**: ✅ COMPLETE
+- **Level**: 3 (Intermediate Feature)
+- **Date**: 2026-01-19
+
+#### Описание
+Модуль для определения кастомных атрибутов сущностей. Пользователь сам создаёт характеристики (HP, Фракция, Инвентарь и т.д.), не зависит от хардкода.
+
+#### Типы данных
+- **Number** — число со шкалой (min, max, default)
+- **Text** — строка (default, maxLength)
+- **Boolean** — флаг (default)
+- **Enum** — выбор из списка (options, default)
+- **List** — коллекция строк (default)
+
+#### Реализовано
+- ✅ Prisma модель `AttributeDefinition` с relation к `Project`
+- ✅ TypeScript типы в `src/core/types/attribute-schema.ts`
+- ✅ Zod-схемы валидации в `src/lib/validations/attributeSchemas.ts`
+- ✅ Server Actions (CRUD) в `src/app/actions/attribute-actions.ts`
+- ✅ Страница настроек `/project/[id]/settings`
+- ✅ UI компоненты: `AttributeSchemaList`, `AttributeSchemaCard`, `AttributeSchemaForm`, `TypeConfigFields`
+- ✅ Навигация: кнопка Settings в Header ведёт на страницу настроек
+
+#### Структура файлов
+```
+prisma/schema.prisma                           # + AttributeDefinition model
+src/core/types/attribute-schema.ts             # TypeScript типы
+src/lib/validations/attributeSchemas.ts        # Zod схемы
+src/app/actions/attribute-actions.ts           # Server Actions
+src/app/(dashboard)/projects/[projectId]/settings/page.tsx
+src/presentation/components/settings/
+├── index.ts
+├── AttributeSchemaList.tsx
+├── AttributeSchemaCard.tsx
+├── AttributeSchemaForm.tsx
+└── TypeConfigFields.tsx
+```
+
+#### Следующие шаги (отдельные задачи)
+- [ ] Интеграция кастомных атрибутов в `EntityForm`
+- [ ] Drag & drop для изменения порядка атрибутов
+- [ ] Миграция БД для production
+
 ## Completed Tasks
+
+### MARKUP-001: Система ручной разметки блоков
+- **Status**: ✅ ARCHIVED
+- **Level**: 3 (Intermediate Feature)
+- **Date**: 2026-01-18
+- **Reflection**: `reflection/reflection-MARKUP-001.md` ✅
+- **Archive**: `archive/archive-MARKUP-001.md` ✅
+
+---
 
 ### EDITOR-001: Улучшения блочной архитектуры редактора
 - **Status**: ✅ ARCHIVED

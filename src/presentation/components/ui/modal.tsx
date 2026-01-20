@@ -49,7 +49,7 @@ export function Modal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh] overflow-y-auto">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60"
@@ -75,7 +75,7 @@ export function Modal({
         </div>
 
         {/* Content */}
-        <div className="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <div className="px-6 py-4 pb-6 max-h-[calc(100vh-120px)] overflow-y-auto">
           {children}
         </div>
       </div>

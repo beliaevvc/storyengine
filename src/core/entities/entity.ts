@@ -23,6 +23,20 @@ export interface TiptapContent {
   }>;
 }
 
+// Entity document (tab) for profile page
+export interface EntityDocument {
+  id: string;
+  title: string;
+  content: TiptapContent | null;
+  isDefault: boolean; // true for built-in tabs (biography, etc.)
+  order: number;
+}
+
+// All entity documents organized by tabs
+export interface EntityDocuments {
+  tabs: EntityDocument[];
+}
+
 export interface Entity {
   id: string;
   projectId: string;
@@ -30,8 +44,8 @@ export interface Entity {
   name: string;
   description?: string;
   attributes: EntityAttributes;
-  content?: TiptapContent | null; // Tiptap JSON content for entity document
-  imageUrl: string | null;
+  content?: TiptapContent | null; // Legacy single document (deprecated)
+  documents?: EntityDocuments | null; // New multi-document structure
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,7 +56,6 @@ export interface CreateEntityInput {
   name: string;
   description?: string;
   attributes?: EntityAttributes;
-  imageUrl?: string;
 }
 
 export interface UpdateEntityInput {
@@ -50,5 +63,4 @@ export interface UpdateEntityInput {
   name?: string;
   description?: string | null;
   attributes?: EntityAttributes;
-  imageUrl?: string | null;
 }

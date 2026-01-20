@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import type { Entity, EntityType } from '@/core/entities/entity';
-import { useWorkspaceStore } from '@/presentation/stores';
 import { cn } from '@/lib/utils';
 
 interface EntityListItemProps {
@@ -31,7 +31,7 @@ export function EntityListItem({
   onRename,
   onDelete,
 }: EntityListItemProps) {
-  const openTab = useWorkspaceStore((s) => s.actions.openTab);
+  const router = useRouter();
   
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -71,13 +71,8 @@ export function EntityListItem({
     // Select entity in sidebar
     onSelect();
     
-    // Open entity in workspace tab
-    openTab({
-      id: entity.id,
-      type: 'entity',
-      title: entity.name,
-      entityType: entity.type,
-    });
+    // Open entity profile page directly (no tab)
+    router.push(`/projects/${entity.projectId}/entity/${entity.id}`);
   };
 
   const handleRename = () => {

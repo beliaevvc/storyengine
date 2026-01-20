@@ -124,7 +124,6 @@ export function DatabaseTab() {
           name: data.name,
           description: data.description || undefined,
           attributes: data.attributes || {},
-          imageUrl: null,
           createdAt: new Date(data.created_at),
           updatedAt: new Date(data.updated_at),
         };

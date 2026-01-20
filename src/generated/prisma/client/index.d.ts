@@ -19,6 +19,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
  */
 export type Project = $Result.DefaultSelection<Prisma.$ProjectPayload>
 /**
+ * Model AttributeDefinition
+ * 
+ */
+export type AttributeDefinition = $Result.DefaultSelection<Prisma.$AttributeDefinitionPayload>
+/**
  * Model Entity
  * 
  */
@@ -48,7 +53,9 @@ export namespace $Enums {
   LOCATION: 'LOCATION',
   ITEM: 'ITEM',
   EVENT: 'EVENT',
-  CONCEPT: 'CONCEPT'
+  FACTION: 'FACTION',
+  WORLDBUILDING: 'WORLDBUILDING',
+  NOTE: 'NOTE'
 };
 
 export type EntityType = (typeof EntityType)[keyof typeof EntityType]
@@ -185,6 +192,16 @@ export class PrismaClient<
     * ```
     */
   get project(): Prisma.ProjectDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.attributeDefinition`: Exposes CRUD operations for the **AttributeDefinition** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AttributeDefinitions
+    * const attributeDefinitions = await prisma.attributeDefinition.findMany()
+    * ```
+    */
+  get attributeDefinition(): Prisma.AttributeDefinitionDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.entity`: Exposes CRUD operations for the **Entity** model.
@@ -660,6 +677,7 @@ export namespace Prisma {
 
   export const ModelName: {
     Project: 'Project',
+    AttributeDefinition: 'AttributeDefinition',
     Entity: 'Entity',
     Document: 'Document',
     Scene: 'Scene',
@@ -679,7 +697,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "project" | "entity" | "document" | "scene" | "sceneEntity"
+      modelProps: "project" | "attributeDefinition" | "entity" | "document" | "scene" | "sceneEntity"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -754,6 +772,80 @@ export namespace Prisma {
           count: {
             args: Prisma.ProjectCountArgs<ExtArgs>
             result: $Utils.Optional<ProjectCountAggregateOutputType> | number
+          }
+        }
+      }
+      AttributeDefinition: {
+        payload: Prisma.$AttributeDefinitionPayload<ExtArgs>
+        fields: Prisma.AttributeDefinitionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AttributeDefinitionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttributeDefinitionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AttributeDefinitionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttributeDefinitionPayload>
+          }
+          findFirst: {
+            args: Prisma.AttributeDefinitionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttributeDefinitionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AttributeDefinitionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttributeDefinitionPayload>
+          }
+          findMany: {
+            args: Prisma.AttributeDefinitionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttributeDefinitionPayload>[]
+          }
+          create: {
+            args: Prisma.AttributeDefinitionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttributeDefinitionPayload>
+          }
+          createMany: {
+            args: Prisma.AttributeDefinitionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AttributeDefinitionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttributeDefinitionPayload>[]
+          }
+          delete: {
+            args: Prisma.AttributeDefinitionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttributeDefinitionPayload>
+          }
+          update: {
+            args: Prisma.AttributeDefinitionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttributeDefinitionPayload>
+          }
+          deleteMany: {
+            args: Prisma.AttributeDefinitionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AttributeDefinitionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AttributeDefinitionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttributeDefinitionPayload>[]
+          }
+          upsert: {
+            args: Prisma.AttributeDefinitionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttributeDefinitionPayload>
+          }
+          aggregate: {
+            args: Prisma.AttributeDefinitionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAttributeDefinition>
+          }
+          groupBy: {
+            args: Prisma.AttributeDefinitionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AttributeDefinitionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AttributeDefinitionCountArgs<ExtArgs>
+            result: $Utils.Optional<AttributeDefinitionCountAggregateOutputType> | number
           }
         }
       }
@@ -1162,6 +1254,7 @@ export namespace Prisma {
   }
   export type GlobalOmitConfig = {
     project?: ProjectOmit
+    attributeDefinition?: AttributeDefinitionOmit
     entity?: EntityOmit
     document?: DocumentOmit
     scene?: SceneOmit
@@ -1248,11 +1341,13 @@ export namespace Prisma {
   export type ProjectCountOutputType = {
     documents: number
     entities: number
+    attributeDefinitions: number
   }
 
   export type ProjectCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     documents?: boolean | ProjectCountOutputTypeCountDocumentsArgs
     entities?: boolean | ProjectCountOutputTypeCountEntitiesArgs
+    attributeDefinitions?: boolean | ProjectCountOutputTypeCountAttributeDefinitionsArgs
   }
 
   // Custom InputTypes
@@ -1278,6 +1373,13 @@ export namespace Prisma {
    */
   export type ProjectCountOutputTypeCountEntitiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: EntityWhereInput
+  }
+
+  /**
+   * ProjectCountOutputType without action
+   */
+  export type ProjectCountOutputTypeCountAttributeDefinitionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AttributeDefinitionWhereInput
   }
 
 
@@ -1548,6 +1650,7 @@ export namespace Prisma {
     updatedAt?: boolean
     documents?: boolean | Project$documentsArgs<ExtArgs>
     entities?: boolean | Project$entitiesArgs<ExtArgs>
+    attributeDefinitions?: boolean | Project$attributeDefinitionsArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["project"]>
 
@@ -1582,6 +1685,7 @@ export namespace Prisma {
   export type ProjectInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     documents?: boolean | Project$documentsArgs<ExtArgs>
     entities?: boolean | Project$entitiesArgs<ExtArgs>
+    attributeDefinitions?: boolean | Project$attributeDefinitionsArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ProjectIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1592,6 +1696,7 @@ export namespace Prisma {
     objects: {
       documents: Prisma.$DocumentPayload<ExtArgs>[]
       entities: Prisma.$EntityPayload<ExtArgs>[]
+      attributeDefinitions: Prisma.$AttributeDefinitionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -1996,6 +2101,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     documents<T extends Project$documentsArgs<ExtArgs> = {}>(args?: Subset<T, Project$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     entities<T extends Project$entitiesArgs<ExtArgs> = {}>(args?: Subset<T, Project$entitiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EntityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    attributeDefinitions<T extends Project$attributeDefinitionsArgs<ExtArgs> = {}>(args?: Subset<T, Project$attributeDefinitionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2467,6 +2573,30 @@ export namespace Prisma {
   }
 
   /**
+   * Project.attributeDefinitions
+   */
+  export type Project$attributeDefinitionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionInclude<ExtArgs> | null
+    where?: AttributeDefinitionWhereInput
+    orderBy?: AttributeDefinitionOrderByWithRelationInput | AttributeDefinitionOrderByWithRelationInput[]
+    cursor?: AttributeDefinitionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AttributeDefinitionScalarFieldEnum | AttributeDefinitionScalarFieldEnum[]
+  }
+
+  /**
    * Project without action
    */
   export type ProjectDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2486,6 +2616,1168 @@ export namespace Prisma {
 
 
   /**
+   * Model AttributeDefinition
+   */
+
+  export type AggregateAttributeDefinition = {
+    _count: AttributeDefinitionCountAggregateOutputType | null
+    _avg: AttributeDefinitionAvgAggregateOutputType | null
+    _sum: AttributeDefinitionSumAggregateOutputType | null
+    _min: AttributeDefinitionMinAggregateOutputType | null
+    _max: AttributeDefinitionMaxAggregateOutputType | null
+  }
+
+  export type AttributeDefinitionAvgAggregateOutputType = {
+    order: number | null
+  }
+
+  export type AttributeDefinitionSumAggregateOutputType = {
+    order: number | null
+  }
+
+  export type AttributeDefinitionMinAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    name: string | null
+    type: string | null
+    color: string | null
+    icon: string | null
+    order: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AttributeDefinitionMaxAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    name: string | null
+    type: string | null
+    color: string | null
+    icon: string | null
+    order: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AttributeDefinitionCountAggregateOutputType = {
+    id: number
+    projectId: number
+    name: number
+    type: number
+    config: number
+    entityTypes: number
+    color: number
+    icon: number
+    order: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AttributeDefinitionAvgAggregateInputType = {
+    order?: true
+  }
+
+  export type AttributeDefinitionSumAggregateInputType = {
+    order?: true
+  }
+
+  export type AttributeDefinitionMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    name?: true
+    type?: true
+    color?: true
+    icon?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AttributeDefinitionMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    name?: true
+    type?: true
+    color?: true
+    icon?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AttributeDefinitionCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    name?: true
+    type?: true
+    config?: true
+    entityTypes?: true
+    color?: true
+    icon?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AttributeDefinitionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AttributeDefinition to aggregate.
+     */
+    where?: AttributeDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AttributeDefinitions to fetch.
+     */
+    orderBy?: AttributeDefinitionOrderByWithRelationInput | AttributeDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AttributeDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AttributeDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AttributeDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AttributeDefinitions
+    **/
+    _count?: true | AttributeDefinitionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AttributeDefinitionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AttributeDefinitionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AttributeDefinitionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AttributeDefinitionMaxAggregateInputType
+  }
+
+  export type GetAttributeDefinitionAggregateType<T extends AttributeDefinitionAggregateArgs> = {
+        [P in keyof T & keyof AggregateAttributeDefinition]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAttributeDefinition[P]>
+      : GetScalarType<T[P], AggregateAttributeDefinition[P]>
+  }
+
+
+
+
+  export type AttributeDefinitionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AttributeDefinitionWhereInput
+    orderBy?: AttributeDefinitionOrderByWithAggregationInput | AttributeDefinitionOrderByWithAggregationInput[]
+    by: AttributeDefinitionScalarFieldEnum[] | AttributeDefinitionScalarFieldEnum
+    having?: AttributeDefinitionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AttributeDefinitionCountAggregateInputType | true
+    _avg?: AttributeDefinitionAvgAggregateInputType
+    _sum?: AttributeDefinitionSumAggregateInputType
+    _min?: AttributeDefinitionMinAggregateInputType
+    _max?: AttributeDefinitionMaxAggregateInputType
+  }
+
+  export type AttributeDefinitionGroupByOutputType = {
+    id: string
+    projectId: string
+    name: string
+    type: string
+    config: JsonValue
+    entityTypes: string[]
+    color: string | null
+    icon: string | null
+    order: number
+    createdAt: Date
+    updatedAt: Date
+    _count: AttributeDefinitionCountAggregateOutputType | null
+    _avg: AttributeDefinitionAvgAggregateOutputType | null
+    _sum: AttributeDefinitionSumAggregateOutputType | null
+    _min: AttributeDefinitionMinAggregateOutputType | null
+    _max: AttributeDefinitionMaxAggregateOutputType | null
+  }
+
+  type GetAttributeDefinitionGroupByPayload<T extends AttributeDefinitionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AttributeDefinitionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AttributeDefinitionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AttributeDefinitionGroupByOutputType[P]>
+            : GetScalarType<T[P], AttributeDefinitionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AttributeDefinitionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    name?: boolean
+    type?: boolean
+    config?: boolean
+    entityTypes?: boolean
+    color?: boolean
+    icon?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["attributeDefinition"]>
+
+  export type AttributeDefinitionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    name?: boolean
+    type?: boolean
+    config?: boolean
+    entityTypes?: boolean
+    color?: boolean
+    icon?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["attributeDefinition"]>
+
+  export type AttributeDefinitionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    name?: boolean
+    type?: boolean
+    config?: boolean
+    entityTypes?: boolean
+    color?: boolean
+    icon?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["attributeDefinition"]>
+
+  export type AttributeDefinitionSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    name?: boolean
+    type?: boolean
+    config?: boolean
+    entityTypes?: boolean
+    color?: boolean
+    icon?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type AttributeDefinitionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "name" | "type" | "config" | "entityTypes" | "color" | "icon" | "order" | "createdAt" | "updatedAt", ExtArgs["result"]["attributeDefinition"]>
+  export type AttributeDefinitionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+  export type AttributeDefinitionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+  export type AttributeDefinitionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+
+  export type $AttributeDefinitionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AttributeDefinition"
+    objects: {
+      project: Prisma.$ProjectPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      projectId: string
+      name: string
+      type: string
+      config: Prisma.JsonValue
+      entityTypes: string[]
+      color: string | null
+      icon: string | null
+      order: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["attributeDefinition"]>
+    composites: {}
+  }
+
+  type AttributeDefinitionGetPayload<S extends boolean | null | undefined | AttributeDefinitionDefaultArgs> = $Result.GetResult<Prisma.$AttributeDefinitionPayload, S>
+
+  type AttributeDefinitionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AttributeDefinitionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AttributeDefinitionCountAggregateInputType | true
+    }
+
+  export interface AttributeDefinitionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AttributeDefinition'], meta: { name: 'AttributeDefinition' } }
+    /**
+     * Find zero or one AttributeDefinition that matches the filter.
+     * @param {AttributeDefinitionFindUniqueArgs} args - Arguments to find a AttributeDefinition
+     * @example
+     * // Get one AttributeDefinition
+     * const attributeDefinition = await prisma.attributeDefinition.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AttributeDefinitionFindUniqueArgs>(args: SelectSubset<T, AttributeDefinitionFindUniqueArgs<ExtArgs>>): Prisma__AttributeDefinitionClient<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AttributeDefinition that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AttributeDefinitionFindUniqueOrThrowArgs} args - Arguments to find a AttributeDefinition
+     * @example
+     * // Get one AttributeDefinition
+     * const attributeDefinition = await prisma.attributeDefinition.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AttributeDefinitionFindUniqueOrThrowArgs>(args: SelectSubset<T, AttributeDefinitionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AttributeDefinitionClient<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AttributeDefinition that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AttributeDefinitionFindFirstArgs} args - Arguments to find a AttributeDefinition
+     * @example
+     * // Get one AttributeDefinition
+     * const attributeDefinition = await prisma.attributeDefinition.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AttributeDefinitionFindFirstArgs>(args?: SelectSubset<T, AttributeDefinitionFindFirstArgs<ExtArgs>>): Prisma__AttributeDefinitionClient<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AttributeDefinition that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AttributeDefinitionFindFirstOrThrowArgs} args - Arguments to find a AttributeDefinition
+     * @example
+     * // Get one AttributeDefinition
+     * const attributeDefinition = await prisma.attributeDefinition.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AttributeDefinitionFindFirstOrThrowArgs>(args?: SelectSubset<T, AttributeDefinitionFindFirstOrThrowArgs<ExtArgs>>): Prisma__AttributeDefinitionClient<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AttributeDefinitions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AttributeDefinitionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AttributeDefinitions
+     * const attributeDefinitions = await prisma.attributeDefinition.findMany()
+     * 
+     * // Get first 10 AttributeDefinitions
+     * const attributeDefinitions = await prisma.attributeDefinition.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const attributeDefinitionWithIdOnly = await prisma.attributeDefinition.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AttributeDefinitionFindManyArgs>(args?: SelectSubset<T, AttributeDefinitionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AttributeDefinition.
+     * @param {AttributeDefinitionCreateArgs} args - Arguments to create a AttributeDefinition.
+     * @example
+     * // Create one AttributeDefinition
+     * const AttributeDefinition = await prisma.attributeDefinition.create({
+     *   data: {
+     *     // ... data to create a AttributeDefinition
+     *   }
+     * })
+     * 
+     */
+    create<T extends AttributeDefinitionCreateArgs>(args: SelectSubset<T, AttributeDefinitionCreateArgs<ExtArgs>>): Prisma__AttributeDefinitionClient<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AttributeDefinitions.
+     * @param {AttributeDefinitionCreateManyArgs} args - Arguments to create many AttributeDefinitions.
+     * @example
+     * // Create many AttributeDefinitions
+     * const attributeDefinition = await prisma.attributeDefinition.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AttributeDefinitionCreateManyArgs>(args?: SelectSubset<T, AttributeDefinitionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AttributeDefinitions and returns the data saved in the database.
+     * @param {AttributeDefinitionCreateManyAndReturnArgs} args - Arguments to create many AttributeDefinitions.
+     * @example
+     * // Create many AttributeDefinitions
+     * const attributeDefinition = await prisma.attributeDefinition.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AttributeDefinitions and only return the `id`
+     * const attributeDefinitionWithIdOnly = await prisma.attributeDefinition.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AttributeDefinitionCreateManyAndReturnArgs>(args?: SelectSubset<T, AttributeDefinitionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AttributeDefinition.
+     * @param {AttributeDefinitionDeleteArgs} args - Arguments to delete one AttributeDefinition.
+     * @example
+     * // Delete one AttributeDefinition
+     * const AttributeDefinition = await prisma.attributeDefinition.delete({
+     *   where: {
+     *     // ... filter to delete one AttributeDefinition
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AttributeDefinitionDeleteArgs>(args: SelectSubset<T, AttributeDefinitionDeleteArgs<ExtArgs>>): Prisma__AttributeDefinitionClient<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AttributeDefinition.
+     * @param {AttributeDefinitionUpdateArgs} args - Arguments to update one AttributeDefinition.
+     * @example
+     * // Update one AttributeDefinition
+     * const attributeDefinition = await prisma.attributeDefinition.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AttributeDefinitionUpdateArgs>(args: SelectSubset<T, AttributeDefinitionUpdateArgs<ExtArgs>>): Prisma__AttributeDefinitionClient<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AttributeDefinitions.
+     * @param {AttributeDefinitionDeleteManyArgs} args - Arguments to filter AttributeDefinitions to delete.
+     * @example
+     * // Delete a few AttributeDefinitions
+     * const { count } = await prisma.attributeDefinition.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AttributeDefinitionDeleteManyArgs>(args?: SelectSubset<T, AttributeDefinitionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AttributeDefinitions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AttributeDefinitionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AttributeDefinitions
+     * const attributeDefinition = await prisma.attributeDefinition.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AttributeDefinitionUpdateManyArgs>(args: SelectSubset<T, AttributeDefinitionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AttributeDefinitions and returns the data updated in the database.
+     * @param {AttributeDefinitionUpdateManyAndReturnArgs} args - Arguments to update many AttributeDefinitions.
+     * @example
+     * // Update many AttributeDefinitions
+     * const attributeDefinition = await prisma.attributeDefinition.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AttributeDefinitions and only return the `id`
+     * const attributeDefinitionWithIdOnly = await prisma.attributeDefinition.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AttributeDefinitionUpdateManyAndReturnArgs>(args: SelectSubset<T, AttributeDefinitionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AttributeDefinition.
+     * @param {AttributeDefinitionUpsertArgs} args - Arguments to update or create a AttributeDefinition.
+     * @example
+     * // Update or create a AttributeDefinition
+     * const attributeDefinition = await prisma.attributeDefinition.upsert({
+     *   create: {
+     *     // ... data to create a AttributeDefinition
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AttributeDefinition we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AttributeDefinitionUpsertArgs>(args: SelectSubset<T, AttributeDefinitionUpsertArgs<ExtArgs>>): Prisma__AttributeDefinitionClient<$Result.GetResult<Prisma.$AttributeDefinitionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AttributeDefinitions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AttributeDefinitionCountArgs} args - Arguments to filter AttributeDefinitions to count.
+     * @example
+     * // Count the number of AttributeDefinitions
+     * const count = await prisma.attributeDefinition.count({
+     *   where: {
+     *     // ... the filter for the AttributeDefinitions we want to count
+     *   }
+     * })
+    **/
+    count<T extends AttributeDefinitionCountArgs>(
+      args?: Subset<T, AttributeDefinitionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AttributeDefinitionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AttributeDefinition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AttributeDefinitionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AttributeDefinitionAggregateArgs>(args: Subset<T, AttributeDefinitionAggregateArgs>): Prisma.PrismaPromise<GetAttributeDefinitionAggregateType<T>>
+
+    /**
+     * Group by AttributeDefinition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AttributeDefinitionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AttributeDefinitionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AttributeDefinitionGroupByArgs['orderBy'] }
+        : { orderBy?: AttributeDefinitionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AttributeDefinitionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAttributeDefinitionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AttributeDefinition model
+   */
+  readonly fields: AttributeDefinitionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AttributeDefinition.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AttributeDefinitionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AttributeDefinition model
+   */
+  interface AttributeDefinitionFieldRefs {
+    readonly id: FieldRef<"AttributeDefinition", 'String'>
+    readonly projectId: FieldRef<"AttributeDefinition", 'String'>
+    readonly name: FieldRef<"AttributeDefinition", 'String'>
+    readonly type: FieldRef<"AttributeDefinition", 'String'>
+    readonly config: FieldRef<"AttributeDefinition", 'Json'>
+    readonly entityTypes: FieldRef<"AttributeDefinition", 'String[]'>
+    readonly color: FieldRef<"AttributeDefinition", 'String'>
+    readonly icon: FieldRef<"AttributeDefinition", 'String'>
+    readonly order: FieldRef<"AttributeDefinition", 'Int'>
+    readonly createdAt: FieldRef<"AttributeDefinition", 'DateTime'>
+    readonly updatedAt: FieldRef<"AttributeDefinition", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AttributeDefinition findUnique
+   */
+  export type AttributeDefinitionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which AttributeDefinition to fetch.
+     */
+    where: AttributeDefinitionWhereUniqueInput
+  }
+
+  /**
+   * AttributeDefinition findUniqueOrThrow
+   */
+  export type AttributeDefinitionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which AttributeDefinition to fetch.
+     */
+    where: AttributeDefinitionWhereUniqueInput
+  }
+
+  /**
+   * AttributeDefinition findFirst
+   */
+  export type AttributeDefinitionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which AttributeDefinition to fetch.
+     */
+    where?: AttributeDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AttributeDefinitions to fetch.
+     */
+    orderBy?: AttributeDefinitionOrderByWithRelationInput | AttributeDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AttributeDefinitions.
+     */
+    cursor?: AttributeDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AttributeDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AttributeDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AttributeDefinitions.
+     */
+    distinct?: AttributeDefinitionScalarFieldEnum | AttributeDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * AttributeDefinition findFirstOrThrow
+   */
+  export type AttributeDefinitionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which AttributeDefinition to fetch.
+     */
+    where?: AttributeDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AttributeDefinitions to fetch.
+     */
+    orderBy?: AttributeDefinitionOrderByWithRelationInput | AttributeDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AttributeDefinitions.
+     */
+    cursor?: AttributeDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AttributeDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AttributeDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AttributeDefinitions.
+     */
+    distinct?: AttributeDefinitionScalarFieldEnum | AttributeDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * AttributeDefinition findMany
+   */
+  export type AttributeDefinitionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which AttributeDefinitions to fetch.
+     */
+    where?: AttributeDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AttributeDefinitions to fetch.
+     */
+    orderBy?: AttributeDefinitionOrderByWithRelationInput | AttributeDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AttributeDefinitions.
+     */
+    cursor?: AttributeDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AttributeDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AttributeDefinitions.
+     */
+    skip?: number
+    distinct?: AttributeDefinitionScalarFieldEnum | AttributeDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * AttributeDefinition create
+   */
+  export type AttributeDefinitionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AttributeDefinition.
+     */
+    data: XOR<AttributeDefinitionCreateInput, AttributeDefinitionUncheckedCreateInput>
+  }
+
+  /**
+   * AttributeDefinition createMany
+   */
+  export type AttributeDefinitionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AttributeDefinitions.
+     */
+    data: AttributeDefinitionCreateManyInput | AttributeDefinitionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AttributeDefinition createManyAndReturn
+   */
+  export type AttributeDefinitionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * The data used to create many AttributeDefinitions.
+     */
+    data: AttributeDefinitionCreateManyInput | AttributeDefinitionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AttributeDefinition update
+   */
+  export type AttributeDefinitionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AttributeDefinition.
+     */
+    data: XOR<AttributeDefinitionUpdateInput, AttributeDefinitionUncheckedUpdateInput>
+    /**
+     * Choose, which AttributeDefinition to update.
+     */
+    where: AttributeDefinitionWhereUniqueInput
+  }
+
+  /**
+   * AttributeDefinition updateMany
+   */
+  export type AttributeDefinitionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AttributeDefinitions.
+     */
+    data: XOR<AttributeDefinitionUpdateManyMutationInput, AttributeDefinitionUncheckedUpdateManyInput>
+    /**
+     * Filter which AttributeDefinitions to update
+     */
+    where?: AttributeDefinitionWhereInput
+    /**
+     * Limit how many AttributeDefinitions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AttributeDefinition updateManyAndReturn
+   */
+  export type AttributeDefinitionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * The data used to update AttributeDefinitions.
+     */
+    data: XOR<AttributeDefinitionUpdateManyMutationInput, AttributeDefinitionUncheckedUpdateManyInput>
+    /**
+     * Filter which AttributeDefinitions to update
+     */
+    where?: AttributeDefinitionWhereInput
+    /**
+     * Limit how many AttributeDefinitions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AttributeDefinition upsert
+   */
+  export type AttributeDefinitionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AttributeDefinition to update in case it exists.
+     */
+    where: AttributeDefinitionWhereUniqueInput
+    /**
+     * In case the AttributeDefinition found by the `where` argument doesn't exist, create a new AttributeDefinition with this data.
+     */
+    create: XOR<AttributeDefinitionCreateInput, AttributeDefinitionUncheckedCreateInput>
+    /**
+     * In case the AttributeDefinition was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AttributeDefinitionUpdateInput, AttributeDefinitionUncheckedUpdateInput>
+  }
+
+  /**
+   * AttributeDefinition delete
+   */
+  export type AttributeDefinitionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter which AttributeDefinition to delete.
+     */
+    where: AttributeDefinitionWhereUniqueInput
+  }
+
+  /**
+   * AttributeDefinition deleteMany
+   */
+  export type AttributeDefinitionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AttributeDefinitions to delete
+     */
+    where?: AttributeDefinitionWhereInput
+    /**
+     * Limit how many AttributeDefinitions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AttributeDefinition without action
+   */
+  export type AttributeDefinitionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttributeDefinition
+     */
+    select?: AttributeDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttributeDefinition
+     */
+    omit?: AttributeDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttributeDefinitionInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Entity
    */
 
@@ -2501,7 +3793,6 @@ export namespace Prisma {
     type: $Enums.EntityType | null
     name: string | null
     description: string | null
-    imageUrl: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2512,7 +3803,6 @@ export namespace Prisma {
     type: $Enums.EntityType | null
     name: string | null
     description: string | null
-    imageUrl: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2524,7 +3814,7 @@ export namespace Prisma {
     name: number
     description: number
     attributes: number
-    imageUrl: number
+    content: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -2537,7 +3827,6 @@ export namespace Prisma {
     type?: true
     name?: true
     description?: true
-    imageUrl?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2548,7 +3837,6 @@ export namespace Prisma {
     type?: true
     name?: true
     description?: true
-    imageUrl?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2560,7 +3848,7 @@ export namespace Prisma {
     name?: true
     description?: true
     attributes?: true
-    imageUrl?: true
+    content?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -2645,7 +3933,7 @@ export namespace Prisma {
     name: string
     description: string | null
     attributes: JsonValue
-    imageUrl: string | null
+    content: JsonValue | null
     createdAt: Date
     updatedAt: Date
     _count: EntityCountAggregateOutputType | null
@@ -2674,7 +3962,7 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     attributes?: boolean
-    imageUrl?: boolean
+    content?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     project?: boolean | ProjectDefaultArgs<ExtArgs>
@@ -2689,7 +3977,7 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     attributes?: boolean
-    imageUrl?: boolean
+    content?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     project?: boolean | ProjectDefaultArgs<ExtArgs>
@@ -2702,7 +3990,7 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     attributes?: boolean
-    imageUrl?: boolean
+    content?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     project?: boolean | ProjectDefaultArgs<ExtArgs>
@@ -2715,12 +4003,12 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     attributes?: boolean
-    imageUrl?: boolean
+    content?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type EntityOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "type" | "name" | "description" | "attributes" | "imageUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["entity"]>
+  export type EntityOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "type" | "name" | "description" | "attributes" | "content" | "createdAt" | "updatedAt", ExtArgs["result"]["entity"]>
   export type EntityInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     project?: boolean | ProjectDefaultArgs<ExtArgs>
     scenes?: boolean | Entity$scenesArgs<ExtArgs>
@@ -2746,7 +4034,7 @@ export namespace Prisma {
       name: string
       description: string | null
       attributes: Prisma.JsonValue
-      imageUrl: string | null
+      content: Prisma.JsonValue | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["entity"]>
@@ -3180,7 +4468,7 @@ export namespace Prisma {
     readonly name: FieldRef<"Entity", 'String'>
     readonly description: FieldRef<"Entity", 'String'>
     readonly attributes: FieldRef<"Entity", 'Json'>
-    readonly imageUrl: FieldRef<"Entity", 'String'>
+    readonly content: FieldRef<"Entity", 'Json'>
     readonly createdAt: FieldRef<"Entity", 'DateTime'>
     readonly updatedAt: FieldRef<"Entity", 'DateTime'>
   }
@@ -7061,6 +8349,23 @@ export namespace Prisma {
   export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
 
 
+  export const AttributeDefinitionScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    name: 'name',
+    type: 'type',
+    config: 'config',
+    entityTypes: 'entityTypes',
+    color: 'color',
+    icon: 'icon',
+    order: 'order',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AttributeDefinitionScalarFieldEnum = (typeof AttributeDefinitionScalarFieldEnum)[keyof typeof AttributeDefinitionScalarFieldEnum]
+
+
   export const EntityScalarFieldEnum: {
     id: 'id',
     projectId: 'projectId',
@@ -7068,7 +8373,7 @@ export namespace Prisma {
     name: 'name',
     description: 'description',
     attributes: 'attributes',
-    imageUrl: 'imageUrl',
+    content: 'content',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -7130,6 +8435,14 @@ export namespace Prisma {
   };
 
   export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
   export const QueryMode: {
@@ -7205,20 +8518,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'EntityType'
-   */
-  export type EnumEntityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EntityType'>
-    
-
-
-  /**
-   * Reference to a field of type 'EntityType[]'
-   */
-  export type ListEnumEntityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EntityType[]'>
-    
-
-
-  /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -7229,6 +8528,20 @@ export namespace Prisma {
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'EntityType'
+   */
+  export type EnumEntityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EntityType'>
+    
+
+
+  /**
+   * Reference to a field of type 'EntityType[]'
+   */
+  export type ListEnumEntityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EntityType[]'>
     
 
 
@@ -7261,6 +8574,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Project"> | Date | string
     documents?: DocumentListRelationFilter
     entities?: EntityListRelationFilter
+    attributeDefinitions?: AttributeDefinitionListRelationFilter
   }
 
   export type ProjectOrderByWithRelationInput = {
@@ -7272,6 +8586,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     documents?: DocumentOrderByRelationAggregateInput
     entities?: EntityOrderByRelationAggregateInput
+    attributeDefinitions?: AttributeDefinitionOrderByRelationAggregateInput
   }
 
   export type ProjectWhereUniqueInput = Prisma.AtLeast<{
@@ -7286,6 +8601,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Project"> | Date | string
     documents?: DocumentListRelationFilter
     entities?: EntityListRelationFilter
+    attributeDefinitions?: AttributeDefinitionListRelationFilter
   }, "id">
 
   export type ProjectOrderByWithAggregationInput = {
@@ -7312,6 +8628,93 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"Project"> | Date | string
   }
 
+  export type AttributeDefinitionWhereInput = {
+    AND?: AttributeDefinitionWhereInput | AttributeDefinitionWhereInput[]
+    OR?: AttributeDefinitionWhereInput[]
+    NOT?: AttributeDefinitionWhereInput | AttributeDefinitionWhereInput[]
+    id?: StringFilter<"AttributeDefinition"> | string
+    projectId?: StringFilter<"AttributeDefinition"> | string
+    name?: StringFilter<"AttributeDefinition"> | string
+    type?: StringFilter<"AttributeDefinition"> | string
+    config?: JsonFilter<"AttributeDefinition">
+    entityTypes?: StringNullableListFilter<"AttributeDefinition">
+    color?: StringNullableFilter<"AttributeDefinition"> | string | null
+    icon?: StringNullableFilter<"AttributeDefinition"> | string | null
+    order?: IntFilter<"AttributeDefinition"> | number
+    createdAt?: DateTimeFilter<"AttributeDefinition"> | Date | string
+    updatedAt?: DateTimeFilter<"AttributeDefinition"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+  }
+
+  export type AttributeDefinitionOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    config?: SortOrder
+    entityTypes?: SortOrder
+    color?: SortOrderInput | SortOrder
+    icon?: SortOrderInput | SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    project?: ProjectOrderByWithRelationInput
+  }
+
+  export type AttributeDefinitionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AttributeDefinitionWhereInput | AttributeDefinitionWhereInput[]
+    OR?: AttributeDefinitionWhereInput[]
+    NOT?: AttributeDefinitionWhereInput | AttributeDefinitionWhereInput[]
+    projectId?: StringFilter<"AttributeDefinition"> | string
+    name?: StringFilter<"AttributeDefinition"> | string
+    type?: StringFilter<"AttributeDefinition"> | string
+    config?: JsonFilter<"AttributeDefinition">
+    entityTypes?: StringNullableListFilter<"AttributeDefinition">
+    color?: StringNullableFilter<"AttributeDefinition"> | string | null
+    icon?: StringNullableFilter<"AttributeDefinition"> | string | null
+    order?: IntFilter<"AttributeDefinition"> | number
+    createdAt?: DateTimeFilter<"AttributeDefinition"> | Date | string
+    updatedAt?: DateTimeFilter<"AttributeDefinition"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+  }, "id">
+
+  export type AttributeDefinitionOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    config?: SortOrder
+    entityTypes?: SortOrder
+    color?: SortOrderInput | SortOrder
+    icon?: SortOrderInput | SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: AttributeDefinitionCountOrderByAggregateInput
+    _avg?: AttributeDefinitionAvgOrderByAggregateInput
+    _max?: AttributeDefinitionMaxOrderByAggregateInput
+    _min?: AttributeDefinitionMinOrderByAggregateInput
+    _sum?: AttributeDefinitionSumOrderByAggregateInput
+  }
+
+  export type AttributeDefinitionScalarWhereWithAggregatesInput = {
+    AND?: AttributeDefinitionScalarWhereWithAggregatesInput | AttributeDefinitionScalarWhereWithAggregatesInput[]
+    OR?: AttributeDefinitionScalarWhereWithAggregatesInput[]
+    NOT?: AttributeDefinitionScalarWhereWithAggregatesInput | AttributeDefinitionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AttributeDefinition"> | string
+    projectId?: StringWithAggregatesFilter<"AttributeDefinition"> | string
+    name?: StringWithAggregatesFilter<"AttributeDefinition"> | string
+    type?: StringWithAggregatesFilter<"AttributeDefinition"> | string
+    config?: JsonWithAggregatesFilter<"AttributeDefinition">
+    entityTypes?: StringNullableListFilter<"AttributeDefinition">
+    color?: StringNullableWithAggregatesFilter<"AttributeDefinition"> | string | null
+    icon?: StringNullableWithAggregatesFilter<"AttributeDefinition"> | string | null
+    order?: IntWithAggregatesFilter<"AttributeDefinition"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"AttributeDefinition"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AttributeDefinition"> | Date | string
+  }
+
   export type EntityWhereInput = {
     AND?: EntityWhereInput | EntityWhereInput[]
     OR?: EntityWhereInput[]
@@ -7322,7 +8725,7 @@ export namespace Prisma {
     name?: StringFilter<"Entity"> | string
     description?: StringNullableFilter<"Entity"> | string | null
     attributes?: JsonFilter<"Entity">
-    imageUrl?: StringNullableFilter<"Entity"> | string | null
+    content?: JsonNullableFilter<"Entity">
     createdAt?: DateTimeFilter<"Entity"> | Date | string
     updatedAt?: DateTimeFilter<"Entity"> | Date | string
     project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
@@ -7336,7 +8739,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     attributes?: SortOrder
-    imageUrl?: SortOrderInput | SortOrder
+    content?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     project?: ProjectOrderByWithRelationInput
@@ -7353,7 +8756,7 @@ export namespace Prisma {
     name?: StringFilter<"Entity"> | string
     description?: StringNullableFilter<"Entity"> | string | null
     attributes?: JsonFilter<"Entity">
-    imageUrl?: StringNullableFilter<"Entity"> | string | null
+    content?: JsonNullableFilter<"Entity">
     createdAt?: DateTimeFilter<"Entity"> | Date | string
     updatedAt?: DateTimeFilter<"Entity"> | Date | string
     project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
@@ -7367,7 +8770,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     attributes?: SortOrder
-    imageUrl?: SortOrderInput | SortOrder
+    content?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: EntityCountOrderByAggregateInput
@@ -7385,7 +8788,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Entity"> | string
     description?: StringNullableWithAggregatesFilter<"Entity"> | string | null
     attributes?: JsonWithAggregatesFilter<"Entity">
-    imageUrl?: StringNullableWithAggregatesFilter<"Entity"> | string | null
+    content?: JsonNullableWithAggregatesFilter<"Entity">
     createdAt?: DateTimeWithAggregatesFilter<"Entity"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Entity"> | Date | string
   }
@@ -7618,6 +9021,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     documents?: DocumentCreateNestedManyWithoutProjectInput
     entities?: EntityCreateNestedManyWithoutProjectInput
+    attributeDefinitions?: AttributeDefinitionCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateInput = {
@@ -7629,6 +9033,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     documents?: DocumentUncheckedCreateNestedManyWithoutProjectInput
     entities?: EntityUncheckedCreateNestedManyWithoutProjectInput
+    attributeDefinitions?: AttributeDefinitionUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUpdateInput = {
@@ -7640,6 +9045,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     documents?: DocumentUpdateManyWithoutProjectNestedInput
     entities?: EntityUpdateManyWithoutProjectNestedInput
+    attributeDefinitions?: AttributeDefinitionUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateInput = {
@@ -7651,6 +9057,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     documents?: DocumentUncheckedUpdateManyWithoutProjectNestedInput
     entities?: EntityUncheckedUpdateManyWithoutProjectNestedInput
+    attributeDefinitions?: AttributeDefinitionUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectCreateManyInput = {
@@ -7680,13 +9087,110 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AttributeDefinitionCreateInput = {
+    id?: string
+    name: string
+    type: string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionCreateentityTypesInput | string[]
+    color?: string | null
+    icon?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    project: ProjectCreateNestedOneWithoutAttributeDefinitionsInput
+  }
+
+  export type AttributeDefinitionUncheckedCreateInput = {
+    id?: string
+    projectId: string
+    name: string
+    type: string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionCreateentityTypesInput | string[]
+    color?: string | null
+    icon?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AttributeDefinitionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionUpdateentityTypesInput | string[]
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: ProjectUpdateOneRequiredWithoutAttributeDefinitionsNestedInput
+  }
+
+  export type AttributeDefinitionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionUpdateentityTypesInput | string[]
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AttributeDefinitionCreateManyInput = {
+    id?: string
+    projectId: string
+    name: string
+    type: string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionCreateentityTypesInput | string[]
+    color?: string | null
+    icon?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AttributeDefinitionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionUpdateentityTypesInput | string[]
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AttributeDefinitionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionUpdateentityTypesInput | string[]
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type EntityCreateInput = {
     id?: string
     type: $Enums.EntityType
     name: string
     description?: string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     project: ProjectCreateNestedOneWithoutEntitiesInput
@@ -7700,7 +9204,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     scenes?: SceneEntityUncheckedCreateNestedManyWithoutEntityInput
@@ -7712,7 +9216,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     project?: ProjectUpdateOneRequiredWithoutEntitiesNestedInput
@@ -7726,7 +9230,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     scenes?: SceneEntityUncheckedUpdateManyWithoutEntityNestedInput
@@ -7739,7 +9243,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -7750,7 +9254,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7762,7 +9266,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -8071,6 +9575,12 @@ export namespace Prisma {
     none?: EntityWhereInput
   }
 
+  export type AttributeDefinitionListRelationFilter = {
+    every?: AttributeDefinitionWhereInput
+    some?: AttributeDefinitionWhereInput
+    none?: AttributeDefinitionWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -8081,6 +9591,10 @@ export namespace Prisma {
   }
 
   export type EntityOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AttributeDefinitionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -8185,16 +9699,120 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type StringNullableListFilter<$PrismaModel = never> = {
+    equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    has?: string | StringFieldRefInput<$PrismaModel> | null
+    hasEvery?: string[] | ListStringFieldRefInput<$PrismaModel>
+    hasSome?: string[] | ListStringFieldRefInput<$PrismaModel>
+    isEmpty?: boolean
+  }
+
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type ProjectScalarRelationFilter = {
+    is?: ProjectWhereInput
+    isNot?: ProjectWhereInput
+  }
+
+  export type AttributeDefinitionCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    config?: SortOrder
+    entityTypes?: SortOrder
+    color?: SortOrder
+    icon?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AttributeDefinitionAvgOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type AttributeDefinitionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    color?: SortOrder
+    icon?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AttributeDefinitionMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    color?: SortOrder
+    icon?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AttributeDefinitionSumOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
   export type EnumEntityTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.EntityType | EnumEntityTypeFieldRefInput<$PrismaModel>
     in?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
     notIn?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
     not?: NestedEnumEntityTypeFilter<$PrismaModel> | $Enums.EntityType
   }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
 
-  export type ProjectScalarRelationFilter = {
-    is?: ProjectWhereInput
-    isNot?: ProjectWhereInput
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type SceneEntityListRelationFilter = {
@@ -8214,7 +9832,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     attributes?: SortOrder
-    imageUrl?: SortOrder
+    content?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -8225,7 +9843,6 @@ export namespace Prisma {
     type?: SortOrder
     name?: SortOrder
     description?: SortOrder
-    imageUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -8236,7 +9853,6 @@ export namespace Prisma {
     type?: SortOrder
     name?: SortOrder
     description?: SortOrder
-    imageUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -8250,16 +9866,31 @@ export namespace Prisma {
     _min?: NestedEnumEntityTypeFilter<$PrismaModel>
     _max?: NestedEnumEntityTypeFilter<$PrismaModel>
   }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
 
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type SceneListRelationFilter = {
@@ -8306,22 +9937,6 @@ export namespace Prisma {
 
   export type DocumentSumOrderByAggregateInput = {
     order?: SortOrder
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type IntNullableFilter<$PrismaModel = never> = {
@@ -8461,6 +10076,13 @@ export namespace Prisma {
     connect?: EntityWhereUniqueInput | EntityWhereUniqueInput[]
   }
 
+  export type AttributeDefinitionCreateNestedManyWithoutProjectInput = {
+    create?: XOR<AttributeDefinitionCreateWithoutProjectInput, AttributeDefinitionUncheckedCreateWithoutProjectInput> | AttributeDefinitionCreateWithoutProjectInput[] | AttributeDefinitionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: AttributeDefinitionCreateOrConnectWithoutProjectInput | AttributeDefinitionCreateOrConnectWithoutProjectInput[]
+    createMany?: AttributeDefinitionCreateManyProjectInputEnvelope
+    connect?: AttributeDefinitionWhereUniqueInput | AttributeDefinitionWhereUniqueInput[]
+  }
+
   export type DocumentUncheckedCreateNestedManyWithoutProjectInput = {
     create?: XOR<DocumentCreateWithoutProjectInput, DocumentUncheckedCreateWithoutProjectInput> | DocumentCreateWithoutProjectInput[] | DocumentUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: DocumentCreateOrConnectWithoutProjectInput | DocumentCreateOrConnectWithoutProjectInput[]
@@ -8473,6 +10095,13 @@ export namespace Prisma {
     connectOrCreate?: EntityCreateOrConnectWithoutProjectInput | EntityCreateOrConnectWithoutProjectInput[]
     createMany?: EntityCreateManyProjectInputEnvelope
     connect?: EntityWhereUniqueInput | EntityWhereUniqueInput[]
+  }
+
+  export type AttributeDefinitionUncheckedCreateNestedManyWithoutProjectInput = {
+    create?: XOR<AttributeDefinitionCreateWithoutProjectInput, AttributeDefinitionUncheckedCreateWithoutProjectInput> | AttributeDefinitionCreateWithoutProjectInput[] | AttributeDefinitionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: AttributeDefinitionCreateOrConnectWithoutProjectInput | AttributeDefinitionCreateOrConnectWithoutProjectInput[]
+    createMany?: AttributeDefinitionCreateManyProjectInputEnvelope
+    connect?: AttributeDefinitionWhereUniqueInput | AttributeDefinitionWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -8515,6 +10144,20 @@ export namespace Prisma {
     deleteMany?: EntityScalarWhereInput | EntityScalarWhereInput[]
   }
 
+  export type AttributeDefinitionUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<AttributeDefinitionCreateWithoutProjectInput, AttributeDefinitionUncheckedCreateWithoutProjectInput> | AttributeDefinitionCreateWithoutProjectInput[] | AttributeDefinitionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: AttributeDefinitionCreateOrConnectWithoutProjectInput | AttributeDefinitionCreateOrConnectWithoutProjectInput[]
+    upsert?: AttributeDefinitionUpsertWithWhereUniqueWithoutProjectInput | AttributeDefinitionUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: AttributeDefinitionCreateManyProjectInputEnvelope
+    set?: AttributeDefinitionWhereUniqueInput | AttributeDefinitionWhereUniqueInput[]
+    disconnect?: AttributeDefinitionWhereUniqueInput | AttributeDefinitionWhereUniqueInput[]
+    delete?: AttributeDefinitionWhereUniqueInput | AttributeDefinitionWhereUniqueInput[]
+    connect?: AttributeDefinitionWhereUniqueInput | AttributeDefinitionWhereUniqueInput[]
+    update?: AttributeDefinitionUpdateWithWhereUniqueWithoutProjectInput | AttributeDefinitionUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: AttributeDefinitionUpdateManyWithWhereWithoutProjectInput | AttributeDefinitionUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: AttributeDefinitionScalarWhereInput | AttributeDefinitionScalarWhereInput[]
+  }
+
   export type DocumentUncheckedUpdateManyWithoutProjectNestedInput = {
     create?: XOR<DocumentCreateWithoutProjectInput, DocumentUncheckedCreateWithoutProjectInput> | DocumentCreateWithoutProjectInput[] | DocumentUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: DocumentCreateOrConnectWithoutProjectInput | DocumentCreateOrConnectWithoutProjectInput[]
@@ -8541,6 +10184,51 @@ export namespace Prisma {
     update?: EntityUpdateWithWhereUniqueWithoutProjectInput | EntityUpdateWithWhereUniqueWithoutProjectInput[]
     updateMany?: EntityUpdateManyWithWhereWithoutProjectInput | EntityUpdateManyWithWhereWithoutProjectInput[]
     deleteMany?: EntityScalarWhereInput | EntityScalarWhereInput[]
+  }
+
+  export type AttributeDefinitionUncheckedUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<AttributeDefinitionCreateWithoutProjectInput, AttributeDefinitionUncheckedCreateWithoutProjectInput> | AttributeDefinitionCreateWithoutProjectInput[] | AttributeDefinitionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: AttributeDefinitionCreateOrConnectWithoutProjectInput | AttributeDefinitionCreateOrConnectWithoutProjectInput[]
+    upsert?: AttributeDefinitionUpsertWithWhereUniqueWithoutProjectInput | AttributeDefinitionUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: AttributeDefinitionCreateManyProjectInputEnvelope
+    set?: AttributeDefinitionWhereUniqueInput | AttributeDefinitionWhereUniqueInput[]
+    disconnect?: AttributeDefinitionWhereUniqueInput | AttributeDefinitionWhereUniqueInput[]
+    delete?: AttributeDefinitionWhereUniqueInput | AttributeDefinitionWhereUniqueInput[]
+    connect?: AttributeDefinitionWhereUniqueInput | AttributeDefinitionWhereUniqueInput[]
+    update?: AttributeDefinitionUpdateWithWhereUniqueWithoutProjectInput | AttributeDefinitionUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: AttributeDefinitionUpdateManyWithWhereWithoutProjectInput | AttributeDefinitionUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: AttributeDefinitionScalarWhereInput | AttributeDefinitionScalarWhereInput[]
+  }
+
+  export type AttributeDefinitionCreateentityTypesInput = {
+    set: string[]
+  }
+
+  export type ProjectCreateNestedOneWithoutAttributeDefinitionsInput = {
+    create?: XOR<ProjectCreateWithoutAttributeDefinitionsInput, ProjectUncheckedCreateWithoutAttributeDefinitionsInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutAttributeDefinitionsInput
+    connect?: ProjectWhereUniqueInput
+  }
+
+  export type AttributeDefinitionUpdateentityTypesInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type ProjectUpdateOneRequiredWithoutAttributeDefinitionsNestedInput = {
+    create?: XOR<ProjectCreateWithoutAttributeDefinitionsInput, ProjectUncheckedCreateWithoutAttributeDefinitionsInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutAttributeDefinitionsInput
+    upsert?: ProjectUpsertWithoutAttributeDefinitionsInput
+    connect?: ProjectWhereUniqueInput
+    update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutAttributeDefinitionsInput, ProjectUpdateWithoutAttributeDefinitionsInput>, ProjectUncheckedUpdateWithoutAttributeDefinitionsInput>
   }
 
   export type ProjectCreateNestedOneWithoutEntitiesInput = {
@@ -8621,14 +10309,6 @@ export namespace Prisma {
     connectOrCreate?: SceneCreateOrConnectWithoutDocumentInput | SceneCreateOrConnectWithoutDocumentInput[]
     createMany?: SceneCreateManyDocumentInputEnvelope
     connect?: SceneWhereUniqueInput | SceneWhereUniqueInput[]
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type ProjectUpdateOneRequiredWithoutDocumentsNestedInput = {
@@ -8891,23 +10571,6 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
-  export type NestedEnumEntityTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.EntityType | EnumEntityTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumEntityTypeFilter<$PrismaModel> | $Enums.EntityType
-  }
-
-  export type NestedEnumEntityTypeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.EntityType | EnumEntityTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumEntityTypeWithAggregatesFilter<$PrismaModel> | $Enums.EntityType
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumEntityTypeFilter<$PrismaModel>
-    _max?: NestedEnumEntityTypeFilter<$PrismaModel>
-  }
-
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -8933,6 +10596,46 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type NestedEnumEntityTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.EntityType | EnumEntityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumEntityTypeFilter<$PrismaModel> | $Enums.EntityType
+  }
+
+  export type NestedEnumEntityTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EntityType | EnumEntityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumEntityTypeWithAggregatesFilter<$PrismaModel> | $Enums.EntityType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumEntityTypeFilter<$PrismaModel>
+    _max?: NestedEnumEntityTypeFilter<$PrismaModel>
+  }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -8998,7 +10701,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     scenes?: SceneEntityCreateNestedManyWithoutEntityInput
@@ -9010,7 +10713,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     scenes?: SceneEntityUncheckedCreateNestedManyWithoutEntityInput
@@ -9023,6 +10726,42 @@ export namespace Prisma {
 
   export type EntityCreateManyProjectInputEnvelope = {
     data: EntityCreateManyProjectInput | EntityCreateManyProjectInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AttributeDefinitionCreateWithoutProjectInput = {
+    id?: string
+    name: string
+    type: string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionCreateentityTypesInput | string[]
+    color?: string | null
+    icon?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AttributeDefinitionUncheckedCreateWithoutProjectInput = {
+    id?: string
+    name: string
+    type: string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionCreateentityTypesInput | string[]
+    color?: string | null
+    icon?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AttributeDefinitionCreateOrConnectWithoutProjectInput = {
+    where: AttributeDefinitionWhereUniqueInput
+    create: XOR<AttributeDefinitionCreateWithoutProjectInput, AttributeDefinitionUncheckedCreateWithoutProjectInput>
+  }
+
+  export type AttributeDefinitionCreateManyProjectInputEnvelope = {
+    data: AttributeDefinitionCreateManyProjectInput | AttributeDefinitionCreateManyProjectInput[]
     skipDuplicates?: boolean
   }
 
@@ -9081,9 +10820,102 @@ export namespace Prisma {
     name?: StringFilter<"Entity"> | string
     description?: StringNullableFilter<"Entity"> | string | null
     attributes?: JsonFilter<"Entity">
-    imageUrl?: StringNullableFilter<"Entity"> | string | null
+    content?: JsonNullableFilter<"Entity">
     createdAt?: DateTimeFilter<"Entity"> | Date | string
     updatedAt?: DateTimeFilter<"Entity"> | Date | string
+  }
+
+  export type AttributeDefinitionUpsertWithWhereUniqueWithoutProjectInput = {
+    where: AttributeDefinitionWhereUniqueInput
+    update: XOR<AttributeDefinitionUpdateWithoutProjectInput, AttributeDefinitionUncheckedUpdateWithoutProjectInput>
+    create: XOR<AttributeDefinitionCreateWithoutProjectInput, AttributeDefinitionUncheckedCreateWithoutProjectInput>
+  }
+
+  export type AttributeDefinitionUpdateWithWhereUniqueWithoutProjectInput = {
+    where: AttributeDefinitionWhereUniqueInput
+    data: XOR<AttributeDefinitionUpdateWithoutProjectInput, AttributeDefinitionUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type AttributeDefinitionUpdateManyWithWhereWithoutProjectInput = {
+    where: AttributeDefinitionScalarWhereInput
+    data: XOR<AttributeDefinitionUpdateManyMutationInput, AttributeDefinitionUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type AttributeDefinitionScalarWhereInput = {
+    AND?: AttributeDefinitionScalarWhereInput | AttributeDefinitionScalarWhereInput[]
+    OR?: AttributeDefinitionScalarWhereInput[]
+    NOT?: AttributeDefinitionScalarWhereInput | AttributeDefinitionScalarWhereInput[]
+    id?: StringFilter<"AttributeDefinition"> | string
+    projectId?: StringFilter<"AttributeDefinition"> | string
+    name?: StringFilter<"AttributeDefinition"> | string
+    type?: StringFilter<"AttributeDefinition"> | string
+    config?: JsonFilter<"AttributeDefinition">
+    entityTypes?: StringNullableListFilter<"AttributeDefinition">
+    color?: StringNullableFilter<"AttributeDefinition"> | string | null
+    icon?: StringNullableFilter<"AttributeDefinition"> | string | null
+    order?: IntFilter<"AttributeDefinition"> | number
+    createdAt?: DateTimeFilter<"AttributeDefinition"> | Date | string
+    updatedAt?: DateTimeFilter<"AttributeDefinition"> | Date | string
+  }
+
+  export type ProjectCreateWithoutAttributeDefinitionsInput = {
+    id?: string
+    title: string
+    description?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    documents?: DocumentCreateNestedManyWithoutProjectInput
+    entities?: EntityCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectUncheckedCreateWithoutAttributeDefinitionsInput = {
+    id?: string
+    title: string
+    description?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    documents?: DocumentUncheckedCreateNestedManyWithoutProjectInput
+    entities?: EntityUncheckedCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectCreateOrConnectWithoutAttributeDefinitionsInput = {
+    where: ProjectWhereUniqueInput
+    create: XOR<ProjectCreateWithoutAttributeDefinitionsInput, ProjectUncheckedCreateWithoutAttributeDefinitionsInput>
+  }
+
+  export type ProjectUpsertWithoutAttributeDefinitionsInput = {
+    update: XOR<ProjectUpdateWithoutAttributeDefinitionsInput, ProjectUncheckedUpdateWithoutAttributeDefinitionsInput>
+    create: XOR<ProjectCreateWithoutAttributeDefinitionsInput, ProjectUncheckedCreateWithoutAttributeDefinitionsInput>
+    where?: ProjectWhereInput
+  }
+
+  export type ProjectUpdateToOneWithWhereWithoutAttributeDefinitionsInput = {
+    where?: ProjectWhereInput
+    data: XOR<ProjectUpdateWithoutAttributeDefinitionsInput, ProjectUncheckedUpdateWithoutAttributeDefinitionsInput>
+  }
+
+  export type ProjectUpdateWithoutAttributeDefinitionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    documents?: DocumentUpdateManyWithoutProjectNestedInput
+    entities?: EntityUpdateManyWithoutProjectNestedInput
+  }
+
+  export type ProjectUncheckedUpdateWithoutAttributeDefinitionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    documents?: DocumentUncheckedUpdateManyWithoutProjectNestedInput
+    entities?: EntityUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectCreateWithoutEntitiesInput = {
@@ -9094,6 +10926,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     documents?: DocumentCreateNestedManyWithoutProjectInput
+    attributeDefinitions?: AttributeDefinitionCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutEntitiesInput = {
@@ -9104,6 +10937,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     documents?: DocumentUncheckedCreateNestedManyWithoutProjectInput
+    attributeDefinitions?: AttributeDefinitionUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutEntitiesInput = {
@@ -9156,6 +10990,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     documents?: DocumentUpdateManyWithoutProjectNestedInput
+    attributeDefinitions?: AttributeDefinitionUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutEntitiesInput = {
@@ -9166,6 +11001,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     documents?: DocumentUncheckedUpdateManyWithoutProjectNestedInput
+    attributeDefinitions?: AttributeDefinitionUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type SceneEntityUpsertWithWhereUniqueWithoutEntityInput = {
@@ -9204,6 +11040,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     entities?: EntityCreateNestedManyWithoutProjectInput
+    attributeDefinitions?: AttributeDefinitionCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutDocumentsInput = {
@@ -9214,6 +11051,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     entities?: EntityUncheckedCreateNestedManyWithoutProjectInput
+    attributeDefinitions?: AttributeDefinitionUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutDocumentsInput = {
@@ -9276,6 +11114,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     entities?: EntityUpdateManyWithoutProjectNestedInput
+    attributeDefinitions?: AttributeDefinitionUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutDocumentsInput = {
@@ -9286,6 +11125,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     entities?: EntityUncheckedUpdateManyWithoutProjectNestedInput
+    attributeDefinitions?: AttributeDefinitionUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type SceneUpsertWithWhereUniqueWithoutDocumentInput = {
@@ -9455,7 +11295,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     project: ProjectCreateNestedOneWithoutEntitiesInput
@@ -9468,7 +11308,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -9532,7 +11372,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     project?: ProjectUpdateOneRequiredWithoutEntitiesNestedInput
@@ -9545,7 +11385,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -9565,7 +11405,20 @@ export namespace Prisma {
     name: string
     description?: string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AttributeDefinitionCreateManyProjectInput = {
+    id?: string
+    name: string
+    type: string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionCreateentityTypesInput | string[]
+    color?: string | null
+    icon?: string | null
+    order?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -9605,7 +11458,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     scenes?: SceneEntityUpdateManyWithoutEntityNestedInput
@@ -9617,7 +11470,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     scenes?: SceneEntityUncheckedUpdateManyWithoutEntityNestedInput
@@ -9629,7 +11482,46 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     attributes?: JsonNullValueInput | InputJsonValue
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AttributeDefinitionUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionUpdateentityTypesInput | string[]
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AttributeDefinitionUncheckedUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionUpdateentityTypesInput | string[]
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AttributeDefinitionUncheckedUpdateManyWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    config?: JsonNullValueInput | InputJsonValue
+    entityTypes?: AttributeDefinitionUpdateentityTypesInput | string[]
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

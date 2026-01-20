@@ -39,7 +39,19 @@ export {
   reorderScenesAction,
   addEntityToSceneAction,
   removeEntityFromSceneAction,
+  getScenesByEntityAction,
 } from './scene-actions';
+
+export type { SceneWithDocument } from './scene-actions';
+
+export {
+  getAttributeDefinitionsAction,
+  getAttributeDefinitionAction,
+  createAttributeDefinitionAction,
+  updateAttributeDefinitionAction,
+  deleteAttributeDefinitionAction,
+  reorderAttributeDefinitionsAction,
+} from './attribute-actions';
 
 // Export ActionResult type once
 export type { ActionResult } from './project-actions';

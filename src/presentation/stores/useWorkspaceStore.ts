@@ -47,6 +47,11 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           openTab: (tab) =>
             set(
               (state) => {
+                // Entity tabs are no longer supported - redirect to profile page
+                if (tab.type === 'entity') {
+                  return state;
+                }
+
                 // Check if tab already exists
                 const existingTab = state.openTabs.find((t) => t.id === tab.id);
                 if (existingTab) {
@@ -153,9 +158,24 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       {
         name: 'storyengine-workspace',
         partialize: (state) => ({
-          openTabs: state.openTabs,
+          // Filter out entity tabs - they use profile pages now
+          openTabs: state.openTabs.filter((t) => t.type !== 'entity'),
           activeTabId: state.activeTabId,
         }),
+        // Migration to remove existing entity tabs from storage
+        migrate: (persistedState: unknown) => {
+          const state = persistedState as { openTabs?: Tab[]; activeTabId?: string | null };
+          if (state?.openTabs) {
+            const filteredTabs = state.openTabs.filter((t) => t.type !== 'entity');
+            const activeTabExists = filteredTabs.some((t) => t.id === state.activeTabId);
+            return {
+              openTabs: filteredTabs,
+              activeTabId: activeTabExists ? state.activeTabId : (filteredTabs[0]?.id ?? null),
+            };
+          }
+          return state;
+        },
+        version: 1,
       }
     ),
     { name: 'WorkspaceStore' }

@@ -22,7 +22,6 @@ export const createEntitySchema = z.object({
     .optional()
     .transform((val) => val?.trim()),
   attributes: z.record(z.string(), z.unknown()).optional(),
-  imageUrl: z.string().url('Invalid image URL').optional(),
 });
 
 export const updateEntitySchema = z.object({
@@ -40,7 +39,6 @@ export const updateEntitySchema = z.object({
     .optional()
     .transform((val) => val?.trim() ?? val),
   attributes: z.record(z.string(), z.unknown()).optional(),
-  imageUrl: z.string().url('Invalid image URL').nullable().optional(),
 });
 
 export type EntityTypeSchema = z.infer<typeof entityTypeSchema>;

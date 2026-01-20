@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { FileText, Users, Loader2, Check } from 'lucide-react';
-import { StoryEditor, EntityEditor } from '@/presentation/components/editor';
+import { StoryEditor } from '@/presentation/components/editor';
 import { FlowCanvas } from '@/presentation/components/flow';
 import { Timeline } from '@/presentation/components/timeline';
 import { DocumentTabs } from './DocumentTabs';
@@ -194,10 +194,6 @@ export function WorkspacePanel({
 
   // Determine what to show in editor mode
   const renderEditorContent = () => {
-    // If we have an active entity tab, show EntityEditor
-    if (activeTab?.type === 'entity' && activeEntity) {
-      return <EntityEditor key={activeEntity.id} entity={activeEntity} />;
-    }
 
     // If we have an active document tab, show StoryEditor
     if (activeTab?.type === 'document' && activeDocument) {

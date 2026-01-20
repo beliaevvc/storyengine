@@ -5,6 +5,7 @@ import { PanelLayout } from './PanelLayout';
 import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
+  projectId?: string;
   projectTitle?: string;
   activeMode?: WorkspaceMode;
   onModeChange?: (mode: WorkspaceMode) => void;
@@ -15,6 +16,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({
+  projectId,
   projectTitle,
   activeMode,
   onModeChange,
@@ -26,6 +28,7 @@ export function AppLayout({
   return (
     <div className={cn('h-screen flex flex-col bg-canvas', className)}>
       <Header 
+        projectId={projectId}
         projectTitle={projectTitle} 
         activeMode={activeMode}
         onModeChange={onModeChange}

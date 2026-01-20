@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { repositories } from '@/infrastructure/database/repositories';
+import { prisma } from '@/infrastructure/database/prisma/client';
 import type { Scene, SceneWithEntities, CreateSceneInput, UpdateSceneInput } from '@/core/entities/scene';
 import { DomainError, NotFoundError } from '@/core/errors';
 
@@ -190,5 +191,67 @@ export async function removeEntityFromSceneAction(
   } catch (error) {
     console.error('removeEntityFromSceneAction error:', error);
     return { success: false, error: 'Failed to remove entity from scene' };
+  }
+}
+
+// ============================================
+// SCENE BY ENTITY (for Entity Profile Timeline)
+// ============================================
+
+export interface SceneWithDocument {
+  id: string;
+  title: string | null;
+  order: number;
+  documentId: string;
+  documentTitle: string;
+  documentOrder: number;
+  role: string | null;
+  notes: string | null;
+}
+
+/**
+ * Получить все сцены, в которых участвует entity
+ * Для отображения в Timeline на странице профиля сущности
+ */
+export async function getScenesByEntityAction(
+  entityId: string
+): Promise<ActionResult<SceneWithDocument[]>> {
+  try {
+    const sceneEntities = await prisma.sceneEntity.findMany({
+      where: { entityId },
+      include: {
+        scene: {
+          include: {
+            document: {
+              select: {
+                id: true,
+                title: true,
+                order: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: [
+        { scene: { document: { order: 'asc' } } },
+        { scene: { order: 'asc' } },
+      ],
+    });
+
+    const scenes: SceneWithDocument[] = sceneEntities.map((se) => ({
+      id: se.scene.id,
+      title: se.scene.title,
+      order: se.scene.order,
+      documentId: se.scene.document.id,
+      documentTitle: se.scene.document.title,
+      documentOrder: se.scene.document.order,
+      role: se.role,
+      notes: se.notes,
+    }));
+
+    return { success: true, data: scenes };
+  } catch (error) {
+    console.error('getScenesByEntityAction error:', error);
+    return { success: false, error: 'Не удалось получить сцены' };
   }
 }

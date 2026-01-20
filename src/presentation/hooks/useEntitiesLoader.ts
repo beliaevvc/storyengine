@@ -51,7 +51,6 @@ export function useEntitiesLoader(
             name: e.name,
             description: e.description || undefined,
             attributes: e.attributes || {},
-            imageUrl: null,
             createdAt: new Date(e.created_at),
             updatedAt: new Date(e.updated_at),
           }));

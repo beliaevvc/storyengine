@@ -42,6 +42,7 @@ export default function ProjectPage({
 
   return (
     <AppLayout
+      projectId={params.projectId}
       projectTitle={projectTitle}
       activeMode={activeMode}
       onModeChange={setActiveMode}

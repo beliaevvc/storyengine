@@ -11,7 +11,7 @@ import {
 } from '@/presentation/components/ui';
 import { EntityAttributes } from './EntityAttributes';
 import { EntityRelationships } from './EntityRelationships';
-import { User, MapPin, Package, Calendar, Lightbulb, MoreVertical } from 'lucide-react';
+import { User, MapPin, Package, Calendar, Lightbulb, MoreVertical, Users, Globe, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EntityCardProps {
@@ -24,7 +24,9 @@ const entityIcons: Record<EntityType, React.ElementType> = {
   LOCATION: MapPin,
   ITEM: Package,
   EVENT: Calendar,
-  CONCEPT: Lightbulb,
+  FACTION: Users,
+  WORLDBUILDING: Globe,
+  NOTE: FileText,
 };
 
 const entityBgColors: Record<EntityType, string> = {
@@ -32,7 +34,9 @@ const entityBgColors: Record<EntityType, string> = {
   LOCATION: 'bg-entity-location/20',
   ITEM: 'bg-entity-item/20',
   EVENT: 'bg-entity-event/20',
-  CONCEPT: 'bg-entity-concept/20',
+  FACTION: 'bg-red-500/20',
+  WORLDBUILDING: 'bg-cyan-500/20',
+  NOTE: 'bg-gray-500/20',
 };
 
 const entityTextColors: Record<EntityType, string> = {
@@ -40,7 +44,9 @@ const entityTextColors: Record<EntityType, string> = {
   LOCATION: 'text-entity-location',
   ITEM: 'text-entity-item',
   EVENT: 'text-entity-event',
-  CONCEPT: 'text-entity-concept',
+  FACTION: 'text-red-400',
+  WORLDBUILDING: 'text-cyan-400',
+  NOTE: 'text-gray-400',
 };
 
 export function EntityCard({ entity, className }: EntityCardProps) {
@@ -61,7 +67,7 @@ export function EntityCard({ entity, className }: EntityCardProps) {
             <div>
               <CardTitle className="text-base">{entity.name}</CardTitle>
               <CardDescription className="text-xs mt-0.5">
-                <Badge variant={entity.type.toLowerCase() as 'character' | 'location' | 'item' | 'event' | 'concept'} className="text-2xs">
+                <Badge variant="secondary" className="text-2xs">
                   {entity.type}
                 </Badge>
               </CardDescription>

@@ -61,7 +61,6 @@ export class PrismaEntityRepository implements IEntityRepository {
         name: data.name,
         description: data.description,
         attributes: (data.attributes ?? {}) as Prisma.InputJsonValue,
-        imageUrl: data.imageUrl,
       },
     });
     return this.mapToEntity(entity);
@@ -75,7 +74,6 @@ export class PrismaEntityRepository implements IEntityRepository {
         ...(data.name !== undefined && { name: data.name }),
         ...(data.description !== undefined && { description: data.description }),
         ...(data.attributes !== undefined && { attributes: data.attributes as Prisma.InputJsonValue }),
-        ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
       },
     });
     return this.mapToEntity(entity);
@@ -115,9 +113,9 @@ export class PrismaEntityRepository implements IEntityRepository {
       projectId: data.projectId,
       type: data.type as EntityType,
       name: data.name,
-      description: data.description,
-      attributes: data.attributes as EntityAttributes,
-      imageUrl: data.imageUrl,
+      description: data.description ?? undefined,
+      attributes: (data.attributes as EntityAttributes) ?? {},
+      content: data.content as Entity['content'],
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     };
