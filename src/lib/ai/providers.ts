@@ -55,8 +55,6 @@ export async function generateAIText(
     model,
     system: systemPrompt,
     prompt,
-    maxTokens: 2000,
-    temperature: 0.7,
   });
 
   return text;
@@ -74,8 +72,6 @@ export async function streamAIText(
     model,
     system: systemPrompt,
     prompt,
-    maxTokens: 2000,
-    temperature: 0.7,
   });
 }
 
