@@ -171,15 +171,7 @@ export function AIGenerateButton({
               )}
             </Button>
 
-            {/* Preview */}
-            {completion && (
-              <div className="mt-4 p-3 bg-[#2d333b] rounded-md max-h-40 overflow-y-auto">
-                <p className="text-xs text-[#768390] mb-1">Предпросмотр:</p>
-                <p className="text-sm text-[#adbac7] whitespace-pre-wrap">
-                  {completion}
-                </p>
-              </div>
-            )}
+            {/* Preview removed - using simple fetch now */}
           </div>
         </>
       )}
