@@ -268,22 +268,15 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Drag handle */}
+      {/* Block header - draggable */}
       <div
-        className="absolute -left-6 top-2 opacity-0 group-hover/semantic:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
-        contentEditable={false}
-        data-drag-handle
-        draggable="true"
-      >
-        <GripVertical className="w-4 h-4 text-[#6e7681]" />
-      </div>
-
-      {/* Block header */}
-      <div
-        className="flex items-center gap-2 px-2 py-1"
+        className="flex items-center gap-2 px-2 py-1 cursor-grab active:cursor-grabbing"
         contentEditable={false}
         ref={pickerRef}
+        data-drag-handle
       >
+        {/* Drag indicator */}
+        <GripVertical className="w-4 h-4 text-[#6e7681] flex-shrink-0" />
         {/* Empty block: show type selector */}
         {isEmptyBlock ? (
           <div className="flex items-center gap-1">
