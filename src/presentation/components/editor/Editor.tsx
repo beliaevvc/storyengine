@@ -18,7 +18,6 @@ import {
 import { Toolbar } from './Toolbar';
 import { StatusBar } from './StatusBar';
 import { BubbleMenu } from './BubbleMenu';
-import { BlockHandle } from './BlockHandle';
 import { useEditorStore } from '@/presentation/stores';
 import { useEntityDetection } from '@/presentation/hooks';
 import { cn } from '@/lib/utils';
@@ -181,8 +180,6 @@ export function StoryEditor({
         <div className="max-w-5xl mx-auto relative">
           {/* Bubble Menu - appears on text selection */}
           <BubbleMenu editor={editor} />
-          {/* Block Handle - plus button on hover for adding blocks */}
-          <BlockHandle editor={editor} />
           <EditorContent editor={editor} />
         </div>
       </div>

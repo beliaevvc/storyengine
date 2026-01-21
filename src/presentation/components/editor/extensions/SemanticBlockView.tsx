@@ -3,7 +3,7 @@
 import { useCallback, useState, useMemo, useRef, useEffect } from 'react';
 import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
-import { MessageCircle, Mountain, Zap, Brain, X, GripVertical, Plus, FileText, Film } from 'lucide-react';
+import { MessageCircle, Mountain, Zap, Brain, X, GripVertical, FileText, Film } from 'lucide-react';
 import type { SemanticBlockType } from './SemanticBlock';
 import { useEntityStore } from '@/presentation/stores/useEntityStore';
 import { useEditorStore } from '@/presentation/stores/useEditorStore';
@@ -102,7 +102,9 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
 
   const [isHovered, setIsHovered] = useState(false);
   const [showSpeakerPicker, setShowSpeakerPicker] = useState(false);
+  const [showTypePicker, setShowTypePicker] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
+  const typePickerRef = useRef<HTMLDivElement>(null);
 
   // Remove isNew flag on hover or after timeout
   useEffect(() => {
@@ -147,28 +149,22 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showSpeakerPicker]);
 
+  // Close type picker on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (typePickerRef.current && !typePickerRef.current.contains(e.target as Node)) {
+        setShowTypePicker(false);
+      }
+    };
+    if (showTypePicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showTypePicker]);
+
   const handleRemove = useCallback(() => {
     deleteNode();
   }, [deleteNode]);
-
-  const handleAddBlock = useCallback(() => {
-    if (!editor || typeof getPos !== 'function') return;
-    
-    const pos = getPos();
-    if (pos === undefined) return;
-    const endPos = pos + node.nodeSize;
-    
-    editor
-      .chain()
-      .focus()
-      .insertContentAt(endPos, {
-        type: 'semanticBlock',
-        attrs: { blockType: 'empty' },
-        content: [{ type: 'paragraph' }],
-      })
-      .setTextSelection(endPos + 2)
-      .run();
-  }, [editor, getPos, node.nodeSize]);
 
   const handleAddSpeaker = useCallback((char: { id: string; name: string }) => {
     const newSpeakers = [...speakers, { id: char.id, name: char.name }];
@@ -338,11 +334,45 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
           </div>
         ) : (
           <>
-            {/* Regular block: show icon + label */}
-            <Icon className={`w-4 h-4 ${config.textColor}`} />
-            <span className={`text-xs font-medium ${config.textColor}`}>
-              {config.labelFull}
-            </span>
+            {/* Regular block: clickable type selector */}
+            <div className="relative" ref={typePickerRef}>
+              <button
+                onClick={() => setShowTypePicker(!showTypePicker)}
+                className="flex items-center gap-1.5 px-1.5 py-0.5 rounded hover:bg-[#3a3f4b] transition-colors"
+                title="Изменить тип блока"
+              >
+                <Icon className={`w-4 h-4 ${config.textColor}`} />
+                <span className={`text-xs font-medium ${config.textColor}`}>
+                  {config.labelFull}
+                </span>
+              </button>
+              {showTypePicker && (
+                <div className="absolute top-full left-0 mt-1 bg-[#22272e] border border-[#444c56] rounded shadow-lg z-50 min-w-[140px]">
+                  {BLOCK_TYPES.map((type) => {
+                    const typeConfig = BLOCK_TYPE_CONFIG[type];
+                    const TypeIcon = typeConfig.icon;
+                    const isSelected = type === blockType;
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => {
+                          handleChangeType(type);
+                          setShowTypePicker(false);
+                        }}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors ${
+                          isSelected 
+                            ? 'bg-[#3a3f4b] text-white' 
+                            : 'text-[#c9d1d9] hover:bg-[#2d333b]'
+                        }`}
+                      >
+                        <TypeIcon className="w-3.5 h-3.5" />
+                        {typeConfig.labelFull}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             
             {/* Speakers for dialogue/thought */}
             {showSpeakerField && speakers.length > 0 && (
@@ -412,19 +442,6 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
         <NodeViewContent className="prose prose-invert prose-sm max-w-none [&>*]:my-0.5" />
       </div>
 
-      {/* Add block button between blocks */}
-      <div
-        className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 opacity-0 group-hover/semantic:opacity-100 transition-opacity z-10"
-        contentEditable={false}
-      >
-        <button
-          onClick={handleAddBlock}
-          className="w-5 h-5 flex items-center justify-center rounded bg-[#2d333b] border border-[#444c56] text-[#6e7681] hover:text-white hover:border-[#6e7681] transition-colors"
-          title="Добавить блок"
-        >
-          <Plus className="w-3 h-3" />
-        </button>
-      </div>
     </NodeViewWrapper>
   );
 }

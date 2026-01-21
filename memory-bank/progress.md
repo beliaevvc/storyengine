@@ -1,5 +1,29 @@
 # Progress
 
+## TYPES-001: Рефакторинг системы типизации — ARCHIVED ✅
+
+**Дата завершения**: 2026-01-21
+
+### Результаты
+- ✅ Build проходит без ошибок
+- ✅ Deploy на Vercel успешен (https://storyengine-chi.vercel.app)
+- ✅ Mapper layer для snake_case ↔ camelCase
+- ✅ Централизованные Supabase table helpers
+- ✅ Lazy initialization для OpenAI SDK
+- ✅ TipTap type extensions
+
+### Метрики
+| До | После |
+|-----|-------|
+| Build: ❌ | Build: ✅ |
+| `as any`: 44 | `as any`: 38 |
+
+### Архив
+- Рефлексия: `reflection/reflection-TYPES-001.md`
+- Архив: `archive/archive-TYPES-001.md`
+
+---
+
 ## PROFILE-001: Страница профиля сущности — COMPLETE ✅
 
 **Дата завершения**: 2026-01-19

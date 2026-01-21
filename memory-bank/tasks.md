@@ -2,14 +2,41 @@
 
 ## Current Task
 
-(нет активной задачи)
+### BLOCK-001: Улучшение UX семантических блоков
+- **Status**: ✅ COMPLETE
+- **Level**: 2 (Basic Enhancement)
+- **Date**: 2026-01-22
+
+#### Описание
+Улучшение интерактивности семантических блоков в редакторе: drag & drop, смена типа в шапке, удаление лишнего UI.
+
+#### Выполнено
+- ✅ Убран `BlockHandle` (плюсик слева от курсора) — `/` slash commands остаются доступны
+- ✅ Убран плюсик внизу блока между блоками
+- ✅ Добавлен dropdown для смены типа блока в шапке размеченных блоков
+- ✅ Проверен Drag & Drop — работает через GripVertical слева от блока
+
+#### Изменённые файлы
+```
+src/presentation/components/editor/Editor.tsx              # Удалён BlockHandle
+src/presentation/components/editor/extensions/SemanticBlockView.tsx  # Type picker, удалён плюсик
+```
+
+#### Как использовать
+- **Drag & Drop**: наведите на блок → появится иконка ⋮⋮ слева → перетащите блок
+- **Смена типа**: кликните на тип блока (Диалог/Описание/Действие/Мысли) → выберите новый тип
+- **Добавить блок**: используйте `/` в любом месте для вызова slash commands
+
+---
 
 ---
 
 ### TYPES-001: Рефакторинг системы типизации
-- **Status**: ✅ COMPLETE
+- **Status**: ✅ ARCHIVED
 - **Level**: 4 (Architectural Refactoring)
-- **Date**: 2026-01-20
+- **Date**: 2026-01-20 (завершён 2026-01-21)
+- **Reflection**: `reflection/reflection-TYPES-001.md` ✅
+- **Archive**: `archive/archive-TYPES-001.md` ✅
 
 #### Описание
 Комплексный рефакторинг системы типизации для успешного билда и улучшения maintainability.
