@@ -18,7 +18,7 @@ import {
   type Viewport,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { GitBranch, Users, MapPin, Package, Link2, Filter, ChevronDown, ChevronUp, Loader2, Trash2, AlertTriangle } from 'lucide-react';
+import { GitBranch, Users, MapPin, Package, Link2, Filter, ChevronDown, ChevronUp, Loader2, Trash2, AlertTriangle, Pencil } from 'lucide-react';
 import { Button } from '@/presentation/components/ui/button';
 import { Modal } from '@/presentation/components/ui/modal';
 import { SceneNode } from './nodes/SceneNode';
@@ -27,6 +27,7 @@ import { LocationNode } from './nodes/LocationNode';
 import { ItemNode } from './nodes/ItemNode';
 import { RelationEdge } from './edges/RelationEdge';
 import { ConnectionModal } from './ConnectionModal';
+import { EditConnectionModal } from './EditConnectionModal';
 import { extractScenesFromContent } from '@/presentation/utils/extractScenes';
 import { updateEntityRelationships } from '@/app/actions/supabase/entity-actions';
 import type { Entity, Document } from '@/types/supabase';
@@ -44,6 +45,15 @@ interface PendingDelete {
   sourceId: string;
   targetId: string;
   label?: string;
+}
+
+// Selected edge state (for context menu)
+interface SelectedEdge {
+  edgeId: string;
+  sourceId: string;
+  targetId: string;
+  label?: string;
+  position: { x: number; y: number };
 }
 
 // Filter state interface
@@ -215,7 +225,9 @@ function FlowCanvasInner({
   const [filters, setFilters] = useState<FlowFilters>(() => loadFilters(projectId, 'relations'));
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [pendingConnection, setPendingConnection] = useState<PendingConnection | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<SelectedEdge | null>(null);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+  const [pendingEdit, setPendingEdit] = useState<PendingConnection | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { setViewport, getViewport } = useReactFlow();
   
@@ -356,21 +368,62 @@ function FlowCanvasInner({
     onEntitiesUpdated?.();
   }, [onEntitiesUpdated]);
 
-  // Handle edge click - show delete confirmation in relations mode
+  // Handle successful connection update
+  const handleConnectionUpdated = useCallback(() => {
+    setPendingEdit(null);
+    // Trigger refresh of entities
+    onEntitiesUpdated?.();
+  }, [onEntitiesUpdated]);
+
+  // Handle edge click - show context menu in relations mode
   const handleEdgeClick = useCallback(
-    (_event: React.MouseEvent, edge: Edge) => {
+    (event: React.MouseEvent, edge: Edge) => {
       if (mode !== 'relations') return;
       
       const edgeData = edge.data as { label?: string; relationType?: string } | undefined;
-      setPendingDelete({
+      
+      // Get click position for the popup
+      const rect = (event.target as HTMLElement).closest('.react-flow')?.getBoundingClientRect();
+      const x = event.clientX - (rect?.left || 0);
+      const y = event.clientY - (rect?.top || 0);
+      
+      setSelectedEdge({
         edgeId: edge.id,
         sourceId: edge.source,
         targetId: edge.target,
         label: edgeData?.label || edgeData?.relationType,
+        position: { x, y },
       });
     },
     [mode]
   );
+
+  // Close edge menu when clicking elsewhere
+  const handlePaneClick = useCallback(() => {
+    setSelectedEdge(null);
+  }, []);
+
+  // Handle edit from edge menu
+  const handleEditFromMenu = useCallback(() => {
+    if (!selectedEdge) return;
+    setPendingEdit({
+      sourceId: selectedEdge.sourceId,
+      targetId: selectedEdge.targetId,
+    });
+    setSelectedEdge(null);
+  }, [selectedEdge]);
+
+  // Handle delete from edge menu
+  const handleDeleteFromMenu = useCallback(() => {
+    if (!selectedEdge) return;
+    setPendingDelete({
+      edgeId: selectedEdge.edgeId,
+      sourceId: selectedEdge.sourceId,
+      targetId: selectedEdge.targetId,
+      label: selectedEdge.label,
+    });
+    setSelectedEdge(null);
+  }, [selectedEdge]);
 
   // Handle delete confirmation
   const handleDeleteRelation = useCallback(async () => {
@@ -443,6 +496,7 @@ function FlowCanvasInner({
         onConnect={onConnect}
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
+        onPaneClick={handlePaneClick}
         onNodeDragStop={handleNodeDragStop}
         onMoveEnd={handleMoveEnd}
         nodeTypes={nodeTypes}
@@ -623,7 +677,50 @@ function FlowCanvasInner({
         </Panel>
       </ReactFlow>
 
-      {/* Connection Modal */}
+      {/* Edge Context Menu */}
+      {selectedEdge && (
+        <div
+          className="absolute z-50 bg-[#22272e] border border-[#444c56] rounded-lg shadow-xl overflow-hidden"
+          style={{
+            left: selectedEdge.position.x,
+            top: selectedEdge.position.y,
+            transform: 'translate(-50%, -100%) translateY(-8px)',
+          }}
+        >
+          <div className="flex items-center gap-1 p-1">
+            <button
+              onClick={handleEditFromMenu}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-[#adbac7] hover:bg-[#2d333b] rounded transition-colors"
+              title="Редактировать связь"
+            >
+              <Pencil className="w-4 h-4 text-[#539bf5]" />
+              <span>Изменить</span>
+            </button>
+            <div className="w-px h-6 bg-[#444c56]" />
+            <button
+              onClick={handleDeleteFromMenu}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-[#adbac7] hover:bg-red-500/10 hover:text-red-400 rounded transition-colors"
+              title="Удалить связь"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Удалить</span>
+            </button>
+          </div>
+          {/* Arrow pointer */}
+          <div
+            className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full"
+            style={{
+              width: 0,
+              height: 0,
+              borderLeft: '8px solid transparent',
+              borderRight: '8px solid transparent',
+              borderTop: '8px solid #444c56',
+            }}
+          />
+        </div>
+      )}
+
+      {/* Connection Modal (Create) */}
       <ConnectionModal
         isOpen={pendingConnection !== null}
         onClose={() => setPendingConnection(null)}
@@ -631,6 +728,16 @@ function FlowCanvasInner({
         targetEntity={pendingConnection ? entityMap.get(pendingConnection.targetId) || null : null}
         projectId={projectId}
         onConnectionCreated={handleConnectionCreated}
+      />
+
+      {/* Edit Connection Modal */}
+      <EditConnectionModal
+        isOpen={pendingEdit !== null}
+        onClose={() => setPendingEdit(null)}
+        sourceEntity={pendingEdit ? entityMap.get(pendingEdit.sourceId) || null : null}
+        targetEntity={pendingEdit ? entityMap.get(pendingEdit.targetId) || null : null}
+        projectId={projectId}
+        onConnectionUpdated={handleConnectionUpdated}
       />
 
       {/* Delete Confirmation Modal */}
