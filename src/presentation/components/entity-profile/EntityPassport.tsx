@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Package } from 'lucide-react';
 import { Avatar } from '@/presentation/components/ui/avatar';
 import { Badge } from '@/presentation/components/ui/badge';
@@ -24,6 +24,7 @@ interface EntityPassportProps {
 }
 
 export function EntityPassport({ entity, projectId, allEntities }: EntityPassportProps) {
+  const router = useRouter();
   const [definitions, setDefinitions] = useState<AttributeDefinition[]>([]);
   const [definitionsVersion, setDefinitionsVersion] = useState(0);
 
@@ -56,12 +57,15 @@ export function EntityPassport({ entity, projectId, allEntities }: EntityPasspor
     <div className="h-full flex flex-col">
       {/* Header with back button */}
       <div className="px-4 py-3 border-b border-border">
-        <Link href={`/projects/${projectId}`}>
-          <Button variant="ghost" size="sm" className="gap-1.5 -ml-2">
-            <ArrowLeft className="w-4 h-4" />
-            Назад
-          </Button>
-        </Link>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="gap-1.5 -ml-2"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Назад
+        </Button>
       </div>
 
       <ScrollArea className="flex-1">
