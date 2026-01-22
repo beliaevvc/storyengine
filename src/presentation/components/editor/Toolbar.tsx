@@ -109,13 +109,12 @@ export function Toolbar({ editor, className }: ToolbarProps) {
   return (
     <div
       className={cn(
-        'h-10 bg-surface border-b border-border px-4',
+        'h-10 bg-surface border-b border-border flex items-center',
         className
       )}
     >
-      {/* Inner container aligned with editor content */}
-      <div className="h-full max-w-5xl mx-auto flex items-center gap-1">
-        {/* History */}
+      {/* History - left aligned */}
+      <div className="flex items-center gap-1 px-2">
         <ToolbarButton
           icon={Undo}
           label="Отменить (⌘Z)"
@@ -128,31 +127,36 @@ export function Toolbar({ editor, className }: ToolbarProps) {
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
         />
+      </div>
 
-        {/* View Mode Toggle */}
-        <div className="flex items-center bg-[#282c34] rounded-lg border border-[#3a3f4b] overflow-hidden ml-2">
-          <button
-            onClick={() => handleModeSwitch('syntax')}
-            className={cn(
-              'px-3 py-1.5 text-xs transition-colors',
-              viewMode === 'syntax'
-                ? 'bg-[#3a3f4b] text-white'
-                : 'text-[#6e7681] hover:text-[#c9d1d9] hover:bg-[#21252b]'
-            )}
-          >
-            Синтаксис
-          </button>
-          <button
-            onClick={() => handleModeSwitch('clean')}
-            className={cn(
-              'px-3 py-1.5 text-xs transition-colors',
-              viewMode === 'clean'
-                ? 'bg-[#3a3f4b] text-white'
-                : 'text-[#6e7681] hover:text-[#c9d1d9] hover:bg-[#21252b]'
-            )}
-          >
-            Чистый
-          </button>
+      {/* Spacer to push mode toggle into content area */}
+      <div className="flex-1 flex justify-center px-4">
+        <div className="w-full max-w-5xl">
+          {/* View Mode Toggle - aligned with scene content */}
+          <div className="flex items-center bg-[#282c34] rounded-lg border border-[#3a3f4b] overflow-hidden w-fit">
+            <button
+              onClick={() => handleModeSwitch('syntax')}
+              className={cn(
+                'px-3 py-1.5 text-xs transition-colors',
+                viewMode === 'syntax'
+                  ? 'bg-[#3a3f4b] text-white'
+                  : 'text-[#6e7681] hover:text-[#c9d1d9] hover:bg-[#21252b]'
+              )}
+            >
+              Синтаксис
+            </button>
+            <button
+              onClick={() => handleModeSwitch('clean')}
+              className={cn(
+                'px-3 py-1.5 text-xs transition-colors',
+                viewMode === 'clean'
+                  ? 'bg-[#3a3f4b] text-white'
+                  : 'text-[#6e7681] hover:text-[#c9d1d9] hover:bg-[#21252b]'
+              )}
+            >
+              Чистый
+            </button>
+          </div>
         </div>
       </div>
     </div>
