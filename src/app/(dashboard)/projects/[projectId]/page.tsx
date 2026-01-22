@@ -1,46 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { AppLayout } from '@/presentation/components/layout';
 import { ProjectExplorer } from '@/presentation/components/explorer';
-import { WorkspacePanel, type WorkspaceMode } from '@/presentation/components/workspace';
+import { WorkspacePanel } from '@/presentation/components/workspace';
 import { ContextInspector } from '@/presentation/components/inspector';
-import { useProjectStore, useDocumentStore } from '@/presentation/stores';
+import { useProjectStore, useDocumentStore, useUIStore, selectWorkspaceMode } from '@/presentation/stores';
 import { useProjectLoader, useEntitiesLoader, useDocumentsLoader } from '@/presentation/hooks';
-
-// Helper to get storage key for workspace mode
-const getStorageKey = (projectId: string) => `workspace-mode-${projectId}`;
-
-// Helper to get initial mode from localStorage
-const getInitialMode = (projectId: string): WorkspaceMode => {
-  if (typeof window === 'undefined') return 'editor';
-  const stored = localStorage.getItem(getStorageKey(projectId));
-  if (stored === 'plot' || stored === 'timeline' || stored === 'editor') {
-    return stored;
-  }
-  return 'editor';
-};
 
 export default function ProjectPage({
   params,
 }: {
   params: { projectId: string };
 }) {
-  // Workspace mode state (shared between Header and WorkspacePanel)
-  // Initialize from localStorage to preserve mode after navigation
-  const [activeMode, setActiveMode] = useState<WorkspaceMode>(() => 
-    getInitialMode(params.projectId)
-  );
-
-  // Persist activeMode to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem(getStorageKey(params.projectId), activeMode);
-  }, [activeMode, params.projectId]);
-
-  // Wrapper to update mode and persist it
-  const handleModeChange = useCallback((mode: WorkspaceMode) => {
-    setActiveMode(mode);
-  }, []);
+  // Workspace mode from global store (persisted in localStorage)
+  const activeMode = useUIStore(selectWorkspaceMode);
+  const setWorkspaceMode = useUIStore((s) => s.actions.setWorkspaceMode);
 
   // Load data from Supabase
   const { isLoading: projectLoading } = useProjectLoader(params.projectId);
@@ -71,7 +46,7 @@ export default function ProjectPage({
       projectId={params.projectId}
       projectTitle={projectTitle}
       activeMode={activeMode}
-      onModeChange={handleModeChange}
+      onModeChange={setWorkspaceMode}
       leftPanel={<ProjectExplorer />}
       centerPanel={
         isLoading ? (

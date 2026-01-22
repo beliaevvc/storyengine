@@ -6,7 +6,7 @@ import { Plus, Loader2, Folder, FileText } from 'lucide-react';
 import { Button } from '@/presentation/components/ui';
 import { SearchInput } from './SearchInput';
 import { FileTree } from './FileTree';
-import { useDocumentStore, useWorkspaceStore } from '@/presentation/stores';
+import { useDocumentStore, useWorkspaceStore, useUIStore } from '@/presentation/stores';
 import { createDocument } from '@/app/actions/supabase/document-actions';
 import { createDefaultDocumentContent } from '@/presentation/utils/migrateDocument';
 import type { Document } from '@/core/entities/document';
@@ -20,6 +20,7 @@ export function FilesTab() {
   const setCurrentDocument = useDocumentStore((s) => s.actions.setCurrentDocument);
   const addDocument = useDocumentStore((s) => s.actions.addDocument);
   const openTab = useWorkspaceStore((s) => s.actions.openTab);
+  const setWorkspaceMode = useUIStore((s) => s.actions.setWorkspaceMode);
   const [searchQuery, setSearchQuery] = useState('');
   const [isPending, startTransition] = useTransition();
   const [showMenu, setShowMenu] = useState(false);
@@ -92,6 +93,7 @@ export function FilesTab() {
 
   // Handle document selection - updates store and opens tab
   // Only opens documents (not folders) as tabs
+  // Also switches workspace mode to 'editor' if not already there
   const handleSelectDocument = useCallback((docId: string, title?: string) => {
     const doc = documents.find((d) => d.id === docId);
     
@@ -108,7 +110,10 @@ export function FilesTab() {
       type: 'document',
       title: title ?? doc.title ?? 'Документ',
     });
-  }, [setCurrentDocument, openTab, documents]);
+    
+    // Switch to editor mode if not already there
+    setWorkspaceMode('editor');
+  }, [setCurrentDocument, openTab, documents, setWorkspaceMode]);
 
   return (
     <div className="h-full flex flex-col">

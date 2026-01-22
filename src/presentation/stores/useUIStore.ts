@@ -4,6 +4,7 @@ import { persist, devtools } from 'zustand/middleware';
 type PanelId = 'left' | 'right';
 type TabId = 'files' | 'database';
 type ModalId = 'createEntity' | 'createDocument' | 'editEntity' | 'settings' | 'projectInfo';
+export type WorkspaceMode = 'editor' | 'plot' | 'timeline';
 
 interface PanelSizes {
   left: number;
@@ -17,6 +18,7 @@ interface UIState {
   openModals: ModalId[];
   selectedEntityId: string | null;
   isSidebarCollapsed: boolean;
+  workspaceMode: WorkspaceMode;
 
   actions: {
     setPanelSize: (panel: PanelId, size: number) => void;
@@ -27,6 +29,7 @@ interface UIState {
     closeAllModals: () => void;
     selectEntity: (id: string | null) => void;
     toggleSidebar: () => void;
+    setWorkspaceMode: (mode: WorkspaceMode) => void;
     reset: () => void;
   };
 }
@@ -38,6 +41,7 @@ const initialState = {
   openModals: [] as ModalId[],
   selectedEntityId: null,
   isSidebarCollapsed: false,
+  workspaceMode: 'editor' as WorkspaceMode,
 };
 
 export const useUIStore = create<UIState>()(
@@ -103,6 +107,9 @@ export const useUIStore = create<UIState>()(
               'toggleSidebar'
             ),
 
+          setWorkspaceMode: (mode) =>
+            set({ workspaceMode: mode }, false, 'setWorkspaceMode'),
+
           reset: () =>
             set(initialState, false, 'resetUI'),
         },
@@ -114,6 +121,7 @@ export const useUIStore = create<UIState>()(
           collapsedPanels: state.collapsedPanels,
           activeTab: state.activeTab,
           isSidebarCollapsed: state.isSidebarCollapsed,
+          workspaceMode: state.workspaceMode,
         }),
       }
     ),
@@ -132,3 +140,4 @@ export const selectIsModalOpen = (modal: ModalId) => (state: UIState) =>
   state.openModals.includes(modal);
 export const selectSelectedEntityId = (state: UIState) => state.selectedEntityId;
 export const selectIsSidebarCollapsed = (state: UIState) => state.isSidebarCollapsed;
+export const selectWorkspaceMode = (state: UIState) => state.workspaceMode;

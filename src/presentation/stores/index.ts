@@ -36,6 +36,8 @@ export {
   selectIsModalOpen,
   selectSelectedEntityId,
   selectIsSidebarCollapsed,
+  selectWorkspaceMode,
+  type WorkspaceMode,
 } from './useUIStore';
 
 // Editor Store
