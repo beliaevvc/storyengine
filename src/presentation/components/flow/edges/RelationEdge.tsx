@@ -36,6 +36,7 @@ function RelationEdgeComponent({
 
   const edgeData = data as RelationEdgeData | undefined;
   const label = edgeData?.label || edgeData?.relationType;
+  const hasLabel = Boolean(label);
 
   return (
     <>
@@ -44,8 +45,8 @@ function RelationEdgeComponent({
         path={edgePath}
         markerEnd={markerEnd}
         style={{
-          stroke: selected ? '#539bf5' : '#444c56',
-          strokeWidth: selected ? 2 : 1.5,
+          stroke: selected ? '#539bf5' : hasLabel ? '#60a5fa' : '#444c56',
+          strokeWidth: selected ? 2.5 : hasLabel ? 2 : 1.5,
         }}
       />
       {label && (
@@ -57,8 +58,12 @@ function RelationEdgeComponent({
               pointerEvents: 'all',
             }}
             className={`
-              px-2 py-0.5 rounded text-xs font-medium
-              ${selected ? 'bg-[#539bf5] text-white' : 'bg-[#2d333b] text-[#768390] border border-[#444c56]'}
+              px-2.5 py-1 rounded-full text-xs font-medium shadow-lg
+              transition-all duration-150
+              ${selected 
+                ? 'bg-[#539bf5] text-white scale-110' 
+                : 'bg-[#1c2128] text-[#60a5fa] border border-[#60a5fa]/50 hover:bg-[#60a5fa]/10'
+              }
             `}
           >
             {label}

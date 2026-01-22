@@ -31,6 +31,53 @@ interface WorkspacePanelProps {
   activeMode: WorkspaceMode;
 }
 
+// Relationship stored in entity.attributes
+interface StoredRelationship {
+  entityId: string;
+  typeId: string;
+  typeName: string;
+  description?: string;
+}
+
+// Relationship format for FlowCanvas
+interface FlowRelation {
+  id: string;
+  source_id: string;
+  target_id: string;
+  relation_type: string;
+  label?: string;
+}
+
+// Extract relations from entities' attributes
+function extractRelationsFromEntities(entities: DomainEntity[]): FlowRelation[] {
+  const relations: FlowRelation[] = [];
+  const seenPairs = new Set<string>();
+
+  entities.forEach((entity) => {
+    const attributes = entity.attributes as Record<string, unknown> | null;
+    const relationships = (attributes?.relationships || []) as StoredRelationship[];
+
+    relationships.forEach((rel) => {
+      // Create a unique key for the pair (sorted to avoid duplicates)
+      const pairKey = [entity.id, rel.entityId].sort().join('_');
+      
+      // Skip if we've already added this pair
+      if (seenPairs.has(pairKey)) return;
+      seenPairs.add(pairKey);
+
+      relations.push({
+        id: `rel-${entity.id}-${rel.entityId}`,
+        source_id: entity.id,
+        target_id: rel.entityId,
+        relation_type: rel.typeName,
+        label: rel.typeName,
+      });
+    });
+  });
+
+  return relations;
+}
+
 const EMPTY_CONTENT: TiptapContent = {
   type: 'doc',
   content: [
@@ -160,6 +207,9 @@ export function WorkspacePanel({
   // Convert domain entities/documents to Supabase format for legacy components
   const supabaseEntities = mapEntitiesToSupabase(entities);
   const supabaseDocuments = mapDocumentsToSupabase(documents);
+  
+  // Extract relations from entities for FlowCanvas
+  const entityRelations = useMemo(() => extractRelationsFromEntities(entities), [entities]);
 
   // Determine what to show in editor mode
   const renderEditorContent = () => {
@@ -238,7 +288,7 @@ export function WorkspacePanel({
             projectId={projectId}
             documents={supabaseDocuments}
             entities={supabaseEntities}
-            relations={[]}
+            relations={entityRelations}
           />
         )}
 
@@ -260,7 +310,7 @@ export function WorkspacePanel({
                 entities={supabaseEntities.filter(
                   (e) => e.type === 'CHARACTER'
                 )}
-                relations={[]}
+                relations={entityRelations}
               />
             )}
           </div>
