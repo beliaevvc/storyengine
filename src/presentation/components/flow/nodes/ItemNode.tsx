@@ -38,7 +38,27 @@ function getItemIcon(name: string, attrs: Record<string, unknown>) {
 }
 
 // Skip these keys when displaying attributes
-const SKIP_KEYS = ['owner', 'владелец', 'Владелец', 'category', 'Категория'];
+const SKIP_KEYS = [
+  'owner', 'владелец', 'Владелец', 
+  'category', 'Категория',
+  'relationships', 'Relationships', 'связи', 'Связи',
+  'inventory', 'Inventory', 'инвентарь', 'Инвентарь',
+  'role', 'Роль',
+];
+
+// Check if value is displayable as text
+function isDisplayableValue(value: unknown): value is string | number | boolean | string[] {
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return true;
+  }
+  // Array of primitives (strings, numbers) is ok
+  if (Array.isArray(value)) {
+    return value.length > 0 && value.every(item => 
+      typeof item === 'string' || typeof item === 'number'
+    );
+  }
+  return false;
+}
 
 function ItemNodeComponent({ data: rawData, selected }: NodeProps) {
   const data = rawData as ItemNodeData;
@@ -48,15 +68,14 @@ function ItemNodeComponent({ data: rawData, selected }: NodeProps) {
   const rarity = (attrs['Редкость'] || attrs['rarity'] || '') as string;
   const owner = (attrs['Владелец'] || attrs['owner'] || '') as string;
 
-  // Get displayable attributes
+  // Get displayable attributes (only primitive values)
   const displayAttrs = Object.entries(attrs)
     .filter(([key, value]) => {
       if (key.startsWith('_')) return false;
       if (SKIP_KEYS.includes(key)) return false;
       if (value === null || value === undefined || value === '') return false;
-      if (Array.isArray(value) && value.length === 0) return false;
-      if (typeof value === 'object' && !Array.isArray(value)) return false;
-      return true;
+      // Only allow displayable values (strings, numbers, arrays of strings)
+      return isDisplayableValue(value);
     })
     .slice(0, 2);
 
@@ -114,12 +133,7 @@ function ItemNodeComponent({ data: rawData, selected }: NodeProps) {
             <div key={key} className="text-[10px]">
               <span className="text-[#768390]">{key}:</span>
               <span className="text-[#adbac7] ml-1">
-                {typeof value === 'string'
-                  ? value
-                  : Array.isArray(value)
-                    ? value.join(', ')
-                    : String(value)
-                }
+                {Array.isArray(value) ? value.join(', ') : String(value)}
               </span>
             </div>
           ))}
