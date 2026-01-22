@@ -1,4 +1,4 @@
-import type { PrismaClient, Entity as PrismaEntity, EntityType as PrismaEntityType, Prisma } from '@/generated/prisma/client';
+import type { PrismaClient, Entity as PrismaEntity, Prisma } from '@/generated/prisma/client';
 import type { IEntityRepository } from '@/core/repositories';
 import type { Entity, EntityType, CreateEntityInput, UpdateEntityInput } from '@/core/entities/entity';
 import type { EntityAttributes } from '@/core/types/entity-attributes';
@@ -23,7 +23,8 @@ export class PrismaEntityRepository implements IEntityRepository {
 
   async findByProjectAndType(projectId: string, type: EntityType): Promise<Entity[]> {
     const entities = await this.prisma.entity.findMany({
-      where: { projectId, type: type as PrismaEntityType },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      where: { projectId, type: type as any },
       orderBy: { name: 'asc' },
     });
     return entities.map((e) => this.mapToEntity(e));
@@ -57,7 +58,8 @@ export class PrismaEntityRepository implements IEntityRepository {
     const entity = await this.prisma.entity.create({
       data: {
         projectId: data.projectId,
-        type: data.type as PrismaEntityType,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type: data.type as any,
         name: data.name,
         description: data.description,
         attributes: (data.attributes ?? {}) as Prisma.InputJsonValue,
@@ -70,7 +72,8 @@ export class PrismaEntityRepository implements IEntityRepository {
     const entity = await this.prisma.entity.update({
       where: { id },
       data: {
-        ...(data.type !== undefined && { type: data.type as PrismaEntityType }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...(data.type !== undefined && { type: data.type as any }),
         ...(data.name !== undefined && { name: data.name }),
         ...(data.description !== undefined && { description: data.description }),
         ...(data.attributes !== undefined && { attributes: data.attributes as Prisma.InputJsonValue }),
