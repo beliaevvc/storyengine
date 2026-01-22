@@ -23,9 +23,13 @@ function CharacterNodeComponent({ data: rawData, selected }: NodeProps) {
   // Get displayable attributes (skip internal ones)
   const displayAttrs = Object.entries(attrs)
     .filter(([key, value]) => {
+      // Skip internal/service fields
+      if (key.startsWith('_')) return false;
       if (SKIP_KEYS.includes(key)) return false;
       if (value === null || value === undefined || value === '') return false;
       if (Array.isArray(value) && value.length === 0) return false;
+      // Skip objects (complex nested structures)
+      if (typeof value === 'object' && !Array.isArray(value)) return false;
       return true;
     })
     .slice(0, 4); // Limit to 4 attributes
