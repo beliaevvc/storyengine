@@ -219,6 +219,14 @@ export function WorkspacePanel({
   
   // Extract relations from entities for FlowCanvas
   const entityRelations = useMemo(() => {
+    // Debug: log entity attributes
+    console.log('[WorkspacePanel] Entities with attributes:', entities.map(e => ({
+      id: e.id,
+      name: e.name,
+      type: e.type,
+      attributes: e.attributes,
+    })));
+    
     const relations = extractRelationsFromEntities(entities);
     console.log('[WorkspacePanel] Extracted relations:', relations.length, relations);
     return relations;
