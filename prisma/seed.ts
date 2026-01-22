@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PrismaClient, EntityType } from '../src/generated/prisma/client';
+import { PrismaClient } from '../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 // Prisma 7+ requires adapter for database connection
@@ -24,11 +24,11 @@ async function main() {
   });
   console.log('✅ Created project:', project.title);
 
-  // Create entities
+  // Create entities (using string types since EntityType is now dynamic)
   const detective = await prisma.entity.create({
     data: {
       projectId: project.id,
-      type: EntityType.CHARACTER,
+      type: 'CHARACTER',
       name: 'John Watson',
       description: 'A brilliant detective with a keen eye for detail',
       attributes: {
@@ -44,7 +44,7 @@ async function main() {
   const london = await prisma.entity.create({
     data: {
       projectId: project.id,
-      type: EntityType.LOCATION,
+      type: 'LOCATION',
       name: 'Baker Street Office',
       description: "The detective's office and residence",
       attributes: {
@@ -59,7 +59,7 @@ async function main() {
   const pocketWatch = await prisma.entity.create({
     data: {
       projectId: project.id,
-      type: EntityType.ITEM,
+      type: 'ITEM',
       name: 'Golden Pocket Watch',
       description: 'A mysterious pocket watch found at the crime scene',
       attributes: {
