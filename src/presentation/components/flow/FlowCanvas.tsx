@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -13,6 +13,9 @@ import {
   Panel,
   Node,
   Edge,
+  ReactFlowProvider,
+  useReactFlow,
+  type Viewport,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { GitBranch, Users, MapPin } from 'lucide-react';
@@ -26,6 +29,35 @@ import type { Entity, Document } from '@/types/supabase';
 import type { TiptapContent } from '@/core/entities/document';
 
 type FlowMode = 'plot' | 'characters' | 'locations';
+
+// Viewport persistence helpers
+const VIEWPORT_STORAGE_KEY = 'flowcanvas-viewport';
+
+function getViewportStorageKey(projectId: string, mode: FlowMode): string {
+  return `${VIEWPORT_STORAGE_KEY}-${projectId}-${mode}`;
+}
+
+function saveViewport(projectId: string, mode: FlowMode, viewport: Viewport): void {
+  try {
+    const key = getViewportStorageKey(projectId, mode);
+    localStorage.setItem(key, JSON.stringify(viewport));
+  } catch {
+    // localStorage might be unavailable
+  }
+}
+
+function loadViewport(projectId: string, mode: FlowMode): Viewport | null {
+  try {
+    const key = getViewportStorageKey(projectId, mode);
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      return JSON.parse(stored) as Viewport;
+    }
+  } catch {
+    // localStorage might be unavailable or corrupted
+  }
+  return null;
+}
 
 const nodeTypes = {
   scene: SceneNode,
@@ -51,7 +83,17 @@ interface FlowCanvasProps {
   onNodeClick?: (nodeId: string, type: string) => void;
 }
 
-export function FlowCanvas({
+// Main export - wraps inner component with ReactFlowProvider
+export function FlowCanvas(props: FlowCanvasProps) {
+  return (
+    <ReactFlowProvider>
+      <FlowCanvasInner {...props} />
+    </ReactFlowProvider>
+  );
+}
+
+// Inner component that can use useReactFlow hook
+function FlowCanvasInner({
   projectId,
   documents = [],
   entities = [],
@@ -59,6 +101,7 @@ export function FlowCanvas({
   onNodeClick,
 }: FlowCanvasProps) {
   const [mode, setMode] = useState<FlowMode>('plot');
+  const { setViewport, getViewport } = useReactFlow();
 
   // Convert data to nodes and edges based on mode
   const { initialNodes, initialEdges } = useMemo(() => {
@@ -74,6 +117,36 @@ export function FlowCanvas({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
+  // Load saved viewport on initial mount and mode changes
+  useEffect(() => {
+    // Small delay to ensure ReactFlow is ready
+    const timer = setTimeout(() => {
+      const savedViewport = loadViewport(projectId, mode);
+      if (savedViewport) {
+        setViewport(savedViewport);
+      }
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [projectId, mode, setViewport]);
+
+  // Save viewport before mode change
+  const handleModeChange = useCallback((newMode: FlowMode) => {
+    // Save current viewport for current mode
+    const currentViewport = getViewport();
+    saveViewport(projectId, mode, currentViewport);
+    // Change mode
+    setMode(newMode);
+  }, [projectId, mode, getViewport]);
+
+  // Save viewport on pan/zoom end
+  const handleMoveEnd = useCallback(
+    (_event: unknown, viewport: Viewport) => {
+      saveViewport(projectId, mode, viewport);
+    },
+    [projectId, mode]
+  );
+
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
@@ -86,6 +159,12 @@ export function FlowCanvas({
     [onNodeClick]
   );
 
+  // Get initial viewport from storage or use default
+  const defaultViewport = useMemo(() => {
+    const saved = loadViewport(projectId, mode);
+    return saved || { x: 0, y: 0, zoom: 0.75 };
+  }, [projectId, mode]);
+
   return (
     <div className="h-full w-full bg-[#1c2128]">
       <ReactFlow
@@ -95,9 +174,10 @@ export function FlowCanvas({
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={handleNodeClick}
+        onMoveEnd={handleMoveEnd}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        fitView
+        defaultViewport={defaultViewport}
         proOptions={{ hideAttribution: true }}
         defaultEdgeOptions={{
           type: 'relation',
@@ -126,7 +206,7 @@ export function FlowCanvas({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setMode('plot')}
+              onClick={() => handleModeChange('plot')}
               className={mode === 'plot' ? 'bg-[#539bf5]/10 text-[#539bf5]' : ''}
             >
               <GitBranch className="w-4 h-4 mr-1" />
@@ -135,7 +215,7 @@ export function FlowCanvas({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setMode('characters')}
+              onClick={() => handleModeChange('characters')}
               className={mode === 'characters' ? 'bg-[#539bf5]/10 text-[#539bf5]' : ''}
             >
               <Users className="w-4 h-4 mr-1" />
@@ -144,7 +224,7 @@ export function FlowCanvas({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setMode('locations')}
+              onClick={() => handleModeChange('locations')}
               className={mode === 'locations' ? 'bg-[#539bf5]/10 text-[#539bf5]' : ''}
             >
               <MapPin className="w-4 h-4 mr-1" />

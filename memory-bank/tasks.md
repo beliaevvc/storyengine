@@ -2,6 +2,45 @@
 
 ## Current Task
 
+### PLOT-001: Сохранение состояния вкладки "Сюжет"
+- **Status**: ✅ COMPLETE
+- **Level**: 2 (Basic Enhancement)
+- **Date**: 2026-01-22
+
+#### Описание
+Вкладка "Сюжет" (FlowCanvas) должна запоминать последнее состояние viewport (zoom, pan position) между переключениями вкладок и перезагрузками страницы.
+
+#### Проблема
+- `fitView` всегда сбрасывает viewport при загрузке
+- Нет сохранения состояния в localStorage
+
+#### Решение
+1. Убрать `fitView` и заменить на `defaultViewport` с сохранёнными значениями
+2. Использовать `onMoveEnd` для сохранения viewport в localStorage
+3. Ключ localStorage: `flowcanvas-viewport-${projectId}-${mode}`
+
+#### Чеклист
+- [x] Добавить `ReactFlowProvider` и `useReactFlow`
+- [x] Реализовать функции `saveViewport` и `loadViewport`
+- [x] Добавить `onMoveEnd` для сохранения viewport
+- [x] Заменить `fitView` на `defaultViewport`
+- [ ] Тестирование в браузере
+
+#### Изменённые файлы
+```
+src/presentation/components/flow/FlowCanvas.tsx
+```
+
+#### Что реализовано
+- `ReactFlowProvider` обёртка для использования хука `useReactFlow`
+- Функции `saveViewport(projectId, mode, viewport)` и `loadViewport(projectId, mode)`
+- Сохранение viewport в `localStorage` по ключу `flowcanvas-viewport-{projectId}-{mode}`
+- Событие `onMoveEnd` автоматически сохраняет viewport при pan/zoom
+- При смене режима (Сюжет/Персонажи/Локации) сохраняется viewport текущего режима
+- `defaultViewport` загружается из localStorage при инициализации
+
+---
+
 ### UI-002: Улучшения UX интерфейса
 - **Status**: ✅ ARCHIVED
 - **Level**: 2 (Multiple UI Enhancements)
