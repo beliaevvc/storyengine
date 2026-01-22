@@ -6,8 +6,10 @@ import {
   getProjectsTable, 
   getEntitiesTable, 
   getDocumentsTable, 
-  getEntityRelationsTable 
+  getEntityRelationsTable,
+  getEntityTypeDefinitionsTable,
 } from '@/lib/supabase/tables';
+import { seedDefaultEntityTypesAction } from './entity-type-actions';
 import type { Project } from '@/types/supabase';
 
 export type ProjectWithCounts = Project & {
@@ -119,6 +121,9 @@ export async function createProject(
     return { data: null, error: error.message };
   }
 
+  // Seed default entity types for new project
+  await seedDefaultEntityTypesAction(data.id);
+
   revalidatePath('/projects');
   return { data: data as Project, error: null };
 }
@@ -212,6 +217,30 @@ export async function duplicateProject(
 
   if (createError || !newProject) {
     return { data: null, error: createError?.message || 'Failed to create project' };
+  }
+
+  // Copy entity type definitions
+  const entityTypesTable = await getEntityTypeDefinitionsTable();
+  const { data: entityTypes } = await entityTypesTable
+    .select('*')
+    .eq('project_id', projectId);
+
+  if (entityTypes && entityTypes.length > 0) {
+    await entityTypesTable.insert(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (entityTypes as any[]).map((et: any, index: number) => ({
+        project_id: newProject.id,
+        name: et.name,
+        label: et.label,
+        icon: et.icon,
+        color: et.color,
+        order: index,
+        is_default: et.is_default,
+      }))
+    );
+  } else {
+    // If no types exist, seed defaults
+    await seedDefaultEntityTypesAction(newProject.id);
   }
 
   // Copy entities

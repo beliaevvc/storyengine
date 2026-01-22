@@ -21,3 +21,6 @@ export type { ScrollAreaProps } from './scroll-area';
 
 export { Separator } from './separator';
 export type { SeparatorProps } from './separator';
+
+export { IconPicker, DynamicIcon } from './icon-picker';
+export { ColorPicker, ColorDot } from './color-picker';

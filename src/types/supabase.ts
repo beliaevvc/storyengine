@@ -6,15 +6,8 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-// Entity types enum
-export type EntityType =
-  | 'CHARACTER'
-  | 'LOCATION'
-  | 'ITEM'
-  | 'EVENT'
-  | 'FACTION'
-  | 'WORLDBUILDING'
-  | 'NOTE';
+// Entity types - теперь это string, а не enum (хранится в entity_type_definitions)
+export type EntityType = string;
 
 // Document types enum
 // FOLDER - папка для организации
@@ -340,6 +333,44 @@ export interface Database {
           target_entity_types?: string[] | null;
           color?: string | null;
           order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      entity_type_definitions: {
+        Row: {
+          id: string;
+          project_id: string;
+          name: string;
+          label: string;
+          icon: string;
+          color: string;
+          order: number;
+          is_default: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          name: string;
+          label: string;
+          icon: string;
+          color: string;
+          order?: number;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          name?: string;
+          label?: string;
+          icon?: string;
+          color?: string;
+          order?: number;
+          is_default?: boolean;
           created_at?: string;
           updated_at?: string;
         };

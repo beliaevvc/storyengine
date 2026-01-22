@@ -1,26 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2, Plus, Settings, Hash, Type, ToggleLeft, List, ListOrdered, X } from 'lucide-react';
-import { EntityTypeIcon, ENTITY_LABELS } from './EntityTypeIcon';
+import { Loader2, Plus, Hash, Type, ToggleLeft, List, ListOrdered, X } from 'lucide-react';
+import { EntityTypeIcon, getEntityTypeLabel } from './EntityTypeIcon';
 import { Button } from '@/presentation/components/ui/button';
 import { Input } from '@/presentation/components/ui/input';
 import { Modal } from '@/presentation/components/ui/modal';
+import { DynamicIcon } from '@/presentation/components/ui/icon-picker';
 import { TypeConfigFields } from '@/presentation/components/settings/TypeConfigFields';
+import { EntityTypeSchemaForm } from '@/presentation/components/settings/EntityTypeSchemaForm';
 import { getAttributeDefinitionsAction, createAttributeDefinitionAction } from '@/app/actions/supabase/attribute-actions';
+import { 
+  getEntityTypeDefinitionsAction, 
+  createEntityTypeDefinitionAction,
+  seedDefaultEntityTypesAction,
+} from '@/app/actions/supabase/entity-type-actions';
 import type { AttributeDefinition, AttributeType as AttrType } from '@/core/types/attribute-schema';
 import { ATTRIBUTE_TYPE_LABELS, DEFAULT_ATTRIBUTE_CONFIGS } from '@/core/types/attribute-schema';
-import type { Entity, EntityType, InsertTables, UpdateTables } from '@/types/supabase';
-
-const ALL_ENTITY_TYPES: EntityType[] = [
-  'CHARACTER',
-  'LOCATION',
-  'ITEM',
-  'EVENT',
-  'FACTION',
-  'WORLDBUILDING',
-  'NOTE',
-];
+import type { EntityTypeDefinition, CreateEntityTypeInput } from '@/core/types/entity-type-schema';
+import type { Entity, InsertTables, UpdateTables } from '@/types/supabase';
 
 const TYPE_ICONS: Record<AttrType, React.ElementType> = {
   number: Hash,
@@ -47,39 +45,80 @@ export function EntityForm({
 }: EntityFormProps) {
   const isEditing = !!entity;
 
-  const [type, setType] = useState<EntityType>(entity?.type || 'CHARACTER');
+  const [type, setType] = useState<string>(entity?.type || 'CHARACTER');
   const [name, setName] = useState(entity?.name || '');
   const [description, setDescription] = useState(entity?.description || '');
   const [attributes, setAttributes] = useState<Record<string, unknown>>(
     (entity?.attributes as Record<string, unknown>) || {}
   );
   
+  // Entity type definitions from database
+  const [typeDefinitions, setTypeDefinitions] = useState<EntityTypeDefinition[]>([]);
+  const [isLoadingTypes, setIsLoadingTypes] = useState(true);
+  const [showCreateTypeModal, setShowCreateTypeModal] = useState(false);
+  
   // Attribute definitions from database
-  const [definitions, setDefinitions] = useState<AttributeDefinition[]>([]);
-  const [isLoadingDefinitions, setIsLoadingDefinitions] = useState(true);
+  const [attrDefinitions, setAttrDefinitions] = useState<AttributeDefinition[]>([]);
+  const [isLoadingAttrs, setIsLoadingAttrs] = useState(true);
   const [showCreateAttrModal, setShowCreateAttrModal] = useState(false);
+
+  // Load entity type definitions
+  useEffect(() => {
+    async function loadTypeDefinitions() {
+      setIsLoadingTypes(true);
+      let result = await getEntityTypeDefinitionsAction(projectId);
+      
+      // Seed defaults if empty
+      if (result.success && result.data.length === 0) {
+        result = await seedDefaultEntityTypesAction(projectId);
+      }
+      
+      if (result.success) {
+        setTypeDefinitions(result.data);
+        // Set first type as default if current type not found
+        if (!entity && result.data.length > 0 && !result.data.find(t => t.name === type)) {
+          setType(result.data[0].name);
+        }
+      }
+      setIsLoadingTypes(false);
+    }
+    loadTypeDefinitions();
+  }, [projectId]);
 
   // Load attribute definitions
   useEffect(() => {
-    async function loadDefinitions() {
-      setIsLoadingDefinitions(true);
+    async function loadAttrDefinitions() {
+      setIsLoadingAttrs(true);
       const result = await getAttributeDefinitionsAction(projectId);
       if (result.success) {
-        setDefinitions(result.data);
+        setAttrDefinitions(result.data);
       }
-      setIsLoadingDefinitions(false);
+      setIsLoadingAttrs(false);
     }
-    loadDefinitions();
+    loadAttrDefinitions();
   }, [projectId]);
 
-  // Filter definitions for selected entity type
-  const applicableDefinitions = definitions.filter(
+  // Filter attribute definitions for selected entity type
+  const applicableDefinitions = attrDefinitions.filter(
     (d) => d.entityTypes.length === 0 || d.entityTypes.includes(type)
   );
 
-  const handleTypeChange = (newType: EntityType) => {
+  const handleTypeChange = (newType: string) => {
     setType(newType);
     // Keep attribute values when switching types
+  };
+
+  const handleCreateType = async (data: CreateEntityTypeInput | import('@/core/types/entity-type-schema').UpdateEntityTypeInput) => {
+    const result = await createEntityTypeDefinitionAction(data as CreateEntityTypeInput);
+    if (result.success) {
+      // Reload type definitions
+      const typesResult = await getEntityTypeDefinitionsAction(projectId);
+      if (typesResult.success) {
+        setTypeDefinitions(typesResult.data);
+        setType(result.data.name); // Select newly created type
+      }
+      setShowCreateTypeModal(false);
+    }
   };
 
   const handleAttributeChange = (attrName: string, value: unknown) => {
@@ -126,38 +165,68 @@ export function EntityForm({
     // Reload definitions
     const result = await getAttributeDefinitionsAction(projectId);
     if (result.success) {
-      setDefinitions(result.data);
+      setAttrDefinitions(result.data);
     }
     setShowCreateAttrModal(false);
   };
+
+  const currentTypeLabel = getEntityTypeLabel(type, typeDefinitions);
 
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Type Selection */}
         <div>
-          <label className="block text-sm font-medium text-[#adbac7] mb-2">
-            Тип сущности
-          </label>
-          <div className="grid grid-cols-4 gap-2">
-            {ALL_ENTITY_TYPES.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => handleTypeChange(t)}
-                className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-colors ${
-                  type === t
-                    ? 'border-[#539bf5] bg-[#539bf5]/10'
-                    : 'border-[#444c56] hover:border-[#768390]'
-                }`}
-              >
-                <EntityTypeIcon type={t} size="md" />
-                <span className="text-xs text-[#adbac7]">
-                  {ENTITY_LABELS[t]}
-                </span>
-              </button>
-            ))}
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-[#adbac7]">
+              Тип сущности
+            </label>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowCreateTypeModal(true)}
+              className="h-7 gap-1 text-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Создать тип
+            </Button>
           </div>
+          
+          {isLoadingTypes ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 animate-spin text-[#768390]" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-2">
+              {typeDefinitions.map((typeDef) => (
+                <button
+                  key={typeDef.id}
+                  type="button"
+                  onClick={() => handleTypeChange(typeDef.name)}
+                  className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-colors ${
+                    type === typeDef.name
+                      ? 'border-[#539bf5] bg-[#539bf5]/10'
+                      : 'border-[#444c56] hover:border-[#768390]'
+                  }`}
+                >
+                  <div 
+                    className="w-8 h-8 rounded-md flex items-center justify-center"
+                    style={{ backgroundColor: `${typeDef.color}20` }}
+                  >
+                    <DynamicIcon 
+                      name={typeDef.icon} 
+                      className="w-4 h-4"
+                      style={{ color: typeDef.color }}
+                    />
+                  </div>
+                  <span className="text-xs text-[#adbac7]">
+                    {typeDef.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Name */}
@@ -173,7 +242,7 @@ export function EntityForm({
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={`Название ${ENTITY_LABELS[type].toLowerCase()}`}
+            placeholder={`Название ${currentTypeLabel.toLowerCase()}`}
             required
           />
         </div>
@@ -214,13 +283,13 @@ export function EntityForm({
             </Button>
           </div>
           
-          {isLoadingDefinitions ? (
+          {isLoadingAttrs ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-5 h-5 animate-spin text-[#768390]" />
             </div>
           ) : applicableDefinitions.length === 0 ? (
             <div className="text-center py-6 text-sm text-[#768390]">
-              <p>Нет атрибутов для типа "{ENTITY_LABELS[type]}"</p>
+              <p>Нет атрибутов для типа "{currentTypeLabel}"</p>
               <Button
                 type="button"
                 variant="link"
@@ -263,12 +332,27 @@ export function EntityForm({
         </div>
       </form>
 
+      {/* Create Type Modal */}
+      <Modal
+        isOpen={showCreateTypeModal}
+        onClose={() => setShowCreateTypeModal(false)}
+        title="Новый тип сущности"
+        size="lg"
+      >
+        <EntityTypeSchemaForm
+          projectId={projectId}
+          onSubmit={handleCreateType}
+          onCancel={() => setShowCreateTypeModal(false)}
+        />
+      </Modal>
+
       {/* Create Attribute Modal */}
       <CreateAttributeModal
         isOpen={showCreateAttrModal}
         onClose={() => setShowCreateAttrModal(false)}
         onSubmit={handleCreateAttribute}
         entityType={type}
+        entityTypeLabel={currentTypeLabel}
       />
     </>
   );
@@ -466,10 +550,11 @@ interface CreateAttributeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: { name: string; type: AttrType; config: Record<string, unknown> }) => Promise<void>;
-  entityType: EntityType;
+  entityType: string;
+  entityTypeLabel: string;
 }
 
-function CreateAttributeModal({ isOpen, onClose, onSubmit, entityType }: CreateAttributeModalProps) {
+function CreateAttributeModal({ isOpen, onClose, onSubmit, entityType, entityTypeLabel }: CreateAttributeModalProps) {
   const [name, setName] = useState('');
   const [attrType, setAttrType] = useState<AttrType>('text');
   const [config, setConfig] = useState<Record<string, unknown>>(
@@ -504,7 +589,7 @@ function CreateAttributeModal({ isOpen, onClose, onSubmit, entityType }: CreateA
     <Modal isOpen={isOpen} onClose={onClose} title="Создать атрибут" size="md">
       <form onSubmit={handleSubmit} className="space-y-5">
         <p className="text-sm text-[#768390]">
-          Атрибут будет создан для типа "{ENTITY_LABELS[entityType]}"
+          Атрибут будет создан для типа "{entityTypeLabel}"
         </p>
 
         {/* Name */}

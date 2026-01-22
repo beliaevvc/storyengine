@@ -1,57 +1,42 @@
 'use client';
 
-import {
-  User,
-  MapPin,
-  Package,
-  Calendar,
-  Users,
-  Globe,
-  StickyNote,
-  LucideIcon,
-} from 'lucide-react';
-import type { EntityType } from '@/types/supabase';
+import { DynamicIcon } from '@/presentation/components/ui/icon-picker';
+import type { EntityTypeDefinition } from '@/core/types/entity-type-schema';
 
-const ENTITY_ICONS: Record<EntityType, LucideIcon> = {
-  CHARACTER: User,
-  LOCATION: MapPin,
-  ITEM: Package,
-  EVENT: Calendar,
-  FACTION: Users,
-  WORLDBUILDING: Globe,
-  NOTE: StickyNote,
+// Fallback конфигурация для обратной совместимости
+const FALLBACK_CONFIG: Record<string, { icon: string; color: string; label: string }> = {
+  CHARACTER: { icon: 'User', color: '#3b82f6', label: 'Персонаж' },
+  LOCATION: { icon: 'MapPin', color: '#22c55e', label: 'Локация' },
+  ITEM: { icon: 'Package', color: '#eab308', label: 'Предмет' },
+  EVENT: { icon: 'Calendar', color: '#a855f7', label: 'Событие' },
+  FACTION: { icon: 'Users', color: '#f97316', label: 'Фракция' },
+  WORLDBUILDING: { icon: 'Globe', color: '#06b6d4', label: 'Мир' },
+  NOTE: { icon: 'StickyNote', color: '#6b7280', label: 'Заметка' },
 };
 
-const ENTITY_COLORS: Record<EntityType, string> = {
-  CHARACTER: 'text-blue-400 bg-blue-400/10',
-  LOCATION: 'text-green-400 bg-green-400/10',
-  ITEM: 'text-yellow-400 bg-yellow-400/10',
-  EVENT: 'text-purple-400 bg-purple-400/10',
-  FACTION: 'text-orange-400 bg-orange-400/10',
-  WORLDBUILDING: 'text-cyan-400 bg-cyan-400/10',
-  NOTE: 'text-gray-400 bg-gray-400/10',
-};
-
-const ENTITY_LABELS: Record<EntityType, string> = {
-  CHARACTER: 'Персонаж',
-  LOCATION: 'Локация',
-  ITEM: 'Предмет',
-  EVENT: 'Событие',
-  FACTION: 'Фракция',
-  WORLDBUILDING: 'Мир',
-  NOTE: 'Заметка',
-};
+const DEFAULT_CONFIG = { icon: 'HelpCircle', color: '#6b7280', label: 'Неизвестный тип' };
 
 interface EntityTypeIconProps {
-  type: EntityType;
+  type: string;
+  /** Определения типов из БД (опционально для обратной совместимости) */
+  definitions?: EntityTypeDefinition[];
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
 }
 
-export function EntityTypeIcon({ type, size = 'md', showLabel = false }: EntityTypeIconProps) {
-  const Icon = ENTITY_ICONS[type];
-  const colorClass = ENTITY_COLORS[type];
-  const label = ENTITY_LABELS[type];
+export function EntityTypeIcon({ 
+  type, 
+  definitions,
+  size = 'md', 
+  showLabel = false,
+}: EntityTypeIconProps) {
+  // Ищем определение в переданных definitions
+  const definition = definitions?.find(d => d.name === type);
+  
+  // Fallback на статическую конфигурацию
+  const config = definition 
+    ? { icon: definition.icon, color: definition.color, label: definition.label }
+    : (FALLBACK_CONFIG[type] ?? DEFAULT_CONFIG);
 
   const sizeClasses = {
     sm: 'w-6 h-6',
@@ -68,21 +53,63 @@ export function EntityTypeIcon({ type, size = 'md', showLabel = false }: EntityT
   return (
     <div className="flex items-center gap-2">
       <div
-        className={`${sizeClasses[size]} rounded-md flex items-center justify-center ${colorClass}`}
+        className={`${sizeClasses[size]} rounded-md flex items-center justify-center`}
+        style={{ backgroundColor: `${config.color}20` }}
       >
-        <Icon className={iconSizes[size]} />
+        <DynamicIcon 
+          name={config.icon} 
+          className={iconSizes[size]}
+          style={{ color: config.color }}
+        />
       </div>
-      {showLabel && <span className="text-sm text-[#768390]">{label}</span>}
+      {showLabel && (
+        <span className="text-sm text-fg-muted">{config.label}</span>
+      )}
     </div>
   );
 }
 
-export function getEntityTypeLabel(type: EntityType): string {
-  return ENTITY_LABELS[type];
+/**
+ * Получить label типа из definitions или fallback
+ */
+export function getEntityTypeLabel(
+  type: string, 
+  definitions?: EntityTypeDefinition[]
+): string {
+  const definition = definitions?.find(d => d.name === type);
+  if (definition) return definition.label;
+  return FALLBACK_CONFIG[type]?.label ?? type;
 }
 
-export function getEntityTypeColor(type: EntityType): string {
-  return ENTITY_COLORS[type];
+/**
+ * Получить цвет типа из definitions или fallback
+ */
+export function getEntityTypeColor(
+  type: string, 
+  definitions?: EntityTypeDefinition[]
+): string {
+  const definition = definitions?.find(d => d.name === type);
+  if (definition) return definition.color;
+  return FALLBACK_CONFIG[type]?.color ?? '#6b7280';
 }
 
-export { ENTITY_ICONS, ENTITY_COLORS, ENTITY_LABELS };
+/**
+ * Получить иконку типа из definitions или fallback
+ */
+export function getEntityTypeIcon(
+  type: string, 
+  definitions?: EntityTypeDefinition[]
+): string {
+  const definition = definitions?.find(d => d.name === type);
+  if (definition) return definition.icon;
+  return FALLBACK_CONFIG[type]?.icon ?? 'HelpCircle';
+}
+
+// Экспорт для обратной совместимости
+export const ENTITY_LABELS = Object.fromEntries(
+  Object.entries(FALLBACK_CONFIG).map(([k, v]) => [k, v.label])
+) as Record<string, string>;
+
+export const ENTITY_COLORS = Object.fromEntries(
+  Object.entries(FALLBACK_CONFIG).map(([k, v]) => [k, v.color])
+) as Record<string, string>;

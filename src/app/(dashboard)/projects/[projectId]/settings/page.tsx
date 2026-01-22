@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Settings } from 'lucide-react';
 import { Button } from '@/presentation/components/ui/button';
-import { AttributeSchemaList, RelationshipTypesEditor } from '@/presentation/components/settings';
+import { AttributeSchemaList, RelationshipTypesEditor, EntityTypeSchemaList } from '@/presentation/components/settings';
 import { useProjectLoader } from '@/presentation/hooks';
 import { useProjectStore } from '@/presentation/stores';
 
@@ -52,11 +52,26 @@ export default function ProjectSettingsPage() {
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-6 py-8">
+        {/* Section: Entity Types */}
+        <section className="mb-8">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-fg-default mb-2">
+              Типы сущностей
+            </h2>
+            <p className="text-fg-muted">
+              Настройте типы объектов в вашем мире: персонажи, локации, предметы
+              и любые другие категории. Выберите иконку и цвет для каждого типа.
+            </p>
+          </div>
+
+          <EntityTypeSchemaList projectId={projectId} />
+        </section>
+
         {/* Section: Attribute Schema */}
         <section className="mb-8">
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-fg-default mb-2">
-              Схема Мира
+              Атрибуты
             </h2>
             <p className="text-fg-muted">
               Определите кастомные характеристики для сущностей вашего проекта.

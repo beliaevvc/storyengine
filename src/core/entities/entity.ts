@@ -1,13 +1,7 @@
 import type { EntityAttributes } from '../types/entity-attributes';
 
-export type EntityType = 
-  | 'CHARACTER' 
-  | 'LOCATION' 
-  | 'ITEM' 
-  | 'EVENT' 
-  | 'FACTION' 
-  | 'WORLDBUILDING' 
-  | 'NOTE';
+// EntityType теперь string - конкретные типы хранятся в entity_type_definitions
+export type EntityType = string;
 
 // Tiptap content type
 export interface TiptapContent {

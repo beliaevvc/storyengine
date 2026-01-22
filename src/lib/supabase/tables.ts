@@ -68,6 +68,15 @@ export async function getAttributeDefinitionsTable() {
 }
 
 /**
+ * Get access to the entity_type_definitions table.
+ */
+export async function getEntityTypeDefinitionsTable() {
+  const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase as any).from('entity_type_definitions');
+}
+
+/**
  * Get access to the timelines table.
  */
 export async function getTimelinesTable() {

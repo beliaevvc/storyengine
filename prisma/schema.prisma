@@ -9,20 +9,6 @@ datasource db {
 }
 
 // ============================================
-// ENUMS
-// ============================================
-
-enum EntityType {
-  CHARACTER
-  LOCATION
-  ITEM
-  EVENT
-  FACTION
-  WORLDBUILDING
-  NOTE
-}
-
-// ============================================
 // MODELS
 // ============================================
 
@@ -34,11 +20,31 @@ model Project {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  documents            Document[]
-  entities             Entity[]
-  attributeDefinitions AttributeDefinition[]
+  documents             Document[]
+  entities              Entity[]
+  attributeDefinitions  AttributeDefinition[]
+  entityTypeDefinitions EntityTypeDefinition[]
 
   @@index([title])
+}
+
+model EntityTypeDefinition {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  name      String   // внутреннее имя (CHARACTER, custom_type_1)
+  label     String   // отображаемое название (Персонаж, Мой тип)
+  icon      String   // имя иконки из Lucide (User, MapPin, Sword)
+  color     String   // hex цвет (#3b82f6)
+  order     Int      @default(0)
+  isDefault Boolean  @default(false) @map("is_default") // дефолтный тип
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, name])
+  @@map("entity_type_definitions")
+  @@index([projectId, order])
 }
 
 model AttributeDefinition {
@@ -61,18 +67,18 @@ model AttributeDefinition {
 }
 
 model Entity {
-  id          String     @id @default(uuid())
-  projectId   String     @map("project_id")
-  type        EntityType
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  type        String   // ссылка на EntityTypeDefinition.name
   name        String
   description String?
-  attributes  Json       @default("{}")
-  content     Json?      // Tiptap JSON content for entity document
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+  attributes  Json     @default("{}")
+  content     Json?    // Tiptap JSON content for entity document
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  scenes      SceneEntity[]
+  project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scenes  SceneEntity[]
 
   @@index([projectId, type])
   @@index([name])
