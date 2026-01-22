@@ -2,16 +2,15 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Settings, BookOpen, LogOut, ChevronLeft, FileText, GitBranch, Users, Clock } from 'lucide-react';
+import { Settings, BookOpen, LogOut, ChevronLeft, FileText, GitBranch, Clock } from 'lucide-react';
 import { Button } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
 
-type WorkspaceMode = 'editor' | 'plot' | 'characters' | 'timeline';
+type WorkspaceMode = 'editor' | 'plot' | 'timeline';
 
 const MODE_TABS: { id: WorkspaceMode; label: string; icon: React.ElementType }[] = [
   { id: 'editor', label: 'Редактор', icon: FileText },
   { id: 'plot', label: 'Сюжет', icon: GitBranch },
-  { id: 'characters', label: 'Персонажи', icon: Users },
   { id: 'timeline', label: 'Таймлайн', icon: Clock },
 ];
 

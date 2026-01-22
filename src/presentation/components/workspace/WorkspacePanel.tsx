@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { FileText, Users, Loader2, Check } from 'lucide-react';
+import { FileText, Loader2, Check } from 'lucide-react';
 import { StoryEditor } from '@/presentation/components/editor';
 import { FlowCanvas } from '@/presentation/components/flow';
 import { Timeline } from '@/presentation/components/timeline';
@@ -23,7 +23,7 @@ import { mapEntitiesToSupabase, mapDocumentsToSupabase } from '@/lib/mappers';
 // Types & Constants
 // ============================================================================
 
-export type WorkspaceMode = 'editor' | 'plot' | 'characters' | 'timeline';
+export type WorkspaceMode = 'editor' | 'plot' | 'timeline';
 
 interface WorkspacePanelProps {
   projectId: string;
@@ -332,31 +332,6 @@ export function WorkspacePanel({
             relations={entityRelations}
             onEntitiesUpdated={handleEntitiesUpdated}
           />
-        )}
-
-        {activeMode === 'characters' && (
-          <div className="h-full flex flex-col items-center justify-center text-fg-muted gap-4">
-            <Users className="w-16 h-16 opacity-50" />
-            <h2 className="text-xl font-medium text-fg-default">
-              Карта персонажей
-            </h2>
-            <p className="text-center max-w-md">
-              Добавьте персонажей в базу знаний (вкладка Database слева), чтобы
-              увидеть их здесь.
-            </p>
-            {supabaseEntities.filter((e) => e.type === 'CHARACTER').length >
-              0 && (
-              <FlowCanvas
-                projectId={projectId}
-                documents={[]}
-                entities={supabaseEntities.filter(
-                  (e) => e.type === 'CHARACTER'
-                )}
-                relations={entityRelations}
-                onEntitiesUpdated={handleEntitiesUpdated}
-              />
-            )}
-          </div>
         )}
 
         {activeMode === 'timeline' && (
