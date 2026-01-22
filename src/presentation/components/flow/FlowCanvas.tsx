@@ -598,6 +598,10 @@ function convertToCharacterMap(
 
   const nodes: Node[] = characters.map((char, index) => {
     const angle = (index / characters.length) * 2 * Math.PI;
+    const attrs = (char.attributes || {}) as Record<string, unknown>;
+    // Count relationships
+    const relationships = (attrs.relationships || []) as Array<unknown>;
+    
     return {
       id: char.id,
       type: 'character',
@@ -608,7 +612,11 @@ function convertToCharacterMap(
       data: {
         name: char.name,
         description: char.description,
-        role: (char.attributes as any)?.role,
+        role: attrs.role as string | undefined,
+        status: attrs.Состояние as string | undefined,
+        gender: attrs.Пол as string | undefined,
+        relationCount: relationships.length,
+        attributes: attrs,
       },
     };
   });

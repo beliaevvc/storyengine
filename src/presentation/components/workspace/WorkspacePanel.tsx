@@ -240,17 +240,7 @@ export function WorkspacePanel({
   
   // Extract relations from entities for FlowCanvas
   const entityRelations = useMemo(() => {
-    // Debug: log character entities with relationships
-    const characters = entities.filter(e => e.type === 'CHARACTER');
-    console.log('[Relations] Characters:', JSON.stringify(characters.map(e => ({
-      id: e.id,
-      name: e.name,
-      relationships: (e.attributes as Record<string, unknown>)?.relationships,
-    })), null, 2));
-    
-    const relations = extractRelationsFromEntities(entities);
-    console.log('[Relations] Extracted:', JSON.stringify(relations, null, 2));
-    return relations;
+    return extractRelationsFromEntities(entities);
   }, [entities]);
 
   // Determine what to show in editor mode
