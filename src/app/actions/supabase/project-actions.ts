@@ -55,7 +55,8 @@ export async function getProjects(): Promise<{
           .eq('project_id', project.id),
         documentsTable
           .select('id', { count: 'exact', head: true })
-          .eq('project_id', project.id),
+          .eq('project_id', project.id)
+          .neq('type', 'FOLDER'), // Don't count folders as documents
       ]);
 
       return {
