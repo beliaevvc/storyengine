@@ -109,48 +109,51 @@ export function Toolbar({ editor, className }: ToolbarProps) {
   return (
     <div
       className={cn(
-        'h-10 bg-surface border-b border-border px-2 flex items-center gap-1',
+        'h-10 bg-surface border-b border-border px-4',
         className
       )}
     >
-      {/* History */}
-      <ToolbarButton
-        icon={Undo}
-        label="Отменить (⌘Z)"
-        onClick={() => editor.chain().focus().undo().run()}
-        disabled={!editor.can().undo()}
-      />
-      <ToolbarButton
-        icon={Redo}
-        label="Повторить (⌘⇧Z)"
-        onClick={() => editor.chain().focus().redo().run()}
-        disabled={!editor.can().redo()}
-      />
+      {/* Inner container aligned with editor content */}
+      <div className="h-full max-w-5xl mx-auto flex items-center gap-1">
+        {/* History */}
+        <ToolbarButton
+          icon={Undo}
+          label="Отменить (⌘Z)"
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().undo()}
+        />
+        <ToolbarButton
+          icon={Redo}
+          label="Повторить (⌘⇧Z)"
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().redo()}
+        />
 
-      {/* View Mode Toggle */}
-      <div className="flex items-center bg-[#282c34] rounded-lg border border-[#3a3f4b] overflow-hidden ml-2">
-        <button
-          onClick={() => handleModeSwitch('syntax')}
-          className={cn(
-            'px-3 py-1.5 text-xs transition-colors',
-            viewMode === 'syntax'
-              ? 'bg-[#3a3f4b] text-white'
-              : 'text-[#6e7681] hover:text-[#c9d1d9] hover:bg-[#21252b]'
-          )}
-        >
-          Синтаксис
-        </button>
-        <button
-          onClick={() => handleModeSwitch('clean')}
-          className={cn(
-            'px-3 py-1.5 text-xs transition-colors',
-            viewMode === 'clean'
-              ? 'bg-[#3a3f4b] text-white'
-              : 'text-[#6e7681] hover:text-[#c9d1d9] hover:bg-[#21252b]'
-          )}
-        >
-          Чистый
-        </button>
+        {/* View Mode Toggle */}
+        <div className="flex items-center bg-[#282c34] rounded-lg border border-[#3a3f4b] overflow-hidden ml-2">
+          <button
+            onClick={() => handleModeSwitch('syntax')}
+            className={cn(
+              'px-3 py-1.5 text-xs transition-colors',
+              viewMode === 'syntax'
+                ? 'bg-[#3a3f4b] text-white'
+                : 'text-[#6e7681] hover:text-[#c9d1d9] hover:bg-[#21252b]'
+            )}
+          >
+            Синтаксис
+          </button>
+          <button
+            onClick={() => handleModeSwitch('clean')}
+            className={cn(
+              'px-3 py-1.5 text-xs transition-colors',
+              viewMode === 'clean'
+                ? 'bg-[#3a3f4b] text-white'
+                : 'text-[#6e7681] hover:text-[#c9d1d9] hover:bg-[#21252b]'
+            )}
+          >
+            Чистый
+          </button>
+        </div>
       </div>
     </div>
   );
