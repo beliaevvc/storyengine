@@ -22,6 +22,7 @@ export async function getProjects(): Promise<{
   data: ProjectWithCounts[] | null;
   error: string | null;
 }> {
+  // Create single client for all operations
   const supabase = await createClient();
 
   const {
@@ -32,7 +33,8 @@ export async function getProjects(): Promise<{
     return { data: null, error: 'Not authenticated' };
   }
 
-  const projectsTable = await getProjectsTable();
+  // Reuse the same client for all table accesses
+  const projectsTable = await getProjectsTable(supabase);
   const { data: projects, error } = await projectsTable
     .select('*')
     .eq('user_id', user.id)
@@ -42,10 +44,11 @@ export async function getProjects(): Promise<{
     return { data: null, error: error.message };
   }
 
-  const entitiesTable = await getEntitiesTable();
-  const documentsTable = await getDocumentsTable();
+  // Reuse same client for counts
+  const entitiesTable = await getEntitiesTable(supabase);
+  const documentsTable = await getDocumentsTable(supabase);
 
-  // Get counts for each project
+  // Get counts for each project in parallel
   const projectsWithCounts = await Promise.all(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (projects as any[]).map(async (project: any) => {
@@ -180,6 +183,7 @@ export async function deleteProject(
 export async function duplicateProject(
   projectId: string
 ): Promise<{ data: Project | null; error: string | null }> {
+  // Create single client for all operations
   const supabase = await createClient();
 
   const {
@@ -190,10 +194,11 @@ export async function duplicateProject(
     return { data: null, error: 'Not authenticated' };
   }
 
-  const projectsTable = await getProjectsTable();
-  const entitiesTable = await getEntitiesTable();
-  const documentsTable = await getDocumentsTable();
-  const relationsTable = await getEntityRelationsTable();
+  // Reuse same client for all table accesses
+  const projectsTable = await getProjectsTable(supabase);
+  const entitiesTable = await getEntitiesTable(supabase);
+  const documentsTable = await getDocumentsTable(supabase);
+  const relationsTable = await getEntityRelationsTable(supabase);
 
   // Get original project
   const { data: original, error: fetchError } = await projectsTable
@@ -220,8 +225,8 @@ export async function duplicateProject(
     return { data: null, error: createError?.message || 'Failed to create project' };
   }
 
-  // Copy entity type definitions
-  const entityTypesTable = await getEntityTypeDefinitionsTable();
+  // Copy entity type definitions (reuse client)
+  const entityTypesTable = await getEntityTypeDefinitionsTable(supabase);
   const { data: entityTypes } = await entityTypesTable
     .select('*')
     .eq('project_id', projectId);
