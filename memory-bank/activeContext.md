@@ -7,18 +7,18 @@
 
 | Задача | Описание | Статус |
 |--------|----------|--------|
-| BLOCK-001 | Улучшение UX семантических блоков (D&D, смена типа, убран плюсик) | ✅ COMPLETE |
+| UI-002 | Улучшения UX интерфейса (фильтры, вкладки, проекты, блоки) | ✅ COMPLETE + Reflection |
 
 ## Последние завершённые задачи
 
 | Задача | Описание | Архив |
 |--------|----------|-------|
+| UI-002 | Улучшения UX интерфейса | `reflection/reflection-UI-002.md` ✅ |
+| BLOCK-001 | Улучшение UX семантических блоков (D&D, смена типа) | ✅ COMPLETE |
 | PROFILE-001 | Страница профиля сущности (3-колоночный layout) | ✅ COMPLETE |
 | SCHEMA-001 | Схема Мира (Project Schema Editor) | ✅ COMPLETE |
 | MARKUP-001 | Система ручной разметки блоков | `archive/archive-MARKUP-001.md` ✅ |
 | EDITOR-001 | Улучшения блочной архитектуры | `archive/archive-EDITOR-001.md` ✅ |
-| VIEW-001 | Режим "Чистый текст" | (pending archive) |
-| SCENE-003 | Scene-Centric Architecture | (pending archive) |
 
 ## Recent Completions
 
