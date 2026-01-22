@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { User, Users } from 'lucide-react';
+import { User, Users, Heart, Skull } from 'lucide-react';
 
 export interface CharacterNodeData extends Record<string, unknown> {
   name: string;
@@ -14,13 +14,19 @@ export interface CharacterNodeData extends Record<string, unknown> {
 }
 
 // Skip these keys when displaying attributes
-const SKIP_KEYS = ['relationships', 'role', 'inventory'];
+const SKIP_KEYS = ['relationships', 'role', 'inventory', 'Состояние', 'Пол'];
 
 function CharacterNodeComponent({ data: rawData, selected }: NodeProps) {
   const data = rawData as CharacterNodeData;
   const attrs = data.attributes || {};
   
-  // Get displayable attributes (skip internal ones)
+  // Get status for icon
+  const status = attrs['Состояние'] as string | undefined;
+  const gender = attrs['Пол'] as string | undefined;
+  const isAlive = status === 'Жив';
+  const isDead = status === 'Мертв';
+  
+  // Get displayable attributes (skip internal ones and status/gender which are shown separately)
   const displayAttrs = Object.entries(attrs)
     .filter(([key, value]) => {
       // Skip internal/service fields
@@ -32,13 +38,14 @@ function CharacterNodeComponent({ data: rawData, selected }: NodeProps) {
       if (typeof value === 'object' && !Array.isArray(value)) return false;
       return true;
     })
-    .slice(0, 4); // Limit to 4 attributes
+    .slice(0, 3); // Limit to 3 text attributes
   
   return (
     <div
       className={`
         w-52 bg-[#22272e] border rounded-lg overflow-hidden transition-all
         ${selected ? 'border-blue-500 shadow-lg shadow-blue-500/20' : 'border-[#444c56]'}
+        ${isDead ? 'opacity-70' : ''}
       `}
     >
       <Handle
@@ -64,30 +71,40 @@ function CharacterNodeComponent({ data: rawData, selected }: NodeProps) {
           <h4 className="text-sm font-medium text-[#adbac7] truncate">
             {data.name}
           </h4>
-          {/* Relation count */}
-          {data.relationCount !== undefined && data.relationCount > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs text-[#768390]">
-              <Users className="w-3 h-3" />
-              {data.relationCount} связей
-            </span>
-          )}
+          {/* Status badges row */}
+          <div className="flex items-center gap-1.5 mt-0.5">
+            {status && (
+              <span className={`inline-flex items-center gap-0.5 text-[10px] ${isDead ? 'text-red-400' : 'text-emerald-400'}`}>
+                {isDead ? <Skull className="w-3 h-3" /> : <Heart className="w-3 h-3" />}
+                {status}
+              </span>
+            )}
+            {gender && (
+              <span className="text-[10px] text-[#768390]">• {gender}</span>
+            )}
+            {data.relationCount !== undefined && data.relationCount > 0 && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] text-[#768390]">
+                • <Users className="w-3 h-3" /> {data.relationCount}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Attributes */}
+      {/* Text Attributes */}
       {displayAttrs.length > 0 && (
-        <div className="px-3 py-2 space-y-1 border-t border-[#373e47]">
+        <div className="px-3 py-2 space-y-1.5 border-t border-[#373e47]">
           {displayAttrs.map(([key, value]) => (
-            <div key={key} className="flex text-[10px]">
-              <span className="text-[#768390] mr-1.5">{key}:</span>
-              <span className="text-[#adbac7] truncate flex-1">
+            <div key={key} className="text-[10px]">
+              <span className="text-[#768390]">{key}:</span>
+              <p className="text-[#adbac7] line-clamp-2 mt-0.5">
                 {typeof value === 'string' 
                   ? value 
                   : Array.isArray(value) 
                     ? value.join(', ') 
                     : String(value)
                 }
-              </span>
+              </p>
             </div>
           ))}
         </div>
