@@ -10,11 +10,14 @@ export function EntityMentionComponent({ node }: NodeViewProps) {
   const viewMode = useEditorStore((s) => s.viewMode);
   const isCleanMode = viewMode === 'clean';
 
+  // Ensure label is a string to prevent React error #130
+  const safeLabel = typeof label === 'string' ? label : String(label || '');
+
   // Clean mode: just plain text, no styling
   if (isCleanMode) {
     return (
       <NodeViewWrapper as="span" className="inline">
-        {label}
+        {safeLabel}
       </NodeViewWrapper>
     );
   }
@@ -37,9 +40,9 @@ export function EntityMentionComponent({ node }: NodeViewProps) {
       "
       data-entity-id={id}
       data-entity-type={type}
-      title={type}
+      title={typeof type === 'string' ? type : ''}
     >
-      {label}
+      {safeLabel}
     </NodeViewWrapper>
   );
 }

@@ -87,16 +87,23 @@ interface Speaker {
 export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttributes }: NodeViewProps) {
   const { 
     blockType = 'description',
-    speakers = [],
+    speakers: rawSpeakers = [],
     isNew = false,
   } = node.attrs as { 
     blockType: SemanticBlockType; 
-    speakers: Speaker[];
+    speakers: Speaker[] | unknown;
     isNew?: boolean;
   };
 
+  // Ensure speakers is always an array of valid objects
+  const speakers: Speaker[] = Array.isArray(rawSpeakers) 
+    ? rawSpeakers.filter((s): s is Speaker => 
+        s && typeof s === 'object' && 'id' in s && 'name' in s && typeof s.name === 'string'
+      )
+    : [];
+
   const config = BLOCK_TYPE_CONFIG[blockType] || BLOCK_TYPE_CONFIG.description;
-  console.log('[SemanticBlockView] Rendering block:', blockType);
+  console.log('[SemanticBlockView] Rendering block:', blockType, 'speakers:', speakers);
   const viewMode = useEditorStore((s) => s.viewMode);
   const isCleanMode = viewMode === 'clean';
 
