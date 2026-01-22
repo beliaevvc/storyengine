@@ -3,7 +3,7 @@
 import { useCallback, useState, useMemo, useRef, useEffect } from 'react';
 import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
-import { MessageCircle, Mountain, Zap, Brain, X, GripVertical, FileText, Film } from 'lucide-react';
+import { MessageCircle, Mountain, Zap, Brain, X, GripVertical, FileText, Film, Plus } from 'lucide-react';
 import type { SemanticBlockType } from './SemanticBlock';
 import { useEntityStore } from '@/presentation/stores/useEntityStore';
 import { useEditorStore } from '@/presentation/stores/useEditorStore';
@@ -250,6 +250,26 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
       .run();
   }, [editor, getPos, node]);
 
+  // Add new block after this one
+  const handleAddBlockAfter = useCallback(() => {
+    if (!editor || typeof getPos !== 'function') return;
+    
+    const pos = getPos();
+    if (pos === undefined) return;
+    const endPos = pos + node.nodeSize;
+    
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(endPos, {
+        type: 'semanticBlock',
+        attrs: { blockType: 'empty' },
+        content: [{ type: 'paragraph' }],
+      })
+      .setTextSelection(endPos + 2)
+      .run();
+  }, [editor, getPos, node.nodeSize]);
+
   // Show speaker picker only for dialogue and thought
   const showSpeakerField = blockType === 'dialogue' || blockType === 'thought';
   const isEmptyBlock = blockType === 'empty';
@@ -454,6 +474,19 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
         <NodeViewContent className="prose prose-invert prose-sm max-w-none [&>*]:my-0.5" />
       </div>
 
+      {/* Add Block Button - appears between blocks on hover */}
+      <div
+        className="flex items-center justify-center h-4 opacity-0 group-hover/semantic:opacity-100 transition-opacity"
+        contentEditable={false}
+      >
+        <button
+          onClick={handleAddBlockAfter}
+          className="flex items-center gap-1 px-2 py-0.5 text-xs text-fg-muted hover:text-fg hover:bg-overlay rounded transition-colors"
+          title="Добавить блок"
+        >
+          <Plus className="w-3 h-3" />
+        </button>
+      </div>
     </NodeViewWrapper>
   );
 }
