@@ -81,16 +81,8 @@ export function WorkspacePanel({
     return documents.find((d) => d.id === activeTab.id) ?? null;
   }, [activeTab, documents]);
 
-  // When currentDocument changes and no tab is open, open it as a tab
-  useEffect(() => {
-    if (currentDocument && openTabs.length === 0) {
-      openTab({
-        id: currentDocument.id,
-        type: 'document',
-        title: currentDocument.title,
-      });
-    }
-  }, [currentDocument, openTabs.length, openTab]);
+  // Note: Document tabs are opened via FilesTab.handleSelectDocument when user clicks
+  // No auto-open needed here - user explicitly chooses what to open
 
   // Clear timeout on unmount and reset on document change
   useEffect(() => {
