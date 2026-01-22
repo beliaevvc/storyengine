@@ -589,29 +589,41 @@ function EntitySelector({
     }
   }, [typeOptions.length, selectedOption]);
 
-  // Get target entity type restrictions for selected relationship type
-  const getTargetRestrictions = (): string[] | null => {
-    if (!selectedOption) return null;
-    const type = relationshipTypes.find(t => t.id === selectedOption.typeId);
-    if (!type?.targetEntityTypes || type.targetEntityTypes.length === 0) return null;
-    return type.targetEntityTypes as string[];
-  };
-
-  const targetRestrictions = getTargetRestrictions();
-
+  // Filter entities: exclude already added and by search only (no type filtering)
   const filteredEntities = entities.filter((e) => {
     // Exclude already added
     if (excludeIds.includes(e.id)) return false;
     // Filter by search
     if (!e.name.toLowerCase().includes(search.toLowerCase())) return false;
-    // Filter by target entity type if restrictions exist (case-insensitive)
-    if (targetRestrictions) {
-      const normalizedType = e.type.toUpperCase();
-      const matches = targetRestrictions.some((t: string) => t.toUpperCase() === normalizedType);
-      if (!matches) return false;
-    }
     return true;
   });
+
+  // Get applicable type options based on selected entity type
+  const getApplicableTypeOptions = (): TypeOption[] => {
+    if (!selectedEntityId) return typeOptions;
+    const selectedEntity = entities.find(e => e.id === selectedEntityId);
+    if (!selectedEntity) return typeOptions;
+    
+    const selectedEntityType = selectedEntity.type.toUpperCase();
+    
+    return typeOptions.filter(option => {
+      const type = relationshipTypes.find(t => t.id === option.typeId);
+      if (!type?.targetEntityTypes || type.targetEntityTypes.length === 0) return true;
+      return type.targetEntityTypes.some((t: string) => t.toUpperCase() === selectedEntityType);
+    });
+  };
+
+  const applicableTypeOptions = getApplicableTypeOptions();
+
+  // Reset selected option if it's not applicable for new entity
+  useEffect(() => {
+    if (selectedEntityId && selectedOption) {
+      const isApplicable = applicableTypeOptions.some(o => o.id === selectedOption.id);
+      if (!isApplicable && applicableTypeOptions.length > 0) {
+        setSelectedOption(applicableTypeOptions[0]);
+      }
+    }
+  }, [selectedEntityId]);
 
   if (entities.length === 0) {
     return (
@@ -651,33 +663,6 @@ function EntitySelector({
 
   return (
     <div className="space-y-3">
-      {/* Type selection FIRST */}
-      <div className="space-y-2">
-        <label className="text-xs text-fg-muted block">Тип связи:</label>
-        <div className="flex flex-wrap gap-1">
-          {typeOptions.map((option) => {
-            const isSelected = selectedOption?.id === option.id;
-            
-            return (
-              <button
-                key={option.id}
-                onClick={() => {
-                  setSelectedOption(option);
-                  setSelectedEntityId(null); // Reset entity when type changes
-                }}
-                className={`px-2 py-1 text-xs rounded transition-colors ${
-                  isSelected
-                    ? 'bg-accent-primary text-white'
-                    : 'bg-overlay text-fg-secondary hover:bg-surface-hover'
-                }`}
-              >
-                {getRelationshipDescription(option)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Search */}
       <Input
         value={search}
@@ -708,10 +693,40 @@ function EntitySelector({
         
         {filteredEntities.length === 0 && (
           <p className="text-sm text-fg-muted text-center py-4">
-            {search ? 'Ничего не найдено' : 'Нет подходящих сущностей'}
+            {search ? 'Ничего не найдено' : 'Нет доступных сущностей'}
           </p>
         )}
       </div>
+
+      {/* Type selection - only after entity is selected */}
+      {selectedEntityId && (
+        <div className="space-y-2">
+          <label className="text-xs text-fg-muted block">Тип связи:</label>
+          <div className="flex flex-wrap gap-1">
+            {applicableTypeOptions.map((option) => {
+              const isSelected = selectedOption?.id === option.id;
+              
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => setSelectedOption(option)}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    isSelected
+                      ? 'bg-accent-primary text-white'
+                      : 'bg-overlay text-fg-secondary hover:bg-surface-hover'
+                  }`}
+                >
+                  {getRelationshipDescription(option)}
+                </button>
+              );
+            })}
+          </div>
+          
+          {applicableTypeOptions.length === 0 && (
+            <p className="text-xs text-fg-muted">Нет подходящих типов связей для этой сущности</p>
+          )}
+        </div>
+      )}
 
       {/* Preview with names */}
       {selectedEntityId && selectedOption && (
@@ -736,12 +751,11 @@ function EntitySelector({
       )}
       
       {/* Add button */}
-      {selectedEntityId && (
+      {selectedEntityId && selectedOption && (
         <Button 
           onClick={handleAdd} 
           size="sm" 
           className="w-full"
-          disabled={!selectedOption}
         >
           <Plus className="w-4 h-4 mr-1" />
           Добавить связь
