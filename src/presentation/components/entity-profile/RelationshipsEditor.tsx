@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import Link from 'next/link';
 import { Users, Plus, Settings, Trash2, Check, Loader2, ArrowRight } from 'lucide-react';
 import { Avatar } from '@/presentation/components/ui/avatar';
 import { Button } from '@/presentation/components/ui/button';
@@ -9,9 +8,9 @@ import { Input } from '@/presentation/components/ui/input';
 import { Modal } from '@/presentation/components/ui/modal';
 import { updateEntityRelationships } from '@/app/actions/supabase/entity-actions';
 import { getRelationshipTypesAction } from '@/app/actions/supabase/relationship-type-actions';
+import { useUIStore } from '@/presentation/stores/useUIStore';
 import type { Entity, EntityType } from '@/core/entities/entity';
 import type { RelationshipType } from '@/core/types/relationship-types';
-import { useRouter } from 'next/navigation';
 
 // ============================================================================
 // Types
@@ -82,7 +81,7 @@ export function RelationshipsEditor({
   attributes,
   onUpdate,
 }: RelationshipsEditorProps) {
-  const router = useRouter();
+  const openEntityProfile = useUIStore((state) => state.actions.openEntityProfile);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -166,14 +165,12 @@ export function RelationshipsEditor({
       previousRelationshipsRef.current = [...editRelationships];
       onUpdate?.();
       setIsModalOpen(false);
-      // Background refresh for other data
-      router.refresh();
     } else {
       console.error('Failed to save relationships:', result.error);
     }
     
     setIsSaving(false);
-  }, [entityId, projectId, editRelationships, onUpdate, router]);
+  }, [entityId, projectId, editRelationships, onUpdate]);
 
   const handleAddRelationship = useCallback((
     targetEntityId: string, 
@@ -292,10 +289,10 @@ export function RelationshipsEditor({
             };
 
             return (
-              <Link
+              <button
                 key={rel.entityId}
-                href={`/projects/${projectId}/entity/${rel.entityId}`}
-                className="flex items-center gap-3 p-2 rounded-md hover:bg-overlay transition-colors group"
+                onClick={() => openEntityProfile(rel.entityId)}
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-overlay transition-colors group w-full text-left"
               >
                 <Avatar
                   alt={relatedEntity.name}
@@ -311,7 +308,7 @@ export function RelationshipsEditor({
                     {rel.description && ` — ${rel.description}`}
                   </div>
                 </div>
-              </Link>
+              </button>
             );
           })}
         </div>

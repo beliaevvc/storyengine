@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import type { Entity } from '@/core/entities/entity';
 import { cn } from '@/lib/utils';
 import { DynamicIcon } from '@/presentation/components/ui/icon-picker';
 import { getEntityTypeColor, getEntityTypeIcon, getEntityTypeLabel } from '@/presentation/components/entities/EntityTypeIcon';
+import { useUIStore } from '@/presentation/stores/useUIStore';
 
 interface EntityListItemProps {
   entity: Entity;
@@ -23,7 +23,7 @@ export function EntityListItem({
   onRename,
   onDelete,
 }: EntityListItemProps) {
-  const router = useRouter();
+  const openEntityProfile = useUIStore((state) => state.actions.openEntityProfile);
   
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -66,8 +66,8 @@ export function EntityListItem({
     // Select entity in sidebar
     onSelect();
     
-    // Open entity profile page directly (no tab)
-    router.push(`/projects/${entity.projectId}/entity/${entity.id}`);
+    // Open entity profile modal
+    openEntityProfile(entity.id);
   };
 
   const handleRename = () => {

@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { Users } from 'lucide-react';
 import { Avatar } from '@/presentation/components/ui/avatar';
+import { useUIStore } from '@/presentation/stores/useUIStore';
 import type { Entity } from '@/core/entities/entity';
 
 interface Relationship {
@@ -24,6 +24,8 @@ export function RelationshipsList({
   entities,
   projectId,
 }: RelationshipsListProps) {
+  const openEntityProfile = useUIStore((state) => state.actions.openEntityProfile);
+
   if (relationships.length === 0) {
     return (
       <p className="text-sm text-fg-muted italic">Нет связей</p>
@@ -43,10 +45,10 @@ export function RelationshipsList({
         }
 
         return (
-          <Link
+          <button
             key={`${rel.entityId}-${index}`}
-            href={`/projects/${projectId}/entity/${rel.entityId}`}
-            className="flex items-center gap-3 p-2 rounded-md hover:bg-overlay transition-colors group"
+            onClick={() => openEntityProfile(rel.entityId)}
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-overlay transition-colors group w-full text-left"
           >
             <Avatar
               alt={relatedEntity.name}
@@ -62,7 +64,7 @@ export function RelationshipsList({
                 {rel.description && ` — ${rel.description}`}
               </div>
             </div>
-          </Link>
+          </button>
         );
       })}
     </div>

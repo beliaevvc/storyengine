@@ -5,6 +5,7 @@ import { AppLayout } from '@/presentation/components/layout';
 import { ProjectExplorer } from '@/presentation/components/explorer';
 import { WorkspacePanel } from '@/presentation/components/workspace';
 import { ContextInspector } from '@/presentation/components/inspector';
+import { EntityProfileModal } from '@/presentation/components/entity-profile';
 import { useProjectStore, useDocumentStore, useUIStore, selectWorkspaceMode } from '@/presentation/stores';
 import { useProjectLoader, useEntitiesLoader, useDocumentsLoader } from '@/presentation/hooks';
 
@@ -42,27 +43,32 @@ export default function ProjectPage({
   const isLoading = projectLoading || entitiesLoading || documentsLoading;
 
   return (
-    <AppLayout
-      projectId={params.projectId}
-      projectTitle={projectTitle}
-      activeMode={activeMode}
-      onModeChange={setWorkspaceMode}
-      leftPanel={<ProjectExplorer />}
-      centerPanel={
-        isLoading ? (
-          <div className="h-full flex items-center justify-center text-fg-muted">
-            Загрузка...
-          </div>
-        ) : (
-          <WorkspacePanel
-            projectId={params.projectId}
-            projectTitle={projectTitle}
-            currentDocument={currentDocument || null}
-            activeMode={activeMode}
-          />
-        )
-      }
-      rightPanel={<ContextInspector />}
-    />
+    <>
+      <AppLayout
+        projectId={params.projectId}
+        projectTitle={projectTitle}
+        activeMode={activeMode}
+        onModeChange={setWorkspaceMode}
+        leftPanel={<ProjectExplorer />}
+        centerPanel={
+          isLoading ? (
+            <div className="h-full flex items-center justify-center text-fg-muted">
+              Загрузка...
+            </div>
+          ) : (
+            <WorkspacePanel
+              projectId={params.projectId}
+              projectTitle={projectTitle}
+              currentDocument={currentDocument || null}
+              activeMode={activeMode}
+            />
+          )
+        }
+        rightPanel={<ContextInspector />}
+      />
+      
+      {/* Entity Profile Modal */}
+      <EntityProfileModal projectId={params.projectId} />
+    </>
   );
 }

@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Edit, Trash2, Link, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { EntityTypeIcon, getEntityTypeLabel } from './EntityTypeIcon';
 import { Button } from '@/presentation/components/ui/button';
+import { useUIStore } from '@/presentation/stores/useUIStore';
 import type { Entity, EntityType, Json } from '@/types/supabase';
 
 interface EntityCardProps {
@@ -25,7 +25,7 @@ export function EntityCard({
   compact = false,
   showProfileLink = true,
 }: EntityCardProps) {
-  const router = useRouter();
+  const openEntityProfile = useUIStore((state) => state.actions.openEntityProfile);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
@@ -33,8 +33,7 @@ export function EntityCard({
   const hasAttributes = attributes && Object.keys(attributes).length > 0;
 
   const handleOpenProfile = () => {
-    const projectId = entity.project_id;
-    router.push(`/projects/${projectId}/entity/${entity.id}`);
+    openEntityProfile(entity.id);
   };
 
   if (compact) {

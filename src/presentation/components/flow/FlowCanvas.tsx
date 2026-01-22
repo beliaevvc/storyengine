@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useUIStore } from '@/presentation/stores/useUIStore';
 import {
   ReactFlow,
   Background,
@@ -231,7 +231,6 @@ function FlowCanvasInner({
   const [pendingEdit, setPendingEdit] = useState<PendingConnection | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { setViewport, getViewport } = useReactFlow();
-  const router = useRouter();
   
   // Refs to access current state in cleanup function
   const nodesRef = useRef<Node[]>([]);
@@ -478,15 +477,16 @@ function FlowCanvasInner({
     [onNodeClick]
   );
 
-  // Handle double click on node - open entity page
+  // Handle double click on node - open entity profile modal
+  const openEntityProfile = useUIStore((state) => state.actions.openEntityProfile);
   const handleNodeDoubleClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
-      // Only navigate for entity nodes (character, location, item)
+      // Only open profile for entity nodes (character, location, item)
       if (node.type === 'character' || node.type === 'location' || node.type === 'item') {
-        router.push(`/projects/${projectId}/entity/${node.id}`);
+        openEntityProfile(node.id);
       }
     },
-    [router, projectId]
+    [openEntityProfile]
   );
 
   // Get initial viewport from storage or use default

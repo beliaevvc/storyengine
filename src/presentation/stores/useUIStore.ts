@@ -19,6 +19,8 @@ interface UIState {
   selectedEntityId: string | null;
   isSidebarCollapsed: boolean;
   workspaceMode: WorkspaceMode;
+  // Entity Profile Modal
+  entityProfileId: string | null;
 
   actions: {
     setPanelSize: (panel: PanelId, size: number) => void;
@@ -30,6 +32,9 @@ interface UIState {
     selectEntity: (id: string | null) => void;
     toggleSidebar: () => void;
     setWorkspaceMode: (mode: WorkspaceMode) => void;
+    // Entity Profile Modal
+    openEntityProfile: (entityId: string) => void;
+    closeEntityProfile: () => void;
     reset: () => void;
   };
 }
@@ -42,6 +47,7 @@ const initialState = {
   selectedEntityId: null,
   isSidebarCollapsed: false,
   workspaceMode: 'editor' as WorkspaceMode,
+  entityProfileId: null as string | null,
 };
 
 export const useUIStore = create<UIState>()(
@@ -110,6 +116,12 @@ export const useUIStore = create<UIState>()(
           setWorkspaceMode: (mode) =>
             set({ workspaceMode: mode }, false, 'setWorkspaceMode'),
 
+          openEntityProfile: (entityId) =>
+            set({ entityProfileId: entityId }, false, 'openEntityProfile'),
+
+          closeEntityProfile: () =>
+            set({ entityProfileId: null }, false, 'closeEntityProfile'),
+
           reset: () =>
             set(initialState, false, 'resetUI'),
         },
@@ -122,6 +134,7 @@ export const useUIStore = create<UIState>()(
           activeTab: state.activeTab,
           isSidebarCollapsed: state.isSidebarCollapsed,
           workspaceMode: state.workspaceMode,
+          // entityProfileId не сохраняем - модал должен закрываться при reload
         }),
       }
     ),
@@ -141,3 +154,4 @@ export const selectIsModalOpen = (modal: ModalId) => (state: UIState) =>
 export const selectSelectedEntityId = (state: UIState) => state.selectedEntityId;
 export const selectIsSidebarCollapsed = (state: UIState) => state.isSidebarCollapsed;
 export const selectWorkspaceMode = (state: UIState) => state.workspaceMode;
+export const selectEntityProfileId = (state: UIState) => state.entityProfileId;

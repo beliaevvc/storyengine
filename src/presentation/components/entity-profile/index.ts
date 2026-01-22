@@ -2,6 +2,7 @@ export { EntityProfileLayout } from './EntityProfileLayout';
 export { EntityPassport } from './EntityPassport';
 export { EntityContent } from './EntityContent';
 export { EntityTimeline } from './EntityTimeline';
+export { EntityProfileModal } from './EntityProfileModal';
 export { AttributesList } from './AttributesList';
 export { AttributesEditor } from './AttributesEditor';
 export { RelationshipsList } from './RelationshipsList';
