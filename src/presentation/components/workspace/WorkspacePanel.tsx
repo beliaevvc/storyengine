@@ -221,14 +221,14 @@ export function WorkspacePanel({
   const entityRelations = useMemo(() => {
     // Debug: log character entities with relationships
     const characters = entities.filter(e => e.type === 'CHARACTER');
-    console.log('[WorkspacePanel] Characters:', characters.map(e => ({
+    console.log('[Relations] Characters:', JSON.stringify(characters.map(e => ({
       id: e.id,
       name: e.name,
       relationships: (e.attributes as Record<string, unknown>)?.relationships,
-    })));
+    })), null, 2));
     
     const relations = extractRelationsFromEntities(entities);
-    console.log('[WorkspacePanel] Extracted relations:', relations);
+    console.log('[Relations] Extracted:', JSON.stringify(relations, null, 2));
     return relations;
   }, [entities]);
 
