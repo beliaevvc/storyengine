@@ -27,7 +27,7 @@ const BLOCK_TYPE_CONFIG: Record<SemanticBlockType, BlockTypeConfig> = {
     label: '',
     labelFull: 'Блок',
     bgColor: '',
-    borderColor: 'border-[#3a3f4b]',
+    borderColor: '#3a3f4b',
     textColor: 'text-[#6e7681]',
   },
   unmarked: {
@@ -35,7 +35,7 @@ const BLOCK_TYPE_CONFIG: Record<SemanticBlockType, BlockTypeConfig> = {
     label: '',
     labelFull: 'Неразмеченный',
     bgColor: '',
-    borderColor: 'border-[#5a6c7d]',
+    borderColor: '#5a6c7d',
     textColor: 'text-[#8b949e]',
   },
   dialogue: {
@@ -43,32 +43,32 @@ const BLOCK_TYPE_CONFIG: Record<SemanticBlockType, BlockTypeConfig> = {
     label: 'DLG',
     labelFull: 'Диалог',
     bgColor: '',
-    borderColor: 'border-[#444c56]',
-    textColor: 'text-[#8b949e]',
+    borderColor: '#58a6ff', // blue
+    textColor: 'text-[#58a6ff]',
   },
   description: {
     icon: Mountain,
     label: 'DSC',
     labelFull: 'Описание',
     bgColor: '',
-    borderColor: 'border-[#444c56]',
-    textColor: 'text-[#8b949e]',
+    borderColor: '#3fb950', // green
+    textColor: 'text-[#3fb950]',
   },
   action: {
     icon: Zap,
     label: 'ACT',
     labelFull: 'Действие',
     bgColor: '',
-    borderColor: 'border-[#444c56]',
-    textColor: 'text-[#8b949e]',
+    borderColor: '#d29922', // orange
+    textColor: 'text-[#d29922]',
   },
   thought: {
     icon: Brain,
     label: 'THT',
     labelFull: 'Мысли',
     bgColor: '',
-    borderColor: 'border-[#444c56]',
-    textColor: 'text-[#8b949e]',
+    borderColor: '#a371f7', // purple
+    textColor: 'text-[#a371f7]',
   },
 };
 
@@ -271,14 +271,23 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
     );
   }
 
-  // Syntax mode: Clean neutral style - compact with always visible border
+  // Syntax mode: Clean style with colored left border
+  const accentColor = config.borderColor;
+  const isTyped = !isEmptyBlock && !isUnmarkedBlock;
+
   return (
     <NodeViewWrapper
-      className={`semantic-block relative mt-1 mb-3 group/semantic rounded border transition-all ${
+      className={`semantic-block relative mt-1 mb-3 group/semantic rounded-r border-r border-t border-b transition-all ${
         isNew 
           ? 'border-purple-500/50 bg-purple-500/5 animate-pulse' 
           : 'border-[#3a3f4b] hover:border-[#444c56]'
       }`}
+      style={{
+        borderLeftWidth: isTyped ? '3px' : '1px',
+        borderLeftStyle: 'solid',
+        borderLeftColor: isNew ? 'rgb(168 85 247 / 0.5)' : accentColor,
+        borderRadius: '0 4px 4px 0',
+      }}
       data-block-type={blockType}
       data-is-new={isNew}
       onMouseEnter={() => setIsHovered(true)}
