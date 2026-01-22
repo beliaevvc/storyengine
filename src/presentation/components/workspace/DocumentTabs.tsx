@@ -5,12 +5,14 @@ import { X, FileText, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   useWorkspaceStore,
+  useDocumentStore,
   selectOpenTabs,
   selectActiveTabId,
   type Tab,
 } from '@/presentation/stores';
 import { DynamicIcon } from '@/presentation/components/ui/icon-picker';
 import { getEntityTypeIcon, getEntityTypeColor } from '@/presentation/components/entities/EntityTypeIcon';
+import { updateDocument } from '@/app/actions/supabase/document-actions';
 
 // ============================================================================
 // Tab Item Component
@@ -22,6 +24,7 @@ interface TabItemProps {
   onActivate: () => void;
   onClose: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
+  onRename: (newTitle: string) => void;
 }
 
 function TabItem({
@@ -30,7 +33,26 @@ function TabItem({
   onActivate,
   onClose,
   onContextMenu,
+  onRename,
 }: TabItemProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(tab.title);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  // Sync edit value when tab title changes externally
+  useEffect(() => {
+    if (!isEditing) {
+      setEditValue(tab.title);
+    }
+  }, [tab.title, isEditing]);
+
   const handleClose = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -48,6 +70,30 @@ function TabItem({
     },
     [onClose]
   );
+
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
+  }, []);
+
+  const handleRenameSubmit = useCallback(() => {
+    const trimmed = editValue.trim();
+    if (trimmed && trimmed !== tab.title) {
+      onRename(trimmed);
+    } else {
+      setEditValue(tab.title);
+    }
+    setIsEditing(false);
+  }, [editValue, tab.title, onRename]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleRenameSubmit();
+    } else if (e.key === 'Escape') {
+      setEditValue(tab.title);
+      setIsEditing(false);
+    }
+  }, [handleRenameSubmit, tab.title]);
 
   // Determine icon
   let iconName = 'FileText';
@@ -72,6 +118,7 @@ function TabItem({
           : 'bg-surface border-b border-b-transparent'
       )}
       onClick={onActivate}
+      onDoubleClick={handleDoubleClick}
       onMouseDown={handleMiddleClick}
       onContextMenu={onContextMenu}
     >
@@ -81,16 +128,29 @@ function TabItem({
         <FileText className="w-4 h-4 flex-shrink-0 text-fg-muted" />
       )}
 
-      <span
-        className={cn(
-          'text-sm truncate max-w-[120px]',
-          isActive ? 'text-fg' : 'text-fg-muted'
-        )}
-      >
-        {tab.title}
-      </span>
+      {isEditing ? (
+        <input
+          ref={inputRef}
+          type="text"
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleRenameSubmit}
+          onKeyDown={handleKeyDown}
+          className="text-sm bg-transparent border-b border-accent outline-none max-w-[120px] text-fg"
+          onClick={(e) => e.stopPropagation()}
+        />
+      ) : (
+        <span
+          className={cn(
+            'text-sm truncate max-w-[120px]',
+            isActive ? 'text-fg' : 'text-fg-muted'
+          )}
+        >
+          {tab.title}
+        </span>
+      )}
 
-      {tab.isDirty && (
+      {tab.isDirty && !isEditing && (
         <span className="w-2 h-2 rounded-full bg-accent flex-shrink-0" />
       )}
 
@@ -197,8 +257,9 @@ interface DocumentTabsProps {
 export function DocumentTabs({ className }: DocumentTabsProps) {
   const openTabs = useWorkspaceStore(selectOpenTabs);
   const activeTabId = useWorkspaceStore(selectActiveTabId);
-  const { setActiveTab, closeTab, closeOtherTabs, closeAllTabs } =
+  const { setActiveTab, closeTab, closeOtherTabs, closeAllTabs, updateTabTitle } =
     useWorkspaceStore((s) => s.actions);
+  const updateDocInStore = useDocumentStore((s) => s.actions.updateDocument);
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -213,6 +274,17 @@ export function DocumentTabs({ className }: DocumentTabsProps) {
     },
     []
   );
+
+  const handleRename = useCallback(async (tabId: string, newTitle: string) => {
+    // Update in database
+    const { data, error } = await updateDocument(tabId, { title: newTitle });
+    if (data && !error) {
+      // Update tab title
+      updateTabTitle(tabId, newTitle);
+      // Update document in store (for left panel sync)
+      updateDocInStore(tabId, { title: newTitle });
+    }
+  }, [updateTabTitle, updateDocInStore]);
 
   if (openTabs.length === 0) {
     return null;
@@ -234,6 +306,7 @@ export function DocumentTabs({ className }: DocumentTabsProps) {
           onActivate={() => setActiveTab(tab.id)}
           onClose={() => closeTab(tab.id)}
           onContextMenu={(e) => handleContextMenu(e, tab.id)}
+          onRename={(newTitle) => handleRename(tab.id, newTitle)}
         />
       ))}
 

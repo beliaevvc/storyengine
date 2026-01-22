@@ -3,7 +3,7 @@
 import { useState, useMemo, useTransition } from 'react';
 import { useParams } from 'next/navigation';
 import { FileTreeItem } from './FileTreeItem';
-import { useDocumentStore } from '@/presentation/stores';
+import { useDocumentStore, useWorkspaceStore } from '@/presentation/stores';
 import { createDocument, updateDocument, deleteDocument } from '@/app/actions/supabase/document-actions';
 import { createDefaultDocumentContent } from '@/presentation/utils/migrateDocument';
 import { createClient } from '@/lib/supabase/client';
@@ -100,11 +100,15 @@ export function FileTree({
     });
   };
 
+  const updateTabTitle = useWorkspaceStore((s) => s.actions.updateTabTitle);
+
   const handleRename = (docId: string, newTitle: string) => {
     startTransition(async () => {
       const { data, error } = await updateDocument(docId, { title: newTitle });
       if (data && !error) {
         updateDoc(docId, { title: newTitle });
+        // Sync tab title if document is open
+        updateTabTitle(docId, newTitle);
       }
     });
   };

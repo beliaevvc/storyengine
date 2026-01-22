@@ -206,30 +206,17 @@ export function WorkspacePanel({
 
     // No tabs open - show empty state
     if (openTabs.length === 0) {
-      if (documents.length === 0) {
-        return (
-          <div className="h-full flex flex-col items-center justify-center text-fg-muted gap-4">
-            <div className="text-6xl">📝</div>
-            <h2 className="text-xl font-medium text-fg-default">
-              Начните писать
+      return (
+        <div className="h-full flex flex-col items-center justify-center text-fg-muted gap-6">
+          <div className="text-6xl opacity-80">✨</div>
+          <div className="text-center">
+            <h2 className="text-xl font-medium text-fg mb-2">
+              Откройте документ и творите!
             </h2>
-            <p className="text-center max-w-md">
-              Создайте первый документ в панели слева, чтобы начать работу над
-              вашей историей.
+            <p className="text-sm max-w-sm">
+              Выберите документ в панели слева или создайте новый
             </p>
           </div>
-        );
-      }
-
-      return (
-        <div className="h-full flex flex-col items-center justify-center text-fg-muted gap-4">
-          <FileText className="w-16 h-16 opacity-50" />
-          <h2 className="text-xl font-medium text-fg-default">
-            Выберите документ
-          </h2>
-          <p className="text-center max-w-md">
-            Выберите документ или сущность в панели слева для редактирования.
-          </p>
         </div>
       );
     }
