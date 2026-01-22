@@ -36,6 +36,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -46,6 +47,27 @@ export function ProjectsList({ projects }: ProjectsListProps) {
       renameInputRef.current.select();
     }
   }, [renamingId]);
+
+  const handleOpenMenu = (e: React.MouseEvent, projectId: string) => {
+    if (openMenu === projectId) {
+      setOpenMenu(null);
+      setMenuPosition(null);
+      return;
+    }
+    
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    // Position menu to the left of the button, below it
+    setMenuPosition({
+      x: rect.right - 160, // menu width
+      y: rect.bottom + 4,
+    });
+    setOpenMenu(projectId);
+  };
+
+  const closeMenu = () => {
+    setOpenMenu(null);
+    setMenuPosition(null);
+  };
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +109,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
   const startRename = (projectId: string, currentTitle: string) => {
     setRenamingId(projectId);
     setRenameValue(currentTitle);
-    setOpenMenu(null);
+    closeMenu();
   };
 
   const handleRename = async () => {
@@ -232,66 +254,72 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                   Изменён {formatDate(project.updated_at)}
                 </span>
 
-                {/* Actions Menu */}
-                <div className="relative">
-                  <button
-                    onClick={() =>
-                      setOpenMenu(openMenu === project.id ? null : project.id)
-                    }
-                    className="p-1 rounded hover:bg-[#373e47] text-[#768390] hover:text-[#adbac7]"
-                  >
-                    {actionLoading === project.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <MoreHorizontal className="w-4 h-4" />
-                    )}
-                  </button>
-
-                  {openMenu === project.id && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-10"
-                        onClick={() => setOpenMenu(null)}
-                      />
-                      <div className="absolute right-0 top-full mt-1 bg-[#2d333b] border border-[#444c56] rounded-md shadow-lg z-20 py-1 min-w-[160px]">
-                        <button
-                          onClick={() => startRename(project.id, project.title)}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#adbac7] hover:bg-[#373e47]"
-                        >
-                          <Pencil className="w-4 h-4" />
-                          Переименовать
-                        </button>
-                        <Link
-                          href={`/projects/${project.id}/settings`}
-                          className="flex items-center gap-2 px-3 py-2 text-sm text-[#adbac7] hover:bg-[#373e47]"
-                          onClick={() => setOpenMenu(null)}
-                        >
-                          <Settings className="w-4 h-4" />
-                          Настройки
-                        </Link>
-                        <button
-                          onClick={() => handleDuplicate(project.id)}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#adbac7] hover:bg-[#373e47]"
-                        >
-                          <Copy className="w-4 h-4" />
-                          Дублировать
-                        </button>
-                        <div className="border-t border-[#444c56] my-1" />
-                        <button
-                          onClick={() => handleDelete(project.id)}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-[#373e47]"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Удалить
-                        </button>
-                      </div>
-                    </>
+                {/* Actions Menu Button */}
+                <button
+                  onClick={(e) => handleOpenMenu(e, project.id)}
+                  className="p-1 rounded hover:bg-[#373e47] text-[#768390] hover:text-[#adbac7]"
+                >
+                  {actionLoading === project.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <MoreHorizontal className="w-4 h-4" />
                   )}
-                </div>
+                </button>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {/* Fixed position context menu */}
+      {openMenu && menuPosition && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={closeMenu}
+          />
+          <div 
+            className="fixed bg-[#2d333b] border border-[#444c56] rounded-md shadow-lg z-50 py-1 min-w-[160px]"
+            style={{ 
+              left: menuPosition.x, 
+              top: menuPosition.y,
+            }}
+          >
+            <button
+              onClick={() => {
+                const project = projects.find(p => p.id === openMenu);
+                if (project) startRename(project.id, project.title);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#adbac7] hover:bg-[#373e47]"
+            >
+              <Pencil className="w-4 h-4" />
+              Переименовать
+            </button>
+            <Link
+              href={`/projects/${openMenu}/settings`}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-[#adbac7] hover:bg-[#373e47]"
+              onClick={closeMenu}
+            >
+              <Settings className="w-4 h-4" />
+              Настройки
+            </Link>
+            <button
+              onClick={() => handleDuplicate(openMenu)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#adbac7] hover:bg-[#373e47]"
+            >
+              <Copy className="w-4 h-4" />
+              Дублировать
+            </button>
+            <div className="border-t border-[#444c56] my-1" />
+            <button
+              onClick={() => handleDelete(openMenu)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-[#373e47]"
+            >
+              <Trash2 className="w-4 h-4" />
+              Удалить
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
