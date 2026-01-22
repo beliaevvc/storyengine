@@ -128,14 +128,17 @@ export function RelationshipsEditor({
   // Filter out current entity from selection (all entity types now)
   const availableEntities = allEntities.filter((e) => e.id !== entityId);
 
-  // Filter relationship types by source entity type
+  // Filter relationship types by source entity type (case-insensitive)
   const filteredRelationshipTypes = relationshipTypes.filter((type) => {
     // If no source restriction, allow
     if (!type.sourceEntityTypes || type.sourceEntityTypes.length === 0) {
       return true;
     }
-    // Check if current entity type is allowed as source
-    return type.sourceEntityTypes.includes(entityType as EntityType);
+    // Check if current entity type is allowed as source (case-insensitive)
+    const normalizedEntityType = entityType.toUpperCase();
+    return type.sourceEntityTypes.some(
+      (t: string) => t.toUpperCase() === normalizedEntityType
+    );
   });
   
   // Debug: log relationship types
@@ -609,8 +612,12 @@ function EntitySelector({
     if (excludeIds.includes(e.id)) return false;
     // Filter by search
     if (!e.name.toLowerCase().includes(search.toLowerCase())) return false;
-    // Filter by target entity type if restrictions exist
-    if (targetRestrictions && !targetRestrictions.includes(e.type)) return false;
+    // Filter by target entity type if restrictions exist (case-insensitive)
+    if (targetRestrictions) {
+      const normalizedType = e.type.toUpperCase();
+      const matches = targetRestrictions.some((t: string) => t.toUpperCase() === normalizedType);
+      if (!matches) return false;
+    }
     return true;
   });
 
