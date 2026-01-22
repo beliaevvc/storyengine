@@ -1,17 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState, useEffect } from 'react';
-import {
-  X,
-  FileText,
-  User,
-  MapPin,
-  Package,
-  Calendar,
-  Users,
-  Globe,
-  MoreHorizontal,
-} from 'lucide-react';
+import { X, FileText, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   useWorkspaceStore,
@@ -19,31 +9,8 @@ import {
   selectActiveTabId,
   type Tab,
 } from '@/presentation/stores';
-import type { EntityType } from '@/core/entities/entity';
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-const ENTITY_ICONS: Record<EntityType, React.ElementType> = {
-  CHARACTER: User,
-  LOCATION: MapPin,
-  ITEM: Package,
-  EVENT: Calendar,
-  FACTION: Users,
-  WORLDBUILDING: Globe,
-  NOTE: FileText,
-};
-
-const ENTITY_COLORS: Record<EntityType, string> = {
-  CHARACTER: 'text-blue-400',
-  LOCATION: 'text-green-400',
-  ITEM: 'text-yellow-400',
-  EVENT: 'text-purple-400',
-  FACTION: 'text-red-400',
-  WORLDBUILDING: 'text-cyan-400',
-  NOTE: 'text-gray-400',
-};
+import { DynamicIcon } from '@/presentation/components/ui/icon-picker';
+import { getEntityTypeIcon, getEntityTypeColor } from '@/presentation/components/entities/EntityTypeIcon';
 
 // ============================================================================
 // Tab Item Component
@@ -83,12 +50,12 @@ function TabItem({
   );
 
   // Determine icon
-  let Icon: React.ElementType = FileText;
-  let iconColor = 'text-fg-muted';
+  let iconName = 'FileText';
+  let iconColor = '#768390'; // fg-muted
 
   if (tab.type === 'entity' && tab.entityType) {
-    Icon = ENTITY_ICONS[tab.entityType] || FileText;
-    iconColor = ENTITY_COLORS[tab.entityType] || 'text-fg-muted';
+    iconName = getEntityTypeIcon(tab.entityType);
+    iconColor = getEntityTypeColor(tab.entityType);
   }
 
   return (
@@ -108,7 +75,11 @@ function TabItem({
       onMouseDown={handleMiddleClick}
       onContextMenu={onContextMenu}
     >
-      <Icon className={cn('w-4 h-4 flex-shrink-0', iconColor)} />
+      {tab.type === 'entity' ? (
+        <DynamicIcon name={iconName} className="w-4 h-4 flex-shrink-0" style={{ color: iconColor }} />
+      ) : (
+        <FileText className="w-4 h-4 flex-shrink-0 text-fg-muted" />
+      )}
 
       <span
         className={cn(

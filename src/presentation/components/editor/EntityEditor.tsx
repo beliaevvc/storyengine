@@ -6,26 +6,17 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Typography from '@tiptap/extension-typography';
 import CharacterCount from '@tiptap/extension-character-count';
-import {
-  User,
-  MapPin,
-  Package,
-  Calendar,
-  Users,
-  Globe,
-  FileText,
-  Loader2,
-  Check,
-  Pencil,
-} from 'lucide-react';
+import { Loader2, Check, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/presentation/components/ui';
+import { DynamicIcon } from '@/presentation/components/ui/icon-picker';
 import { Toolbar } from './Toolbar';
 import { StatusBar } from './StatusBar';
 import { getEntityTemplate } from './templates';
 import { useEditorStore, useWorkspaceStore, useEntityStore } from '@/presentation/stores';
 import { updateEntityContent, updateEntity } from '@/app/actions/supabase/entity-actions';
-import type { Entity, EntityType, TiptapContent } from '@/core/entities/entity';
+import { getEntityTypeIcon, getEntityTypeLabel, getEntityTypeColor } from '@/presentation/components/entities/EntityTypeIcon';
+import type { Entity, TiptapContent } from '@/core/entities/entity';
 
 // ============================================================================
 // Types & Constants
@@ -35,36 +26,6 @@ interface EntityEditorProps {
   entity: Entity;
   className?: string;
 }
-
-const ENTITY_ICONS: Record<EntityType, React.ElementType> = {
-  CHARACTER: User,
-  LOCATION: MapPin,
-  ITEM: Package,
-  EVENT: Calendar,
-  FACTION: Users,
-  WORLDBUILDING: Globe,
-  NOTE: FileText,
-};
-
-const ENTITY_LABELS: Record<EntityType, string> = {
-  CHARACTER: 'Персонаж',
-  LOCATION: 'Локация',
-  ITEM: 'Предмет',
-  EVENT: 'Событие',
-  FACTION: 'Фракция',
-  WORLDBUILDING: 'Мироустройство',
-  NOTE: 'Заметка',
-};
-
-const ENTITY_COLORS: Record<EntityType, string> = {
-  CHARACTER: 'bg-blue-500/20 text-blue-400',
-  LOCATION: 'bg-green-500/20 text-green-400',
-  ITEM: 'bg-yellow-500/20 text-yellow-400',
-  EVENT: 'bg-purple-500/20 text-purple-400',
-  FACTION: 'bg-red-500/20 text-red-400',
-  WORLDBUILDING: 'bg-cyan-500/20 text-cyan-400',
-  NOTE: 'bg-gray-500/20 text-gray-400',
-};
 
 // ============================================================================
 // Component
@@ -254,14 +215,18 @@ export function EntityEditor({ entity, className }: EntityEditorProps) {
   const wordCount = useEditorStore((s) => s.wordCount);
   const characterCount = useEditorStore((s) => s.characterCount);
 
-  const Icon = ENTITY_ICONS[entity.type];
+  const iconName = getEntityTypeIcon(entity.type);
+  const typeColor = getEntityTypeColor(entity.type);
 
   return (
     <div className={cn('h-full flex flex-col bg-canvas', className)}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-surface">
-        <div className={cn('p-2 rounded-lg', ENTITY_COLORS[entity.type])}>
-          <Icon className="w-5 h-5" />
+        <div 
+          className="p-2 rounded-lg"
+          style={{ backgroundColor: `${typeColor}20` }}
+        >
+          <DynamicIcon name={iconName} className="w-5 h-5" style={{ color: typeColor }} />
         </div>
         <div className="flex-1 min-w-0">
           {isEditingName ? (
@@ -293,7 +258,7 @@ export function EntityEditor({ entity, className }: EntityEditorProps) {
           )}
           <div className="flex items-center gap-2 mt-0.5">
             <Badge variant="secondary" className="text-xs">
-              {ENTITY_LABELS[entity.type]}
+              {getEntityTypeLabel(entity.type)}
             </Badge>
             {entity.description && (
               <span className="text-xs text-fg-muted truncate">
