@@ -602,9 +602,6 @@ function convertToCharacterMap(
     // Count relationships
     const relationships = (attrs.relationships || []) as Array<unknown>;
     
-    // Debug: log all attributes
-    console.log(`[FlowCanvas] ${char.name} attributes:`, JSON.stringify(attrs, null, 2));
-    
     return {
       id: char.id,
       type: 'character',

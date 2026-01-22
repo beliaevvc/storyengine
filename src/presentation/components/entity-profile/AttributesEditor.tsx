@@ -233,13 +233,13 @@ function AttributeField({ definition, value, onChange }: AttributeFieldProps) {
       )}
 
       {definition.type === 'text' && (
-        <Input
-          type="text"
+        <textarea
           value={value as string ?? ''}
           onChange={(e) => onChange(e.target.value || null)}
           maxLength={config.maxLength as number | undefined}
-          placeholder={config.default as string ?? ''}
-          className="h-8 text-sm"
+          placeholder={config.default as string ?? 'Введите текст...'}
+          rows={3}
+          className="w-full px-3 py-2 text-sm bg-overlay border border-border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent placeholder:text-fg-muted"
         />
       )}
 
