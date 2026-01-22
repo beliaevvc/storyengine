@@ -18,8 +18,9 @@ import {
   type Viewport,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { GitBranch, Users, MapPin, Package, Link2, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { GitBranch, Users, MapPin, Package, Link2, Filter, ChevronDown, ChevronUp, Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/presentation/components/ui/button';
+import { Modal } from '@/presentation/components/ui/modal';
 import { SceneNode } from './nodes/SceneNode';
 import { CharacterNode } from './nodes/CharacterNode';
 import { LocationNode } from './nodes/LocationNode';
@@ -27,6 +28,7 @@ import { ItemNode } from './nodes/ItemNode';
 import { RelationEdge } from './edges/RelationEdge';
 import { ConnectionModal } from './ConnectionModal';
 import { extractScenesFromContent } from '@/presentation/utils/extractScenes';
+import { updateEntityRelationships } from '@/app/actions/supabase/entity-actions';
 import type { Entity, Document } from '@/types/supabase';
 import type { TiptapContent } from '@/core/entities/document';
 
@@ -34,6 +36,14 @@ import type { TiptapContent } from '@/core/entities/document';
 interface PendingConnection {
   sourceId: string;
   targetId: string;
+}
+
+// Pending delete state
+interface PendingDelete {
+  edgeId: string;
+  sourceId: string;
+  targetId: string;
+  label?: string;
 }
 
 // Filter state interface
@@ -205,6 +215,8 @@ function FlowCanvasInner({
   const [filters, setFilters] = useState<FlowFilters>(() => loadFilters(projectId, 'relations'));
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [pendingConnection, setPendingConnection] = useState<PendingConnection | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { setViewport, getViewport } = useReactFlow();
   
   // Refs to access current state in cleanup function
@@ -344,6 +356,70 @@ function FlowCanvasInner({
     onEntitiesUpdated?.();
   }, [onEntitiesUpdated]);
 
+  // Handle edge click - show delete confirmation in relations mode
+  const handleEdgeClick = useCallback(
+    (_event: React.MouseEvent, edge: Edge) => {
+      if (mode !== 'relations') return;
+      
+      const edgeData = edge.data as { label?: string; relationType?: string } | undefined;
+      setPendingDelete({
+        edgeId: edge.id,
+        sourceId: edge.source,
+        targetId: edge.target,
+        label: edgeData?.label || edgeData?.relationType,
+      });
+    },
+    [mode]
+  );
+
+  // Handle delete confirmation
+  const handleDeleteRelation = useCallback(async () => {
+    if (!pendingDelete) return;
+    
+    const sourceEntity = entityMap.get(pendingDelete.sourceId);
+    const targetEntity = entityMap.get(pendingDelete.targetId);
+    
+    if (!sourceEntity || !targetEntity) {
+      setPendingDelete(null);
+      return;
+    }
+    
+    setIsDeleting(true);
+    
+    // Get current relationships for source entity
+    const sourceAttrs = (sourceEntity.attributes || {}) as Record<string, unknown>;
+    const currentRelationships = (sourceAttrs.relationships || []) as Array<{
+      entityId: string;
+      typeId: string;
+      typeName: string;
+      isReverse?: boolean;
+    }>;
+    
+    // Remove the relationship to target
+    const newRelationships = currentRelationships.filter(
+      (r) => r.entityId !== pendingDelete.targetId
+    );
+    
+    const result = await updateEntityRelationships(
+      sourceEntity.id,
+      projectId,
+      newRelationships,
+      currentRelationships
+    );
+    
+    setIsDeleting(false);
+    
+    if (result.success) {
+      setPendingDelete(null);
+      // Remove the edge from the canvas immediately
+      setEdges((eds) => eds.filter((e) => e.id !== pendingDelete.edgeId));
+      // Trigger refresh of entities
+      onEntitiesUpdated?.();
+    } else {
+      console.error('Failed to delete relation:', result.error);
+    }
+  }, [pendingDelete, entityMap, projectId, setEdges, onEntitiesUpdated]);
+
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
       onNodeClick?.(node.id, node.type || 'unknown');
@@ -366,6 +442,7 @@ function FlowCanvasInner({
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={handleNodeClick}
+        onEdgeClick={handleEdgeClick}
         onNodeDragStop={handleNodeDragStop}
         onMoveEnd={handleMoveEnd}
         nodeTypes={nodeTypes}
@@ -555,6 +632,65 @@ function FlowCanvasInner({
         projectId={projectId}
         onConnectionCreated={handleConnectionCreated}
       />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={pendingDelete !== null}
+        onClose={() => !isDeleting && setPendingDelete(null)}
+        title="Удалить связь?"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-3 bg-red-500/10 rounded-lg border border-red-500/20">
+            <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-[#adbac7]">
+              <p>Вы уверены, что хотите удалить связь?</p>
+              {pendingDelete && (
+                <p className="mt-2 text-[#768390]">
+                  <span className="font-medium text-[#adbac7]">
+                    {entityMap.get(pendingDelete.sourceId)?.name || 'Сущность'}
+                  </span>
+                  {pendingDelete.label && (
+                    <span className="mx-2 px-2 py-0.5 bg-[#373e47] rounded text-xs">
+                      {pendingDelete.label}
+                    </span>
+                  )}
+                  <span className="mx-1">→</span>
+                  <span className="font-medium text-[#adbac7]">
+                    {entityMap.get(pendingDelete.targetId)?.name || 'Сущность'}
+                  </span>
+                </p>
+              )}
+            </div>
+          </div>
+          
+          <p className="text-sm text-[#768390]">
+            Связь будет удалена у обеих сущностей. Это действие нельзя отменить.
+          </p>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#444c56]">
+            <Button
+              variant="ghost"
+              onClick={() => setPendingDelete(null)}
+              disabled={isDeleting}
+            >
+              Отмена
+            </Button>
+            <Button
+              onClick={handleDeleteRelation}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="w-4 h-4 mr-2" />
+              )}
+              Удалить
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
