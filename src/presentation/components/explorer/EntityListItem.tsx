@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import type { Entity } from '@/core/entities/entity';
 import { cn } from '@/lib/utils';
-import { getEntityTypeColor } from '@/presentation/components/entities/EntityTypeIcon';
+import { DynamicIcon } from '@/presentation/components/ui/icon-picker';
+import { getEntityTypeColor, getEntityTypeIcon, getEntityTypeLabel } from '@/presentation/components/entities/EntityTypeIcon';
 
 interface EntityListItemProps {
   entity: Entity;
@@ -29,6 +30,9 @@ export function EntityListItem({
   const [editValue, setEditValue] = useState(entity.name);
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const typeColor = getEntityTypeColor(entity.type);
+  const typeIcon = getEntityTypeIcon(entity.type);
 
   // Focus input when editing starts
   useEffect(() => {
@@ -85,9 +89,10 @@ export function EntityListItem({
   return (
     <div
       className={cn(
-        'flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-sm group relative',
-        'hover:bg-overlay transition-colors',
-        isSelected && 'bg-accent-subtle'
+        'flex items-center gap-2.5 px-2 py-2 mx-1 cursor-pointer rounded-lg group relative transition-all',
+        isSelected 
+          ? 'bg-accent/10 ring-1 ring-accent/30' 
+          : 'hover:bg-surface-hover'
       )}
       onClick={handleClick}
       onContextMenu={(e) => {
@@ -97,11 +102,21 @@ export function EntityListItem({
       role="option"
       aria-selected={isSelected}
     >
-      <span 
-        className="w-2 h-2 rounded-full flex-shrink-0"
-        style={{ backgroundColor: getEntityTypeColor(entity.type) }}
-        aria-hidden="true"
-      />
+      {/* Icon with colored background */}
+      <div 
+        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
+        style={{ 
+          backgroundColor: isSelected ? `${typeColor}25` : `${typeColor}15`,
+        }}
+      >
+        <DynamicIcon 
+          name={typeIcon} 
+          className="w-3.5 h-3.5" 
+          style={{ color: typeColor }}
+        />
+      </div>
+
+      {/* Content */}
       <div className="flex-1 min-w-0">
         {isEditing ? (
           <input
@@ -115,12 +130,12 @@ export function EntityListItem({
             className="w-full text-sm bg-transparent border-b border-accent text-fg px-0 py-0 outline-none"
           />
         ) : (
-          <>
-            <p className="text-sm truncate">{entity.name}</p>
-            {entity.description && (
-              <p className="text-xs text-fg-muted truncate">{entity.description}</p>
-            )}
-          </>
+          <p className={cn(
+            'text-sm truncate font-medium',
+            isSelected ? 'text-fg' : 'text-fg-muted group-hover:text-fg'
+          )}>
+            {entity.name}
+          </p>
         )}
       </div>
 

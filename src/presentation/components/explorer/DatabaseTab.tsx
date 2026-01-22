@@ -100,7 +100,7 @@ export function DatabaseTab() {
         </div>
 
         {/* Filter */}
-        <EntityTypeFilter selected={filterType} onSelect={setFilterType} />
+        <EntityTypeFilter selected={filterType} onSelect={setFilterType} entities={entities} />
 
         {/* List */}
         <div className="flex-1 overflow-auto">
