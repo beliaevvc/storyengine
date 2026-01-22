@@ -137,6 +137,15 @@ export function RelationshipsEditor({
     // Check if current entity type is allowed as source
     return type.sourceEntityTypes.includes(entityType as EntityType);
   });
+  
+  // Debug: log relationship types
+  console.log('[RelationshipsEditor] All types:', relationshipTypes.map(t => ({
+    name: t.name,
+    sourceEntityTypes: t.sourceEntityTypes,
+    targetEntityTypes: t.targetEntityTypes,
+  })));
+  console.log('[RelationshipsEditor] Entity type:', entityType);
+  console.log('[RelationshipsEditor] Filtered types:', filteredRelationshipTypes.map(t => t.name));
 
   // Create entity map for quick lookup
   const entityMap = new Map(allEntities.map((e) => [e.id, e]));
@@ -608,7 +617,7 @@ function EntitySelector({
   if (entities.length === 0) {
     return (
       <p className="text-sm text-fg-muted text-center py-4">
-        Нет других персонажей в проекте
+        Нет других сущностей в проекте
       </p>
     );
   }
@@ -618,7 +627,7 @@ function EntitySelector({
   if (availableCount === 0) {
     return (
       <p className="text-sm text-fg-muted text-center py-4">
-        Все персонажи уже добавлены
+        Все доступные сущности уже добавлены
       </p>
     );
   }
@@ -647,7 +656,7 @@ function EntitySelector({
       <Input
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Поиск персонажа..."
+        placeholder="Поиск сущности..."
         className="text-sm"
       />
       
