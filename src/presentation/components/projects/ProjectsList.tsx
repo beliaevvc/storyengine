@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -11,7 +11,8 @@ import {
   MoreHorizontal,
   Trash2,
   Copy,
-  Edit,
+  Settings,
+  Pencil,
   Loader2,
 } from 'lucide-react';
 import { Button } from '@/presentation/components/ui/button';
@@ -20,6 +21,7 @@ import {
   createProject,
   deleteProject,
   duplicateProject,
+  updateProject,
 } from '@/app/actions/supabase/project-actions';
 import type { ProjectWithCounts } from '@/app/actions/supabase/project-actions';
 
@@ -34,6 +36,16 @@ export function ProjectsList({ projects }: ProjectsListProps) {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (renamingId && renameInputRef.current) {
+      renameInputRef.current.focus();
+      renameInputRef.current.select();
+    }
+  }, [renamingId]);
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +80,25 @@ export function ProjectsList({ projects }: ProjectsListProps) {
     setActionLoading(projectId);
     await duplicateProject(projectId);
     setOpenMenu(null);
+    setActionLoading(null);
+    router.refresh();
+  };
+
+  const startRename = (projectId: string, currentTitle: string) => {
+    setRenamingId(projectId);
+    setRenameValue(currentTitle);
+    setOpenMenu(null);
+  };
+
+  const handleRename = async () => {
+    if (!renamingId || !renameValue.trim()) {
+      setRenamingId(null);
+      return;
+    }
+
+    setActionLoading(renamingId);
+    await updateProject(renamingId, { title: renameValue.trim() });
+    setRenamingId(null);
     setActionLoading(null);
     router.refresh();
   };
@@ -158,10 +189,27 @@ export function ProjectsList({ projects }: ProjectsListProps) {
               <Link
                 href={`/projects/${project.id}`}
                 className="block p-5"
+                onClick={(e) => renamingId === project.id && e.preventDefault()}
               >
-                <h3 className="text-lg font-medium text-[#adbac7] mb-2 group-hover:text-[#539bf5] transition-colors">
-                  {project.title}
-                </h3>
+                {renamingId === project.id ? (
+                  <input
+                    ref={renameInputRef}
+                    type="text"
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onBlur={handleRename}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleRename();
+                      if (e.key === 'Escape') setRenamingId(null);
+                    }}
+                    onClick={(e) => e.preventDefault()}
+                    className="text-lg font-medium text-[#adbac7] mb-2 bg-transparent border-b border-[#539bf5] outline-none w-full"
+                  />
+                ) : (
+                  <h3 className="text-lg font-medium text-[#adbac7] mb-2 group-hover:text-[#539bf5] transition-colors">
+                    {project.title}
+                  </h3>
+                )}
                 {project.description && (
                   <p className="text-sm text-[#768390] mb-4 line-clamp-2">
                     {project.description}
@@ -205,14 +253,21 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                         className="fixed inset-0 z-10"
                         onClick={() => setOpenMenu(null)}
                       />
-                      <div className="absolute right-0 bottom-full mb-1 bg-[#2d333b] border border-[#444c56] rounded-md shadow-lg z-20 py-1 min-w-[140px]">
+                      <div className="absolute right-0 top-full mt-1 bg-[#2d333b] border border-[#444c56] rounded-md shadow-lg z-20 py-1 min-w-[160px]">
+                        <button
+                          onClick={() => startRename(project.id, project.title)}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#adbac7] hover:bg-[#373e47]"
+                        >
+                          <Pencil className="w-4 h-4" />
+                          Переименовать
+                        </button>
                         <Link
                           href={`/projects/${project.id}/settings`}
                           className="flex items-center gap-2 px-3 py-2 text-sm text-[#adbac7] hover:bg-[#373e47]"
                           onClick={() => setOpenMenu(null)}
                         >
-                          <Edit className="w-4 h-4" />
-                          Редактировать
+                          <Settings className="w-4 h-4" />
+                          Настройки
                         </Link>
                         <button
                           onClick={() => handleDuplicate(project.id)}
@@ -221,6 +276,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                           <Copy className="w-4 h-4" />
                           Дублировать
                         </button>
+                        <div className="border-t border-[#444c56] my-1" />
                         <button
                           onClick={() => handleDelete(project.id)}
                           className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-[#373e47]"
