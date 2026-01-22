@@ -382,17 +382,13 @@ function FlowCanvasInner({
       
       const edgeData = edge.data as { label?: string; relationType?: string } | undefined;
       
-      // Get click position for the popup
-      const rect = (event.target as HTMLElement).closest('.react-flow')?.getBoundingClientRect();
-      const x = event.clientX - (rect?.left || 0);
-      const y = event.clientY - (rect?.top || 0);
-      
+      // Use client coordinates directly for fixed positioning
       setSelectedEdge({
         edgeId: edge.id,
         sourceId: edge.source,
         targetId: edge.target,
         label: edgeData?.label || edgeData?.relationType,
-        position: { x, y },
+        position: { x: event.clientX, y: event.clientY },
       });
     },
     [mode]
@@ -680,11 +676,11 @@ function FlowCanvasInner({
       {/* Edge Context Menu */}
       {selectedEdge && (
         <div
-          className="absolute z-50 bg-[#22272e] border border-[#444c56] rounded-lg shadow-xl overflow-hidden"
+          className="fixed z-[100] bg-[#22272e] border border-[#444c56] rounded-lg shadow-xl overflow-hidden"
           style={{
             left: selectedEdge.position.x,
             top: selectedEdge.position.y,
-            transform: 'translate(-50%, -100%) translateY(-8px)',
+            transform: 'translate(-50%, -100%) translateY(-12px)',
           }}
         >
           <div className="flex items-center gap-1 p-1">
