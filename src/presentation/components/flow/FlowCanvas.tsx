@@ -37,7 +37,7 @@ interface FlowFilters {
   showRelations: boolean;
 }
 
-type FlowMode = 'plot' | 'characters' | 'locations';
+type FlowMode = 'plot' | 'relations';
 
 // Storage keys
 const VIEWPORT_STORAGE_KEY = 'flowcanvas-viewport';
@@ -193,7 +193,7 @@ function FlowCanvasInner({
   onNodeClick,
 }: FlowCanvasProps) {
   const [mode, setMode] = useState<FlowMode>('plot');
-  const [filters, setFilters] = useState<FlowFilters>(() => loadFilters(projectId, 'characters'));
+  const [filters, setFilters] = useState<FlowFilters>(() => loadFilters(projectId, 'relations'));
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const { setViewport, getViewport } = useReactFlow();
   
@@ -216,17 +216,15 @@ function FlowCanvasInner({
     let result;
     if (mode === 'plot') {
       result = convertToPlotFlow(documents);
-    } else if (mode === 'characters') {
-      result = convertToCharacterMap(entities, relations, filters);
     } else {
-      result = convertToLocationMap(entities, relations, filters);
+      result = convertToRelationsMap(entities, relations, filters);
     }
     
     // Apply stored positions
     const storedPositions = loadNodePositions(projectId, mode);
     return {
       initialNodes: applyStoredPositions(result.initialNodes, storedPositions),
-      initialEdges: filters.showRelations ? result.initialEdges : [],
+      initialEdges: mode === 'plot' || filters.showRelations ? result.initialEdges : [],
     };
   }, [mode, documents, entities, relations, projectId, filters]);
 
@@ -377,26 +375,17 @@ function FlowCanvasInner({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleModeChange('characters')}
-              className={mode === 'characters' ? 'bg-[#539bf5]/10 text-[#539bf5]' : ''}
+              onClick={() => handleModeChange('relations')}
+              className={mode === 'relations' ? 'bg-[#539bf5]/10 text-[#539bf5]' : ''}
             >
-              <Users className="w-4 h-4 mr-1" />
-              Персонажи
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleModeChange('locations')}
-              className={mode === 'locations' ? 'bg-[#539bf5]/10 text-[#539bf5]' : ''}
-            >
-              <MapPin className="w-4 h-4 mr-1" />
-              Локации
+              <Link2 className="w-4 h-4 mr-1" />
+              Связи
             </Button>
           </div>
         </Panel>
 
-        {/* Filters Panel - показываем только в режимах characters и locations */}
-        {(mode === 'characters' || mode === 'locations') && (
+        {/* Filters Panel - показываем только в режиме relations */}
+        {mode === 'relations' && (
           <Panel position="top-center" className="!m-4">
             <div className="bg-[#22272e] border border-[#444c56] rounded-lg overflow-hidden">
               {/* Кнопка раскрытия/сворачивания */}
@@ -437,6 +426,22 @@ function FlowCanvasInner({
                     <label className="flex items-center gap-2 cursor-pointer group">
                       <input
                         type="checkbox"
+                        checked={filters.showLocations}
+                        onChange={(e) => updateFilter('showLocations', e.target.checked)}
+                        className="w-3.5 h-3.5 rounded border-[#444c56] bg-[#2d333b] text-green-500 focus:ring-green-500/20"
+                      />
+                      <MapPin className="w-3.5 h-3.5 text-green-400" />
+                      <span className="text-xs text-[#768390] group-hover:text-[#adbac7]">
+                        Локации
+                      </span>
+                      <span className="text-[10px] text-[#545d68] ml-auto">
+                        {entities.filter((e) => e.type === 'LOCATION').length}
+                      </span>
+                    </label>
+                    
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
                         checked={filters.showItems}
                         onChange={(e) => updateFilter('showItems', e.target.checked)}
                         className="w-3.5 h-3.5 rounded border-[#444c56] bg-[#2d333b] text-amber-500 focus:ring-amber-500/20"
@@ -449,24 +454,6 @@ function FlowCanvasInner({
                         {entities.filter((e) => e.type === 'ITEM').length}
                       </span>
                     </label>
-
-                    {mode === 'locations' && (
-                      <label className="flex items-center gap-2 cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={filters.showLocations}
-                          onChange={(e) => updateFilter('showLocations', e.target.checked)}
-                          className="w-3.5 h-3.5 rounded border-[#444c56] bg-[#2d333b] text-green-500 focus:ring-green-500/20"
-                        />
-                        <MapPin className="w-3.5 h-3.5 text-green-400" />
-                        <span className="text-xs text-[#768390] group-hover:text-[#adbac7]">
-                          Локации
-                        </span>
-                        <span className="text-[10px] text-[#545d68] ml-auto">
-                          {entities.filter((e) => e.type === 'LOCATION').length}
-                        </span>
-                      </label>
-                    )}
                   </div>
                   
                   {/* Разделитель */}
@@ -480,7 +467,7 @@ function FlowCanvasInner({
                       />
                       <Link2 className="w-3.5 h-3.5 text-purple-400" />
                       <span className="text-xs text-[#768390] group-hover:text-[#adbac7]">
-                        Связи
+                        Линии связей
                       </span>
                       <span className="text-[10px] text-[#545d68] ml-auto">
                         {relations.length}
@@ -511,18 +498,12 @@ function FlowCanvasInner({
               });
               return `${folders} папок • ${docs} документов • ${sceneCount} сцен`;
             })()}
-            {mode === 'characters' && (() => {
+            {mode === 'relations' && (() => {
               const chars = filters.showCharacters ? entities.filter((e) => e.type === 'CHARACTER').length : 0;
-              const items = filters.showItems ? entities.filter((e) => e.type === 'ITEM').length : 0;
-              const parts = [];
-              if (chars > 0) parts.push(`${chars} персонажей`);
-              if (items > 0) parts.push(`${items} предметов`);
-              return parts.join(' • ') || 'Нет элементов';
-            })()}
-            {mode === 'locations' && (() => {
               const locs = filters.showLocations ? entities.filter((e) => e.type === 'LOCATION').length : 0;
               const items = filters.showItems ? entities.filter((e) => e.type === 'ITEM').length : 0;
               const parts = [];
+              if (chars > 0) parts.push(`${chars} персонажей`);
               if (locs > 0) parts.push(`${locs} локаций`);
               if (items > 0) parts.push(`${items} предметов`);
               return parts.join(' • ') || 'Нет элементов';
@@ -749,7 +730,7 @@ function convertToPlotFlow(documents: Document[]): {
   return { initialNodes: nodes, initialEdges: edges };
 }
 
-function convertToCharacterMap(
+function convertToRelationsMap(
   entities: Entity[],
   relations: Array<{
     id: string;
@@ -763,18 +744,25 @@ function convertToCharacterMap(
   const nodes: Node[] = [];
   const nodeIds = new Set<string>();
 
-  // Фильтруем персонажей
+  // Фильтруем все типы сущностей
   const characters = filters.showCharacters 
     ? entities.filter((e) => e.type === 'CHARACTER')
     : [];
   
-  // Фильтруем предметы
+  const locations = filters.showLocations 
+    ? entities.filter((e) => e.type === 'LOCATION')
+    : [];
+  
   const items = filters.showItems 
     ? entities.filter((e) => e.type === 'ITEM')
     : [];
 
   // Общее количество элементов для расчета позиций
-  const totalEntities = characters.length + items.length;
+  const totalEntities = characters.length + locations.length + items.length;
+  
+  if (totalEntities === 0) {
+    return { initialNodes: [], initialEdges: [] };
+  }
   
   // Arrange in a circle
   const centerX = 400;
@@ -806,6 +794,28 @@ function convertToCharacterMap(
       },
     });
     nodeIds.add(char.id);
+    currentIndex++;
+  });
+
+  // Добавляем локации
+  locations.forEach((loc) => {
+    const angle = (currentIndex / totalEntities) * 2 * Math.PI - Math.PI / 2;
+    const attrs = (loc.attributes || {}) as Record<string, unknown>;
+    
+    nodes.push({
+      id: loc.id,
+      type: 'location',
+      position: {
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle),
+      },
+      data: {
+        name: loc.name,
+        description: loc.description,
+        region: attrs?.region,
+      },
+    });
+    nodeIds.add(loc.id);
     currentIndex++;
   });
 
@@ -842,90 +852,6 @@ function convertToCharacterMap(
       data: {
         label: rel.label,
         relationType: rel.relation_type,
-      },
-    }));
-
-  return { initialNodes: nodes, initialEdges: edges };
-}
-
-function convertToLocationMap(
-  entities: Entity[],
-  relations: Array<{
-    id: string;
-    source_id: string;
-    target_id: string;
-    relation_type: string;
-    label?: string;
-  }>,
-  filters: FlowFilters
-): { initialNodes: Node[]; initialEdges: Edge[] } {
-  const nodes: Node[] = [];
-  const nodeIds = new Set<string>();
-
-  // Фильтруем локации
-  const locations = filters.showLocations 
-    ? entities.filter((e) => e.type === 'LOCATION')
-    : [];
-  
-  // Фильтруем предметы
-  const items = filters.showItems 
-    ? entities.filter((e) => e.type === 'ITEM')
-    : [];
-
-  let currentIndex = 0;
-  const columnsCount = 4;
-
-  // Добавляем локации
-  locations.forEach((loc) => {
-    nodes.push({
-      id: loc.id,
-      type: 'location',
-      position: {
-        x: (currentIndex % columnsCount) * 220 + 50,
-        y: Math.floor(currentIndex / columnsCount) * 180 + 50,
-      },
-      data: {
-        name: loc.name,
-        description: loc.description,
-        region: (loc.attributes as Record<string, unknown>)?.region,
-      },
-    });
-    nodeIds.add(loc.id);
-    currentIndex++;
-  });
-
-  // Добавляем предметы (в отдельной области под локациями)
-  const itemsStartY = Math.ceil(locations.length / columnsCount) * 180 + 100;
-  
-  items.forEach((item, index) => {
-    const attrs = (item.attributes || {}) as Record<string, unknown>;
-    
-    nodes.push({
-      id: item.id,
-      type: 'item',
-      position: {
-        x: (index % columnsCount) * 200 + 60,
-        y: itemsStartY + Math.floor(index / columnsCount) * 150,
-      },
-      data: {
-        name: item.name,
-        description: item.description,
-        attributes: attrs,
-      },
-    });
-    nodeIds.add(item.id);
-  });
-
-  // Фильтруем связи только между видимыми нодами
-  const edges: Edge[] = relations
-    .filter((r) => nodeIds.has(r.source_id) && nodeIds.has(r.target_id))
-    .map((rel) => ({
-      id: rel.id,
-      source: rel.source_id,
-      target: rel.target_id,
-      type: 'relation',
-      data: {
-        label: rel.label || 'путь',
       },
     }));
 
