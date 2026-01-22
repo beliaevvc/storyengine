@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
 import type { Editor } from '@tiptap/core';
 
 // ============================================================================
@@ -70,46 +70,55 @@ const initialState = {
 
 export const useEditorStore = create<EditorState>()(
   devtools(
-    (set) => ({
-      ...initialState,
+    persist(
+      (set) => ({
+        ...initialState,
 
-      actions: {
-        setEditor: (editor) => set({ editor }, false, 'setEditor'),
+        actions: {
+          setEditor: (editor) => set({ editor }, false, 'setEditor'),
 
-        updateCounts: (wordCount, characterCount) =>
-          set({ wordCount, characterCount }, false, 'updateCounts'),
+          updateCounts: (wordCount, characterCount) =>
+            set({ wordCount, characterCount }, false, 'updateCounts'),
 
-        setCurrentDocument: (currentDocumentId) =>
-          set({ currentDocumentId, isDirty: false }, false, 'setCurrentDocument'),
+          setCurrentDocument: (currentDocumentId) =>
+            set({ currentDocumentId, isDirty: false }, false, 'setCurrentDocument'),
 
-        setDirty: (isDirty) => set({ isDirty }, false, 'setDirty'),
+          setDirty: (isDirty) => set({ isDirty }, false, 'setDirty'),
 
-        setActiveEntityIds: (activeEntityIds) =>
-          set({ activeEntityIds }, false, 'setActiveEntityIds'),
+          setActiveEntityIds: (activeEntityIds) =>
+            set({ activeEntityIds }, false, 'setActiveEntityIds'),
 
-        addActiveEntityId: (id) =>
-          set(
-            (state) => ({
-              activeEntityIds: state.activeEntityIds.includes(id)
-                ? state.activeEntityIds
-                : [...state.activeEntityIds, id],
-            }),
-            false,
-            'addActiveEntityId'
-          ),
+          addActiveEntityId: (id) =>
+            set(
+              (state) => ({
+                activeEntityIds: state.activeEntityIds.includes(id)
+                  ? state.activeEntityIds
+                  : [...state.activeEntityIds, id],
+              }),
+              false,
+              'addActiveEntityId'
+            ),
 
-        clearActiveEntityIds: () =>
-          set({ activeEntityIds: [] }, false, 'clearActiveEntityIds'),
+          clearActiveEntityIds: () =>
+            set({ activeEntityIds: [] }, false, 'clearActiveEntityIds'),
 
-        setCursorPosition: (cursorPosition) =>
-          set({ cursorPosition }, false, 'setCursorPosition'),
+          setCursorPosition: (cursorPosition) =>
+            set({ cursorPosition }, false, 'setCursorPosition'),
 
-        setViewMode: (viewMode) =>
-          set({ viewMode }, false, 'setViewMode'),
+          setViewMode: (viewMode) =>
+            set({ viewMode }, false, 'setViewMode'),
 
-        reset: () => set(initialState, false, 'reset'),
-      },
-    }),
+          reset: () => set(initialState, false, 'reset'),
+        },
+      }),
+      {
+        name: 'storyengine-editor',
+        // Сохраняем только viewMode — editor instance и другие временные данные не сериализуемы
+        partialize: (state) => ({
+          viewMode: state.viewMode,
+        }),
+      }
+    ),
     { name: 'EditorStore' }
   )
 );
