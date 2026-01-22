@@ -141,14 +141,6 @@ export function RelationshipsEditor({
     );
   });
   
-  // Debug: log relationship types
-  console.log('[RelationshipsEditor] All types:', relationshipTypes.map(t => ({
-    name: t.name,
-    sourceEntityTypes: t.sourceEntityTypes,
-    targetEntityTypes: t.targetEntityTypes,
-  })));
-  console.log('[RelationshipsEditor] Entity type:', entityType);
-  console.log('[RelationshipsEditor] Filtered types:', filteredRelationshipTypes.map(t => t.name));
 
   // Create entity map for quick lookup
   const entityMap = new Map(allEntities.map((e) => [e.id, e]));
@@ -659,6 +651,33 @@ function EntitySelector({
 
   return (
     <div className="space-y-3">
+      {/* Type selection FIRST */}
+      <div className="space-y-2">
+        <label className="text-xs text-fg-muted block">Тип связи:</label>
+        <div className="flex flex-wrap gap-1">
+          {typeOptions.map((option) => {
+            const isSelected = selectedOption?.id === option.id;
+            
+            return (
+              <button
+                key={option.id}
+                onClick={() => {
+                  setSelectedOption(option);
+                  setSelectedEntityId(null); // Reset entity when type changes
+                }}
+                className={`px-2 py-1 text-xs rounded transition-colors ${
+                  isSelected
+                    ? 'bg-accent-primary text-white'
+                    : 'bg-overlay text-fg-secondary hover:bg-surface-hover'
+                }`}
+              >
+                {getRelationshipDescription(option)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Search */}
       <Input
         value={search}
@@ -682,73 +701,51 @@ function EntitySelector({
             <Avatar alt={entity.name} fallback={entity.name} size="sm" />
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-fg truncate">{entity.name}</div>
+              <div className="text-xs text-fg-muted">{entity.type}</div>
             </div>
           </button>
         ))}
         
-        {filteredEntities.length === 0 && search && (
+        {filteredEntities.length === 0 && (
           <p className="text-sm text-fg-muted text-center py-4">
-            Ничего не найдено
+            {search ? 'Ничего не найдено' : 'Нет подходящих сущностей'}
           </p>
         )}
       </div>
 
-      {/* Type selection */}
-      {selectedEntityId && (
-        <div className="space-y-3">
-          <label className="text-xs text-fg-muted block">Выберите тип связи:</label>
-          <div className="flex flex-wrap gap-1">
-            {typeOptions.map((option) => {
-              const isSelected = selectedOption?.id === option.id;
-              
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => setSelectedOption(option)}
-                  className={`px-2 py-1 text-xs rounded transition-colors ${
-                    isSelected
-                      ? 'bg-accent-primary text-white'
-                      : 'bg-overlay text-fg-secondary hover:bg-surface-hover'
-                  }`}
-                >
-                  {getRelationshipDescription(option)}
-                </button>
-              );
-            })}
+      {/* Preview with names */}
+      {selectedEntityId && selectedOption && (
+        <div className="p-3 bg-overlay rounded-lg text-sm space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-fg-muted">У</span>
+            <span className="font-medium text-fg">{currentEntityName}</span>
+            <span className="text-fg-muted">появится:</span>
+            <span className="px-1.5 py-0.5 bg-accent-primary/20 text-accent-primary rounded text-xs">
+              {selectedOption.name}
+            </span>
           </div>
-
-          {/* Preview with names */}
-          {selectedOption && (
-            <div className="p-3 bg-overlay rounded-lg text-sm space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-fg-muted">У</span>
-                <span className="font-medium text-fg">{currentEntityName}</span>
-                <span className="text-fg-muted">появится:</span>
-                <span className="px-1.5 py-0.5 bg-accent-primary/20 text-accent-primary rounded text-xs">
-                  {selectedOption.name}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-fg-muted">У</span>
-                <span className="font-medium text-fg">{selectedEntityName}</span>
-                <span className="text-fg-muted">появится:</span>
-                <span className="px-1.5 py-0.5 bg-accent-primary/20 text-accent-primary rounded text-xs">
-                  {selectedOption.otherPersonGets}
-                </span>
-              </div>
-            </div>
-          )}
-          
-          <Button 
-            onClick={handleAdd} 
-            size="sm" 
-            className="w-full"
-            disabled={!selectedOption}
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Добавить связь
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-fg-muted">У</span>
+            <span className="font-medium text-fg">{selectedEntityName}</span>
+            <span className="text-fg-muted">появится:</span>
+            <span className="px-1.5 py-0.5 bg-accent-primary/20 text-accent-primary rounded text-xs">
+              {selectedOption.otherPersonGets}
+            </span>
+          </div>
         </div>
+      )}
+      
+      {/* Add button */}
+      {selectedEntityId && (
+        <Button 
+          onClick={handleAdd} 
+          size="sm" 
+          className="w-full"
+          disabled={!selectedOption}
+        >
+          <Plus className="w-4 h-4 mr-1" />
+          Добавить связь
+        </Button>
       )}
     </div>
   );
