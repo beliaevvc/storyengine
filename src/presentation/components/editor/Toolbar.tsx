@@ -1,17 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import type { Editor } from '@tiptap/core';
-import {
-  Undo,
-  Redo,
-  ScanSearch,
-  Loader2,
-} from 'lucide-react';
-import { Button } from '@/presentation/components/ui';
+import { Undo, Redo } from 'lucide-react';
 import { ToolbarButton } from './ToolbarButton';
-import { useEntityScanner } from '@/presentation/hooks';
-import { useEntityStore, useEditorStore } from '@/presentation/stores';
+import { useEditorStore } from '@/presentation/stores';
 import type { ViewMode } from '@/presentation/stores/useEditorStore';
 import { cn } from '@/lib/utils';
 
@@ -29,15 +22,8 @@ interface ToolbarProps {
 // ============================================================================
 
 export function Toolbar({ editor, className }: ToolbarProps) {
-  const entities = useEntityStore((s) => s.entities);
   const viewMode = useEditorStore((s) => s.viewMode);
   const setViewMode = useEditorStore((s) => s.actions.setViewMode);
-  const { isScanning, scan } = useEntityScanner();
-
-  const handleAIScan = async () => {
-    const results = await scan();
-    console.log('[Toolbar] AI Scan found:', results.length, 'matches');
-  };
 
   // Handle mode switch
   const handleModeSwitch = useCallback((mode: ViewMode) => {
@@ -140,24 +126,6 @@ export function Toolbar({ editor, className }: ToolbarProps) {
         onClick={() => editor.chain().focus().redo().run()}
         disabled={!editor.can().redo()}
       />
-
-      <div className="flex-1" />
-
-      {/* AI Scan */}
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={handleAIScan}
-        disabled={isScanning || entities.length === 0}
-        className="gap-1.5"
-      >
-        {isScanning ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <ScanSearch className="w-4 h-4" />
-        )}
-        AI Scan
-      </Button>
 
       {/* View Mode Toggle */}
       <div className="flex items-center bg-[#282c34] rounded-lg border border-[#3a3f4b] overflow-hidden ml-2">
