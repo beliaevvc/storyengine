@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
 import { ArrowLeft, Package } from 'lucide-react';
 import { Avatar } from '@/presentation/components/ui/avatar';
 import { Badge } from '@/presentation/components/ui/badge';
@@ -24,9 +23,13 @@ interface EntityPassportProps {
 }
 
 export function EntityPassport({ entity, projectId, allEntities }: EntityPassportProps) {
-  const router = useRouter();
   const [definitions, setDefinitions] = useState<AttributeDefinition[]>([]);
   const [definitionsVersion, setDefinitionsVersion] = useState(0);
+
+  // Handle back navigation
+  const handleBack = useCallback(() => {
+    window.history.back();
+  }, []);
 
   // Load attribute definitions
   useEffect(() => {
@@ -61,7 +64,7 @@ export function EntityPassport({ entity, projectId, allEntities }: EntityPasspor
           variant="ghost" 
           size="sm" 
           className="gap-1.5 -ml-2"
-          onClick={() => router.back()}
+          onClick={handleBack}
         >
           <ArrowLeft className="w-4 h-4" />
           Назад
