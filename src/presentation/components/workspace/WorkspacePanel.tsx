@@ -13,6 +13,7 @@ import {
   selectActiveWorkspaceTab,
   selectOpenTabs,
 } from '@/presentation/stores';
+import { useEntitiesLoader } from '@/presentation/hooks';
 import { updateDocumentContent } from '@/app/actions/supabase/document-actions';
 import type { TiptapContent, Document as DomainDocument } from '@/core/entities/document';
 import type { Entity as DomainEntity } from '@/core/entities/entity';
@@ -134,6 +135,14 @@ export function WorkspacePanel({
   const documents = useDocumentStore((s) => s.documents);
   const entities = useEntityStore((s) => s.entities);
   const updateDocument = useDocumentStore((s) => s.actions.updateDocument);
+  
+  // Entities loader for refresh
+  const { loadEntities } = useEntitiesLoader(projectId, { autoLoad: false });
+  
+  // Handler for when entities are updated (e.g., new relation created)
+  const handleEntitiesUpdated = useCallback(() => {
+    loadEntities(projectId);
+  }, [loadEntities, projectId]);
 
   // Workspace tabs
   const activeTab = useWorkspaceStore(selectActiveWorkspaceTab);
@@ -321,6 +330,7 @@ export function WorkspacePanel({
             documents={supabaseDocuments}
             entities={supabaseEntities}
             relations={entityRelations}
+            onEntitiesUpdated={handleEntitiesUpdated}
           />
         )}
 
@@ -343,6 +353,7 @@ export function WorkspacePanel({
                   (e) => e.type === 'CHARACTER'
                 )}
                 relations={entityRelations}
+                onEntitiesUpdated={handleEntitiesUpdated}
               />
             )}
           </div>

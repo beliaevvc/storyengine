@@ -25,9 +25,16 @@ import { CharacterNode } from './nodes/CharacterNode';
 import { LocationNode } from './nodes/LocationNode';
 import { ItemNode } from './nodes/ItemNode';
 import { RelationEdge } from './edges/RelationEdge';
+import { ConnectionModal } from './ConnectionModal';
 import { extractScenesFromContent } from '@/presentation/utils/extractScenes';
 import type { Entity, Document } from '@/types/supabase';
 import type { TiptapContent } from '@/core/entities/document';
+
+// Pending connection state
+interface PendingConnection {
+  sourceId: string;
+  targetId: string;
+}
 
 // Filter state interface
 interface FlowFilters {
@@ -173,6 +180,7 @@ interface FlowCanvasProps {
     label?: string;
   }>;
   onNodeClick?: (nodeId: string, type: string) => void;
+  onEntitiesUpdated?: () => void;
 }
 
 // Main export - wraps inner component with ReactFlowProvider
@@ -191,10 +199,12 @@ function FlowCanvasInner({
   entities = [],
   relations = [],
   onNodeClick,
+  onEntitiesUpdated,
 }: FlowCanvasProps) {
   const [mode, setMode] = useState<FlowMode>('plot');
   const [filters, setFilters] = useState<FlowFilters>(() => loadFilters(projectId, 'relations'));
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+  const [pendingConnection, setPendingConnection] = useState<PendingConnection | null>(null);
   const { setViewport, getViewport } = useReactFlow();
   
   // Refs to access current state in cleanup function
@@ -305,10 +315,34 @@ function FlowCanvasInner({
     [projectId, mode]
   );
 
+  // Handle connection attempt - show modal for relations mode
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params: Connection) => {
+      if (mode === 'relations' && params.source && params.target) {
+        // In relations mode, show modal to select relationship type
+        setPendingConnection({
+          sourceId: params.source,
+          targetId: params.target,
+        });
+      } else {
+        // In plot mode, add edge directly
+        setEdges((eds) => addEdge(params, eds));
+      }
+    },
+    [mode, setEdges]
   );
+
+  // Get entities by ID for the connection modal
+  const entityMap = useMemo(() => {
+    return new Map(entities.map((e) => [e.id, e]));
+  }, [entities]);
+
+  // Handle successful connection creation
+  const handleConnectionCreated = useCallback(() => {
+    setPendingConnection(null);
+    // Trigger refresh of entities
+    onEntitiesUpdated?.();
+  }, [onEntitiesUpdated]);
 
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -511,6 +545,16 @@ function FlowCanvasInner({
           </div>
         </Panel>
       </ReactFlow>
+
+      {/* Connection Modal */}
+      <ConnectionModal
+        isOpen={pendingConnection !== null}
+        onClose={() => setPendingConnection(null)}
+        sourceEntity={pendingConnection ? entityMap.get(pendingConnection.sourceId) || null : null}
+        targetEntity={pendingConnection ? entityMap.get(pendingConnection.targetId) || null : null}
+        projectId={projectId}
+        onConnectionCreated={handleConnectionCreated}
+      />
     </div>
   );
 }
