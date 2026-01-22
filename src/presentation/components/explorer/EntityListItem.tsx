@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
-import type { Entity, EntityType } from '@/core/entities/entity';
+import type { Entity } from '@/core/entities/entity';
 import { cn } from '@/lib/utils';
+import { getEntityTypeColor } from '@/presentation/components/entities/EntityTypeIcon';
 
 interface EntityListItemProps {
   entity: Entity;
@@ -13,16 +14,6 @@ interface EntityListItemProps {
   onRename?: (newName: string) => void;
   onDelete?: () => void;
 }
-
-const entityColorMap: Record<EntityType, string> = {
-  CHARACTER: 'bg-blue-400',
-  LOCATION: 'bg-green-400',
-  ITEM: 'bg-yellow-400',
-  EVENT: 'bg-purple-400',
-  FACTION: 'bg-red-400',
-  WORLDBUILDING: 'bg-cyan-400',
-  NOTE: 'bg-gray-400',
-};
 
 export function EntityListItem({ 
   entity, 
@@ -107,10 +98,8 @@ export function EntityListItem({
       aria-selected={isSelected}
     >
       <span 
-        className={cn(
-          'w-2 h-2 rounded-full flex-shrink-0',
-          entityColorMap[entity.type]
-        )} 
+        className="w-2 h-2 rounded-full flex-shrink-0"
+        style={{ backgroundColor: getEntityTypeColor(entity.type) }}
         aria-hidden="true"
       />
       <div className="flex-1 min-w-0">

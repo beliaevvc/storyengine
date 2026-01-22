@@ -19,11 +19,10 @@ import { cn } from '@/lib/utils';
 // Default tabs configuration by entity type
 // ============================================================================
 
-import type { EntityType } from '@/core/entities/entity';
-
 type TabConfig = Omit<EntityDocument, 'content'>;
 
-const ENTITY_TABS: Record<EntityType, TabConfig[]> = {
+// Default tabs for known entity types
+const ENTITY_TABS: Record<string, TabConfig[]> = {
   CHARACTER: [
     { id: 'biography', title: 'Биография', isDefault: true, order: 0 },
     { id: 'psychology', title: 'Психология', isDefault: true, order: 1 },
@@ -65,6 +64,13 @@ const ENTITY_TABS: Record<EntityType, TabConfig[]> = {
   ],
 };
 
+// Default tabs for custom entity types
+const DEFAULT_CUSTOM_TABS: TabConfig[] = [
+  { id: 'description', title: 'Описание', isDefault: true, order: 0 },
+  { id: 'notes', title: 'Заметки', isDefault: true, order: 1 },
+  { id: 'references', title: 'Референсы', isDefault: true, order: 2 },
+];
+
 const TAB_PLACEHOLDERS: Record<string, string> = {
   // Character
   biography: 'Опишите историю и биографию персонажа...',
@@ -87,8 +93,12 @@ const TAB_PLACEHOLDERS: Record<string, string> = {
   content: 'Начните писать...',
 };
 
-function getDefaultTabs(entityType: EntityType): TabConfig[] {
-  return ENTITY_TABS[entityType] || ENTITY_TABS.NOTE;
+function getDefaultTabs(entityType: string): TabConfig[] {
+  // Ensure entityType is a string
+  const typeStr = typeof entityType === 'string' ? entityType : String(entityType || '');
+  
+  // Return tabs for known types, or default custom tabs for unknown types
+  return ENTITY_TABS[typeStr] || DEFAULT_CUSTOM_TABS;
 }
 
 // ============================================================================

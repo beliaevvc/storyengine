@@ -1,6 +1,6 @@
 'use client';
 
-import type { Entity, EntityType } from '@/core/entities';
+import type { Entity } from '@/core/entities';
 import {
   Card,
   CardHeader,
@@ -11,46 +11,23 @@ import {
 } from '@/presentation/components/ui';
 import { EntityAttributes } from './EntityAttributes';
 import { EntityRelationships } from './EntityRelationships';
-import { User, MapPin, Package, Calendar, Lightbulb, MoreVertical, Users, Globe, FileText } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DynamicIcon } from '@/presentation/components/ui/icon-picker';
+import { getEntityTypeIcon, getEntityTypeLabel, getEntityTypeColor } from '@/presentation/components/entities/EntityTypeIcon';
 
 interface EntityCardProps {
   entity: Entity;
   className?: string;
 }
 
-const entityIcons: Record<EntityType, React.ElementType> = {
-  CHARACTER: User,
-  LOCATION: MapPin,
-  ITEM: Package,
-  EVENT: Calendar,
-  FACTION: Users,
-  WORLDBUILDING: Globe,
-  NOTE: FileText,
-};
-
-const entityBgColors: Record<EntityType, string> = {
-  CHARACTER: 'bg-entity-character/20',
-  LOCATION: 'bg-entity-location/20',
-  ITEM: 'bg-entity-item/20',
-  EVENT: 'bg-entity-event/20',
-  FACTION: 'bg-red-500/20',
-  WORLDBUILDING: 'bg-cyan-500/20',
-  NOTE: 'bg-gray-500/20',
-};
-
-const entityTextColors: Record<EntityType, string> = {
-  CHARACTER: 'text-entity-character',
-  LOCATION: 'text-entity-location',
-  ITEM: 'text-entity-item',
-  EVENT: 'text-entity-event',
-  FACTION: 'text-red-400',
-  WORLDBUILDING: 'text-cyan-400',
-  NOTE: 'text-gray-400',
-};
-
 export function EntityCard({ entity, className }: EntityCardProps) {
-  const Icon = entityIcons[entity.type];
+  // Ensure entity.type is a string
+  const entityType = typeof entity.type === 'string' ? entity.type : String(entity.type || 'NOTE');
+  
+  const iconName = getEntityTypeIcon(entityType);
+  const typeColor = getEntityTypeColor(entityType);
+  const typeLabel = getEntityTypeLabel(entityType);
 
   const attributes = (entity.attributes ?? {}) as Record<string, unknown>;
   const relationships = attributes.relationships as Record<string, { type: string; description?: string }> | undefined;
@@ -61,14 +38,17 @@ export function EntityCard({ entity, className }: EntityCardProps) {
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <div className={cn('p-1.5 rounded-md', entityBgColors[entity.type])}>
-              <Icon className={cn('w-4 h-4', entityTextColors[entity.type])} />
+            <div 
+              className="p-1.5 rounded-md"
+              style={{ backgroundColor: `${typeColor}20` }}
+            >
+              <DynamicIcon name={iconName} className="w-4 h-4" style={{ color: typeColor }} />
             </div>
             <div>
               <CardTitle className="text-base">{entity.name}</CardTitle>
               <CardDescription className="text-xs mt-0.5">
                 <Badge variant="secondary" className="text-2xs">
-                  {entity.type}
+                  {typeLabel}
                 </Badge>
               </CardDescription>
             </div>
