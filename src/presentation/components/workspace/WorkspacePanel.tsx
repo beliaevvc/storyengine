@@ -31,11 +31,14 @@ interface WorkspacePanelProps {
   activeMode: WorkspaceMode;
 }
 
-// Relationship stored in entity.attributes
+// Relationship stored in entity.attributes (supports both old and new format)
 interface StoredRelationship {
   entityId: string;
-  typeId: string;
-  typeName: string;
+  // New format
+  typeId?: string;
+  typeName?: string;
+  // Old format
+  type?: string;
   description?: string;
 }
 
@@ -58,6 +61,9 @@ function extractRelationsFromEntities(entities: DomainEntity[]): FlowRelation[] 
     const relationships = (attributes?.relationships || []) as StoredRelationship[];
 
     relationships.forEach((rel) => {
+      // Skip if no target entity
+      if (!rel.entityId) return;
+      
       // Create a unique key for the pair (sorted to avoid duplicates)
       const pairKey = [entity.id, rel.entityId].sort().join('_');
       
@@ -65,12 +71,15 @@ function extractRelationsFromEntities(entities: DomainEntity[]): FlowRelation[] 
       if (seenPairs.has(pairKey)) return;
       seenPairs.add(pairKey);
 
+      // Get label from either new format (typeName) or old format (type)
+      const label = rel.typeName || rel.type || '';
+
       relations.push({
         id: `rel-${entity.id}-${rel.entityId}`,
         source_id: entity.id,
         target_id: rel.entityId,
-        relation_type: rel.typeName,
-        label: rel.typeName,
+        relation_type: label,
+        label: label,
       });
     });
   });
@@ -209,7 +218,11 @@ export function WorkspacePanel({
   const supabaseDocuments = mapDocumentsToSupabase(documents);
   
   // Extract relations from entities for FlowCanvas
-  const entityRelations = useMemo(() => extractRelationsFromEntities(entities), [entities]);
+  const entityRelations = useMemo(() => {
+    const relations = extractRelationsFromEntities(entities);
+    console.log('[WorkspacePanel] Extracted relations:', relations.length, relations);
+    return relations;
+  }, [entities]);
 
   // Determine what to show in editor mode
   const renderEditorContent = () => {
