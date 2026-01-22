@@ -157,14 +157,18 @@ function TabItem({
       <button
         type="button"
         className={cn(
-          'ml-1 p-0.5 rounded hover:bg-overlay transition-colors flex-shrink-0',
-          'opacity-0 group-hover:opacity-100',
-          isActive && 'opacity-100'
+          'ml-1 p-1 rounded hover:bg-overlay transition-colors flex-shrink-0',
+          isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
         )}
-        onClick={handleClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onClose();
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
         aria-label={`Close ${tab.title}`}
       >
-        <X className="w-3 h-3" />
+        <X className="w-3.5 h-3.5" />
       </button>
     </div>
   );
