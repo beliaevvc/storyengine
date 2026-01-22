@@ -10,11 +10,11 @@ import { useProjectStore } from '@/presentation/stores/useProjectStore';
 import { useEditorStore } from '@/presentation/stores/useEditorStore';
 import { createEntity } from '@/app/actions/supabase/entity-actions';
 
-// Status config - clean style
-const STATUS_CONFIG: Record<SceneStatus, { label: string; dotColor: string }> = {
-  draft: { label: 'Черновик', dotColor: 'bg-zinc-400' },
-  review: { label: 'Проверка', dotColor: 'bg-amber-400' },
-  final: { label: 'Готово', dotColor: 'bg-emerald-400' },
+// Status config - using design tokens
+const STATUS_CONFIG: Record<SceneStatus, { label: string; bgClass: string; textClass: string }> = {
+  draft: { label: 'Черновик', bgClass: 'bg-fg-muted/20', textClass: 'text-fg-secondary' },
+  review: { label: 'Проверка', bgClass: 'bg-warning/20', textClass: 'text-warning' },
+  final: { label: 'Готово', bgClass: 'bg-success/20', textClass: 'text-success' },
 };
 
 export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }: NodeViewProps) {
@@ -324,8 +324,8 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
   if (isCleanMode) {
     return (
       <NodeViewWrapper className="scene-node my-8" data-scene-id={id}>
-        <div className="pb-2 mb-4 border-b border-[#30363d]" contentEditable={false}>
-          <h2 className="text-lg font-serif text-[#c9d1d9]">{slug}</h2>
+        <div className="pb-2 mb-4 border-b border-border-muted" contentEditable={false}>
+          <h2 className="text-lg font-serif text-fg">{slug}</h2>
         </div>
         <div className="scene-content">
           <NodeViewContent className="prose prose-invert prose-sm max-w-none" />
@@ -347,19 +347,19 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
         draggable
         data-drag-handle
       >
-        <GripVertical className="w-4 h-4 text-[#6e7681]" />
+        <GripVertical className="w-4 h-4 text-fg-muted" />
       </div>
 
       {/* Main Card */}
-      <div className="bg-[#282c34] rounded-lg shadow-md border border-[#3a3f4b] overflow-hidden">
+      <div className="bg-surface rounded-lg shadow-panel border border-border overflow-hidden">
         
         {/* Card Header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-[#3a3f4b]" contentEditable={false}>
+        <div className="flex items-center justify-between px-3 py-2 border-b border-border" contentEditable={false}>
           {/* Left: Collapse + Title */}
           <div className="flex items-center gap-2">
             <button
               onClick={toggleCollapse}
-              className="p-0.5 text-[#8b949e] hover:text-white transition-colors"
+              className="p-0.5 text-fg-secondary hover:text-fg transition-colors"
             >
               {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
@@ -372,12 +372,12 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
                 onChange={(e) => setSlugValue(e.target.value)}
                 onBlur={handleSlugSave}
                 onKeyDown={handleSlugKeyDown}
-                className="bg-[#22272e] border border-[#444c56] rounded px-2 py-1 text-sm text-white outline-none focus:border-[#58a6ff] w-48"
+                className="bg-surface border border-border-emphasis rounded px-2 py-1 text-sm text-fg outline-none focus:border-accent w-48"
               />
             ) : (
               <button
                 onClick={() => setIsEditingSlug(true)}
-                className="text-sm font-medium text-white hover:text-[#58a6ff] transition-colors"
+                className="text-sm font-medium text-fg hover:text-accent transition-colors"
               >
                 Сцена {sceneNumber}
                 {slug !== 'Новая сцена' && `: ${slug}`}
@@ -388,16 +388,12 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
           {/* Right: Word count + Status + Actions */}
           <div className="flex items-center gap-3">
             {/* Word count */}
-            <span className="text-xs text-[#8b949e]">{wordCount} {getWordLabel(wordCount)}</span>
+            <span className="text-xs text-fg-secondary">{wordCount} {getWordLabel(wordCount)}</span>
             
             {/* Status label */}
             <button
               onClick={cycleStatus}
-              className={`text-xs px-2 py-0.5 rounded transition-colors ${
-                status === 'draft' ? 'bg-zinc-700 text-zinc-300' :
-                status === 'review' ? 'bg-amber-900/50 text-amber-400' :
-                'bg-emerald-900/50 text-emerald-400'
-              }`}
+              className={`text-xs px-2 py-0.5 rounded transition-colors ${statusConfig.bgClass} ${statusConfig.textClass}`}
               title="Клик для смены статуса"
             >
               {statusConfig.label}
@@ -406,16 +402,16 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
             {/* Delete button with confirmation */}
             {showDeleteConfirm ? (
               <div className="flex items-center gap-1 text-xs">
-                <span className="text-red-400">Удалить?</span>
+                <span className="text-error">Удалить?</span>
                 <button
                   onClick={handleDelete}
-                  className="px-1.5 py-0.5 text-red-400 hover:bg-red-400/20 rounded transition-colors"
+                  className="px-1.5 py-0.5 text-error hover:bg-error/20 rounded transition-colors"
                 >
                   Да
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="px-1.5 py-0.5 text-[#6e7681] hover:bg-[#3a3f4b] rounded transition-colors"
+                  className="px-1.5 py-0.5 text-fg-muted hover:bg-overlay rounded transition-colors"
                 >
                   Нет
                 </button>
@@ -423,7 +419,7 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
             ) : (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="p-1 text-[#6e7681] hover:text-red-400 transition-colors"
+                className="p-1 text-fg-muted hover:text-error transition-colors"
                 title="Удалить сцену"
               >
                 <X className="w-4 h-4" />
@@ -434,33 +430,33 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
 
         {/* Location & Characters row - always visible */}
         {!collapsed && (
-          <div className="flex items-center gap-4 px-3 py-1.5 border-b border-[#3a3f4b] text-xs" contentEditable={false}>
+          <div className="flex items-center gap-4 px-3 py-1.5 border-b border-border text-xs" contentEditable={false}>
             {/* Location */}
             <div className="relative flex items-center gap-1.5" ref={locationPickerRef}>
-              <span className="text-[#6e7681]">📍</span>
+              <span className="text-fg-muted">📍</span>
               {currentLocation ? (
-                <span className="text-[#58a6ff] flex items-center gap-1">
+                <span className="text-accent flex items-center gap-1">
                   {currentLocation.name}
-                  <button onClick={clearLocation} className="text-[#6e7681] hover:text-red-400">×</button>
+                  <button onClick={clearLocation} className="text-fg-muted hover:text-error">×</button>
                 </span>
               ) : (
                 <button
                   onClick={() => setShowLocationPicker(!showLocationPicker)}
-                  className="text-[#6e7681] hover:text-[#58a6ff] transition-colors"
+                  className="text-fg-muted hover:text-accent transition-colors"
                 >
                   + локация
                 </button>
               )}
               {showLocationPicker && (
-                <div className="absolute left-0 top-full mt-1 bg-[#22272e] border border-[#444c56] rounded shadow-lg z-50 min-w-[160px]">
-                  <div className="p-2 border-b border-[#444c56]">
+                <div className="absolute left-0 top-full mt-1 bg-surface border border-border-emphasis rounded shadow-dropdown z-50 min-w-[160px]">
+                  <div className="p-2 border-b border-border-emphasis">
                     <input
                       ref={newLocationInputRef}
                       value={newLocationName}
                       onChange={(e) => setNewLocationName(e.target.value)}
                       onKeyDown={handleNewLocationKeyDown}
                       placeholder="Новая локация..."
-                      className="w-full bg-[#2d333b] border border-[#444c56] rounded px-2 py-1 text-xs text-white placeholder:text-[#6e7681] focus:outline-none focus:border-[#58a6ff]"
+                      className="w-full bg-overlay border border-border-emphasis rounded px-2 py-1 text-xs text-fg placeholder:text-fg-muted focus:outline-none focus:border-accent"
                     />
                   </div>
                   <div className="max-h-[120px] overflow-y-auto">
@@ -468,7 +464,7 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
                       <button
                         key={loc.id}
                         onClick={() => selectLocation(loc)}
-                        className="w-full text-left px-3 py-1.5 text-xs text-[#c9d1d9] hover:bg-[#2d333b]"
+                        className="w-full text-left px-3 py-1.5 text-xs text-fg hover:bg-overlay"
                       >
                         {loc.name}
                       </button>
@@ -478,34 +474,34 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
               )}
             </div>
 
-            <span className="text-[#3a3f4b]">|</span>
+            <span className="text-border">|</span>
 
             {/* Characters */}
             <div className="flex items-center gap-1.5 flex-wrap" ref={characterPickerRef}>
-              <span className="text-[#6e7681]">👤</span>
+              <span className="text-fg-muted">👤</span>
               {sceneCharacters.map((charId) => (
-                <span key={charId} className="bg-[#3a3f4b] px-1.5 py-0.5 rounded text-[#c9d1d9] flex items-center gap-1">
+                <span key={charId} className="bg-overlay px-1.5 py-0.5 rounded text-fg flex items-center gap-1">
                   {getCharacterName(charId)}
-                  <button onClick={() => removeCharacter(charId)} className="text-[#6e7681] hover:text-red-400">×</button>
+                  <button onClick={() => removeCharacter(charId)} className="text-fg-muted hover:text-error">×</button>
                 </span>
               ))}
               <div className="relative">
                 <button
                   onClick={() => setShowCharacterPicker(!showCharacterPicker)}
-                  className="text-[#6e7681] hover:text-[#58a6ff] transition-colors"
+                  className="text-fg-muted hover:text-accent transition-colors"
                 >
                   +
                 </button>
                 {showCharacterPicker && (
-                  <div className="absolute left-0 top-full mt-1 bg-[#22272e] border border-[#444c56] rounded shadow-lg z-50 min-w-[140px]">
+                  <div className="absolute left-0 top-full mt-1 bg-surface border border-border-emphasis rounded shadow-dropdown z-50 min-w-[140px]">
                     {availableCharacters.length === 0 ? (
-                      <div className="px-3 py-2 text-xs text-[#6e7681]">Все добавлены</div>
+                      <div className="px-3 py-2 text-xs text-fg-muted">Все добавлены</div>
                     ) : (
                       availableCharacters.map((char) => (
                         <button
                           key={char.id}
                           onClick={() => addCharacter(char.id)}
-                          className="w-full text-left px-3 py-1.5 text-xs text-[#c9d1d9] hover:bg-[#2d333b]"
+                          className="w-full text-left px-3 py-1.5 text-xs text-fg hover:bg-overlay"
                         >
                           {char.name}
                         </button>
@@ -520,35 +516,35 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
 
         {/* Meta Section - Goal/Event/Change - always visible */}
         {!collapsed && (
-          <div className="px-3 py-2 bg-[#21252b] border-b border-[#3a3f4b] space-y-1.5" contentEditable={false}>
+          <div className="px-3 py-2 bg-inset border-b border-border space-y-1.5" contentEditable={false}>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#6e7681] w-20">Цель:</span>
+              <span className="text-xs text-fg-muted w-20">Цель:</span>
               <input
                 value={goalValue}
                 onChange={(e) => setGoalValue(e.target.value)}
                 onBlur={() => handleMetaFieldSave('goal', goalValue)}
                 placeholder="..."
-                className="flex-1 bg-transparent text-xs text-[#c9d1d9] placeholder:text-[#6e7681] focus:outline-none"
+                className="flex-1 bg-transparent text-xs text-fg placeholder:text-fg-muted focus:outline-none"
               />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#6e7681] w-20">Событие:</span>
+              <span className="text-xs text-fg-muted w-20">Событие:</span>
               <input
                 value={eventValue}
                 onChange={(e) => setEventValue(e.target.value)}
                 onBlur={() => handleMetaFieldSave('event', eventValue)}
                 placeholder="..."
-                className="flex-1 bg-transparent text-xs text-[#c9d1d9] placeholder:text-[#6e7681] focus:outline-none"
+                className="flex-1 bg-transparent text-xs text-fg placeholder:text-fg-muted focus:outline-none"
               />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#6e7681] w-20">Изменение:</span>
+              <span className="text-xs text-fg-muted w-20">Изменение:</span>
               <input
                 value={changeValue}
                 onChange={(e) => setChangeValue(e.target.value)}
                 onBlur={() => handleMetaFieldSave('change', changeValue)}
                 placeholder="..."
-                className="flex-1 bg-transparent text-xs text-[#c9d1d9] placeholder:text-[#6e7681] focus:outline-none"
+                className="flex-1 bg-transparent text-xs text-fg placeholder:text-fg-muted focus:outline-none"
               />
             </div>
           </div>
@@ -563,7 +559,7 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
 
         {/* Collapsed preview */}
         {collapsed && (
-          <div className="px-3 py-2 text-sm text-[#8b949e]" contentEditable={false}>
+          <div className="px-3 py-2 text-sm text-fg-secondary" contentEditable={false}>
             {(node.textContent || '').slice(0, 120)}{(node.textContent || '').length > 120 && '...'}
           </div>
         )}
@@ -576,7 +572,7 @@ export function SceneView({ node, updateAttributes, editor, getPos, deleteNode }
       >
         <button
           onClick={handleAddAfterScene}
-          className="flex items-center gap-1 px-2 py-0.5 text-xs text-[#6e7681] hover:text-white hover:bg-[#2d333b] rounded transition-colors"
+          className="flex items-center gap-1 px-2 py-0.5 text-xs text-fg-muted hover:text-fg hover:bg-overlay rounded transition-colors"
         >
           <Plus className="w-3 h-3" />
         </button>

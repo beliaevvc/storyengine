@@ -2,6 +2,91 @@
 
 ## Current Task
 
+### STYLE-001: Редизайн сцен и блоков под общий стиль
+- **Status**: ✅ COMPLETE
+- **Level**: 2 (UI Enhancement)
+- **Date**: 2026-01-22
+
+#### Описание
+Приведение дизайна SceneView и SemanticBlockView к единому стилю с остальными компонентами через использование design tokens вместо жёстких hex-кодов.
+
+#### Проблема
+- SceneView и SemanticBlockView используют hex-коды: `#282c34`, `#3a3f4b`, `#58a6ff`
+- Остальной UI использует Tailwind tokens: `bg-surface`, `text-fg`, `border-border`
+
+#### Чеклист
+- [x] SceneView.tsx — замена hex на tokens
+- [x] SemanticBlockView.tsx — замена hex на tokens
+- [ ] Тестирование в браузере
+
+#### Изменённые файлы
+```
+src/presentation/components/editor/extensions/SceneView.tsx
+src/presentation/components/editor/extensions/SemanticBlockView.tsx
+src/app/globals.css  # Добавлены CSS переменные для inline стилей
+```
+
+#### Маппинг замен
+| Было | Стало |
+|------|-------|
+| `bg-[#282c34]` | `bg-surface` |
+| `bg-[#21252b]` | `bg-inset` |
+| `bg-[#2d333b]` | `bg-overlay` |
+| `border-[#3a3f4b]` | `border-border` |
+| `border-[#444c56]` | `border-border-emphasis` |
+| `text-[#c9d1d9]` | `text-fg` |
+| `text-[#8b949e]` | `text-fg-secondary` |
+| `text-[#6e7681]` | `text-fg-muted` |
+| `text-[#58a6ff]` | `text-accent` |
+| `hover:text-red-400` | `hover:text-error` |
+
+---
+
+### MODAL-001: Профиль сущности в модальном окне
+- **Status**: ✅ ARCHIVED
+- **Level**: 3 (Intermediate Feature)
+- **Date**: 2026-01-22
+- **Reflection**: `reflection/reflection-MODAL-001.md` ✅
+- **Archive**: `archive/archive-MODAL-001.md` ✅
+
+---
+
+### FLOW-001: Рефакторинг FlowCanvas — объединение вкладок
+- **Status**: ✅ ARCHIVED
+- **Level**: 3 (Intermediate Feature)
+- **Date**: 2026-01-22
+- **Reflection**: `reflection/reflection-FLOW-001.md` ✅
+- **Archive**: `archive/archive-FLOW-001.md` ✅
+
+---
+
+### FLOW-002: Интерактивная работа со связями
+- **Status**: ✅ ARCHIVED
+- **Level**: 3 (Intermediate Feature)
+- **Date**: 2026-01-22
+- **Reflection**: `reflection/reflection-FLOW-002.md` ✅
+- **Archive**: `archive/archive-FLOW-002.md` ✅
+
+---
+
+### NAV-001: Навигация и сохранение состояния
+- **Status**: ✅ ARCHIVED
+- **Level**: 2 (Basic Enhancement)
+- **Date**: 2026-01-22
+- **Reflection**: `reflection/reflection-NAV-001.md` ✅
+- **Archive**: `archive/archive-NAV-001.md` ✅
+
+---
+
+### NAV-002: Автопереключение в редактор при клике на документ
+- **Status**: ✅ ARCHIVED
+- **Level**: 2 (Basic Enhancement)
+- **Date**: 2026-01-22
+- **Reflection**: `reflection/reflection-NAV-002.md` ✅
+- **Archive**: `archive/archive-NAV-002.md` ✅
+
+---
+
 ### PLOT-001: Сохранение состояния вкладки "Сюжет"
 - **Status**: ✅ COMPLETE
 - **Level**: 2 (Basic Enhancement)

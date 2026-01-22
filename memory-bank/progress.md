@@ -1,5 +1,76 @@
 # Progress
 
+## NAV-002: Автопереключение в редактор — ARCHIVED ✅
+
+**Дата завершения**: 2026-01-22
+
+### Результаты
+- ✅ workspaceMode перенесён в глобальный useUIStore
+- ✅ Автопереключение в режим "Редактор" при клике на документ
+- ✅ viewMode (syntax/clean) сохраняется в localStorage
+
+### Изменённые файлы
+- `src/presentation/stores/useUIStore.ts`
+- `src/presentation/stores/useEditorStore.ts`
+- `src/presentation/components/explorer/FilesTab.tsx`
+- `src/app/(dashboard)/projects/[projectId]/page.tsx`
+
+### Архив
+- Рефлексия: `reflection/reflection-NAV-002.md`
+- Архив: `archive/archive-NAV-002.md`
+
+---
+
+## FLOW-001: Рефакторинг FlowCanvas — ARCHIVED ✅
+
+**Дата завершения**: 2026-01-22
+
+### Результаты
+- ✅ Объединение вкладок "Персонажи" + "Локации" → "Связи"
+- ✅ Панель фильтров для типов сущностей
+- ✅ Сохранение фильтров в localStorage
+
+### Архив
+- Рефлексия: `reflection/reflection-FLOW-001.md`
+- Архив: `archive/archive-FLOW-001.md`
+
+---
+
+## FLOW-002: Интерактивная работа со связями — ARCHIVED ✅
+
+**Дата завершения**: 2026-01-22
+
+### Результаты
+- ✅ Drag & drop создание связей
+- ✅ ConnectionModal и EditConnectionModal
+- ✅ Контекстное меню на линиях связи
+- ✅ Удаление связей с bidirectional обновлением
+
+### Новые файлы
+- `src/presentation/components/flow/ConnectionModal.tsx`
+- `src/presentation/components/flow/EditConnectionModal.tsx`
+
+### Архив
+- Рефлексия: `reflection/reflection-FLOW-002.md`
+- Архив: `archive/archive-FLOW-002.md`
+
+---
+
+## NAV-001: Навигация и сохранение состояния — ARCHIVED ✅
+
+**Дата завершения**: 2026-01-22
+
+### Результаты
+- ✅ Двойной клик → открытие профиля сущности
+- ✅ Удаление кнопки "Персонажи" из Header
+- ✅ Персистентный activeMode в localStorage
+
+### Архив
+- Рефлексия: `reflection/reflection-NAV-001.md`
+- Архив: `archive/archive-NAV-001.md`
+
+---
+
 ## TYPES-001: Рефакторинг системы типизации — ARCHIVED ✅
 
 **Дата завершения**: 2026-01-21

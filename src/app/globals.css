@@ -5,6 +5,14 @@
 @layer base {
   :root {
     --radius: 0.375rem;
+    
+    /* Color tokens for inline styles */
+    --color-border: #373e47;
+    --color-border-emphasis: #444c56;
+    --color-accent: #539bf5;
+    --color-success: #57ab5a;
+    --color-warning: #c69026;
+    --color-entity-character: #a371f7;
   }
 
   * {

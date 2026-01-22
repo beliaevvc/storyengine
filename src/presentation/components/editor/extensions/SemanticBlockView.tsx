@@ -16,59 +16,53 @@ interface BlockTypeConfig {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   labelFull: string;
-  bgColor: string;
   borderColor: string;
   textColor: string;
 }
 
+// Using design tokens for colors
 const BLOCK_TYPE_CONFIG: Record<SemanticBlockType, BlockTypeConfig> = {
   empty: {
     icon: FileText,
     label: '',
     labelFull: 'Блок',
-    bgColor: '',
-    borderColor: '#3a3f4b',
-    textColor: 'text-[#6e7681]',
+    borderColor: 'var(--color-border, #373e47)',
+    textColor: 'text-fg-muted',
   },
   unmarked: {
     icon: FileText,
     label: '',
     labelFull: 'Неразмеченный',
-    bgColor: '',
-    borderColor: '#5a6c7d',
-    textColor: 'text-[#8b949e]',
+    borderColor: 'var(--color-border-emphasis, #444c56)',
+    textColor: 'text-fg-secondary',
   },
   dialogue: {
     icon: MessageCircle,
     label: 'DLG',
     labelFull: 'Диалог',
-    bgColor: '',
-    borderColor: '#58a6ff', // blue
-    textColor: 'text-[#58a6ff]',
+    borderColor: 'var(--color-accent, #539bf5)',
+    textColor: 'text-accent',
   },
   description: {
     icon: Mountain,
     label: 'DSC',
     labelFull: 'Описание',
-    bgColor: '',
-    borderColor: '#3fb950', // green
-    textColor: 'text-[#3fb950]',
+    borderColor: 'var(--color-success, #57ab5a)',
+    textColor: 'text-success',
   },
   action: {
     icon: Zap,
     label: 'ACT',
     labelFull: 'Действие',
-    bgColor: '',
-    borderColor: '#d29922', // orange
-    textColor: 'text-[#d29922]',
+    borderColor: 'var(--color-warning, #c69026)',
+    textColor: 'text-warning',
   },
   thought: {
     icon: Brain,
     label: 'THT',
     labelFull: 'Мысли',
-    bgColor: '',
-    borderColor: '#a371f7', // purple
-    textColor: 'text-[#a371f7]',
+    borderColor: 'var(--color-entity-character, #a371f7)',
+    textColor: 'text-entity-character',
   },
 };
 
@@ -279,13 +273,13 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
     <NodeViewWrapper
       className={`semantic-block relative mt-1 mb-3 group/semantic rounded-r border-r border-t border-b transition-all ${
         isNew 
-          ? 'border-purple-500/50 bg-purple-500/5 animate-pulse' 
-          : 'border-[#3a3f4b] hover:border-[#444c56]'
+          ? 'border-entity-character/50 bg-entity-character/5 animate-pulse' 
+          : 'border-border hover:border-border-emphasis'
       }`}
       style={{
         borderLeftWidth: isTyped ? '3px' : '1px',
         borderLeftStyle: 'solid',
-        borderLeftColor: isNew ? 'rgb(168 85 247 / 0.5)' : accentColor,
+        borderLeftColor: isNew ? 'rgb(163 113 247 / 0.5)' : accentColor,
         borderRadius: '0 4px 4px 0',
       }}
       data-block-type={blockType}
@@ -301,11 +295,11 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
         data-drag-handle
       >
         {/* Drag indicator */}
-        <GripVertical className="w-4 h-4 text-[#6e7681] flex-shrink-0" />
+        <GripVertical className="w-4 h-4 text-fg-muted flex-shrink-0" />
         {/* Empty block: show type selector */}
         {isEmptyBlock ? (
           <div className="flex items-center gap-1">
-            <span className="text-xs text-[#6e7681] mr-1">Тип:</span>
+            <span className="text-xs text-fg-muted mr-1">Тип:</span>
             {BLOCK_TYPES.map((type) => {
               const typeConfig = BLOCK_TYPE_CONFIG[type];
               const TypeIcon = typeConfig.icon;
@@ -313,7 +307,7 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
                 <button
                   key={type}
                   onClick={() => handleChangeType(type)}
-                  className="flex items-center gap-1 px-2 py-0.5 text-xs text-[#8b949e] hover:text-white hover:bg-[#3a3f4b] rounded transition-colors"
+                  className="flex items-center gap-1 px-2 py-0.5 text-xs text-fg-secondary hover:text-fg hover:bg-overlay rounded transition-colors"
                   title={typeConfig.labelFull}
                 >
                   <TypeIcon className="w-3.5 h-3.5" />
@@ -325,8 +319,8 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
         ) : isUnmarkedBlock ? (
           /* Unmarked block: show hint + quick type buttons + move to scene */
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[#8b949e]">Неразмеченный</span>
-            <span className="text-xs text-[#6e7681]">—</span>
+            <span className="text-xs text-fg-secondary">Неразмеченный</span>
+            <span className="text-xs text-fg-muted">—</span>
             {BLOCK_TYPES.map((type) => {
               const typeConfig = BLOCK_TYPE_CONFIG[type];
               const TypeIcon = typeConfig.icon;
@@ -334,17 +328,17 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
                 <button
                   key={type}
                   onClick={() => handleChangeType(type)}
-                  className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-[#6e7681] hover:text-white hover:bg-[#3a3f4b] rounded transition-colors"
+                  className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-fg-muted hover:text-fg hover:bg-overlay rounded transition-colors"
                   title={typeConfig.labelFull}
                 >
                   <TypeIcon className="w-3 h-3" />
                 </button>
               );
             })}
-            <span className="text-xs text-[#6e7681]">|</span>
+            <span className="text-xs text-fg-muted">|</span>
             <button
               onClick={handleMoveToNewScene}
-              className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-[#6e7681] hover:text-white hover:bg-[#3a3f4b] rounded transition-colors"
+              className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-fg-muted hover:text-fg hover:bg-overlay rounded transition-colors"
               title="Перенести в новую сцену"
             >
               <Film className="w-3 h-3" />
@@ -356,7 +350,7 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
             <div className="relative" ref={typePickerRef}>
               <button
                 onClick={() => setShowTypePicker(!showTypePicker)}
-                className="flex items-center gap-1.5 px-1.5 py-0.5 rounded hover:bg-[#3a3f4b] transition-colors"
+                className="flex items-center gap-1.5 px-1.5 py-0.5 rounded hover:bg-overlay transition-colors"
                 title="Изменить тип блока"
               >
                 <Icon className={`w-4 h-4 ${config.textColor}`} />
@@ -365,7 +359,7 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
                 </span>
               </button>
               {showTypePicker && (
-                <div className="absolute top-full left-0 mt-1 bg-[#22272e] border border-[#444c56] rounded shadow-lg z-50 min-w-[140px]">
+                <div className="absolute top-full left-0 mt-1 bg-surface border border-border-emphasis rounded shadow-dropdown z-50 min-w-[140px]">
                   {BLOCK_TYPES.map((type) => {
                     const typeConfig = BLOCK_TYPE_CONFIG[type];
                     const TypeIcon = typeConfig.icon;
@@ -379,8 +373,8 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
                         }}
                         className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors ${
                           isSelected 
-                            ? 'bg-[#3a3f4b] text-white' 
-                            : 'text-[#c9d1d9] hover:bg-[#2d333b]'
+                            ? 'bg-overlay text-fg' 
+                            : 'text-fg hover:bg-overlay'
                         }`}
                       >
                         <TypeIcon className="w-3.5 h-3.5" />
@@ -396,11 +390,11 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
             {showSpeakerField && speakers.length > 0 && (
               <div className="flex items-center gap-1.5 ml-2">
                 {speakers.map((speaker) => (
-                  <span key={speaker.id} className="text-xs bg-[#2d333b] px-2 py-0.5 rounded text-[#c9d1d9] flex items-center gap-1">
+                  <span key={speaker.id} className="text-xs bg-overlay px-2 py-0.5 rounded text-fg flex items-center gap-1">
                     {speaker.name}
                     <button
                       onClick={() => handleRemoveSpeaker(speaker.id)}
-                      className="text-[#6e7681] hover:text-red-400"
+                      className="text-fg-muted hover:text-error"
                     >
                       ×
                     </button>
@@ -413,20 +407,20 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
               <div className="relative">
                 <button
                   onClick={() => setShowSpeakerPicker(!showSpeakerPicker)}
-                  className="text-xs text-[#6e7681] hover:text-[#c9d1d9] transition-colors"
+                  className="text-xs text-fg-muted hover:text-fg transition-colors"
                 >
                   + персонаж
                 </button>
                 {showSpeakerPicker && (
-                  <div className="absolute top-full left-0 mt-1 bg-[#22272e] border border-[#444c56] rounded shadow-lg z-50 min-w-[140px]">
+                  <div className="absolute top-full left-0 mt-1 bg-surface border border-border-emphasis rounded shadow-dropdown z-50 min-w-[140px]">
                     {availableCharacters.length === 0 ? (
-                      <div className="px-3 py-2 text-xs text-[#6e7681]">Все добавлены</div>
+                      <div className="px-3 py-2 text-xs text-fg-muted">Все добавлены</div>
                     ) : (
                       availableCharacters.map((char) => (
                         <button
                           key={char.id}
                           onClick={() => handleAddSpeaker(char)}
-                          className="w-full text-left px-3 py-1.5 text-xs text-[#c9d1d9] hover:bg-[#2d333b] transition-colors"
+                          className="w-full text-left px-3 py-1.5 text-xs text-fg hover:bg-overlay transition-colors"
                         >
                           {char.name}
                         </button>
@@ -445,7 +439,7 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
         {/* Delete button - always present, opacity changes */}
         <button
           onClick={handleRemove}
-          className={`p-1 text-[#6e7681] hover:text-red-400 transition-all ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+          className={`p-1 text-fg-muted hover:text-error transition-all ${isHovered ? 'opacity-100' : 'opacity-0'}`}
           contentEditable={false}
         >
           <X className="w-3.5 h-3.5" />
@@ -453,7 +447,7 @@ export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttr
       </div>
 
       {/* Divider line */}
-      <div className="mx-2 border-t border-[#3a3f4b]" contentEditable={false} />
+      <div className="mx-2 border-t border-border" contentEditable={false} />
 
       {/* Content */}
       <div className="px-2 py-1">
