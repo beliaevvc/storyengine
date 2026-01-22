@@ -2,31 +2,39 @@
 
 import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { User, Users, Heart, Skull } from 'lucide-react';
+import { User, Users } from 'lucide-react';
 
 export interface CharacterNodeData extends Record<string, unknown> {
   name: string;
   description?: string;
-  role?: string;
-  status?: string;
-  gender?: string;
   relationCount?: number;
   imageUrl?: string;
+  // All attributes from entity
+  attributes?: Record<string, unknown>;
 }
+
+// Skip these keys when displaying attributes
+const SKIP_KEYS = ['relationships', 'role', 'inventory'];
 
 function CharacterNodeComponent({ data: rawData, selected }: NodeProps) {
   const data = rawData as CharacterNodeData;
+  const attrs = data.attributes || {};
   
-  // Status badge color
-  const isAlive = data.status === 'Жив';
-  const isDead = data.status === 'Мертв';
+  // Get displayable attributes (skip internal ones)
+  const displayAttrs = Object.entries(attrs)
+    .filter(([key, value]) => {
+      if (SKIP_KEYS.includes(key)) return false;
+      if (value === null || value === undefined || value === '') return false;
+      if (Array.isArray(value) && value.length === 0) return false;
+      return true;
+    })
+    .slice(0, 4); // Limit to 4 attributes
   
   return (
     <div
       className={`
-        w-48 bg-[#22272e] border rounded-lg overflow-hidden transition-all
+        w-52 bg-[#22272e] border rounded-lg overflow-hidden transition-all
         ${selected ? 'border-blue-500 shadow-lg shadow-blue-500/20' : 'border-[#444c56]'}
-        ${isDead ? 'opacity-70' : ''}
       `}
     >
       <Handle
@@ -52,49 +60,38 @@ function CharacterNodeComponent({ data: rawData, selected }: NodeProps) {
           <h4 className="text-sm font-medium text-[#adbac7] truncate">
             {data.name}
           </h4>
-          {data.role && (
-            <span className="text-xs text-blue-400 truncate block">{data.role}</span>
+          {/* Relation count */}
+          {data.relationCount !== undefined && data.relationCount > 0 && (
+            <span className="inline-flex items-center gap-1 text-xs text-[#768390]">
+              <Users className="w-3 h-3" />
+              {data.relationCount} связей
+            </span>
           )}
         </div>
       </div>
 
-      {/* Info badges */}
-      <div className="px-3 py-2 flex flex-wrap gap-1.5">
-        {/* Status */}
-        {data.status && (
-          <span className={`
-            inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium
-            ${isDead 
-              ? 'bg-red-500/20 text-red-400' 
-              : isAlive 
-                ? 'bg-emerald-500/20 text-emerald-400'
-                : 'bg-gray-500/20 text-gray-400'
-            }
-          `}>
-            {isDead ? <Skull className="w-3 h-3" /> : <Heart className="w-3 h-3" />}
-            {data.status}
-          </span>
-        )}
-        
-        {/* Gender */}
-        {data.gender && (
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/20 text-purple-400">
-            {data.gender}
-          </span>
-        )}
-        
-        {/* Relation count */}
-        {data.relationCount !== undefined && data.relationCount > 0 && (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/20 text-blue-400">
-            <Users className="w-3 h-3" />
-            {data.relationCount}
-          </span>
-        )}
-      </div>
+      {/* Attributes */}
+      {displayAttrs.length > 0 && (
+        <div className="px-3 py-2 space-y-1 border-t border-[#373e47]">
+          {displayAttrs.map(([key, value]) => (
+            <div key={key} className="flex text-[10px]">
+              <span className="text-[#768390] mr-1.5">{key}:</span>
+              <span className="text-[#adbac7] truncate flex-1">
+                {typeof value === 'string' 
+                  ? value 
+                  : Array.isArray(value) 
+                    ? value.join(', ') 
+                    : String(value)
+                }
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Description preview */}
       {data.description && (
-        <div className="px-3 pb-2">
+        <div className="px-3 py-2 border-t border-[#373e47]">
           <p className="text-[10px] text-[#768390] line-clamp-2 leading-relaxed">
             {data.description}
           </p>

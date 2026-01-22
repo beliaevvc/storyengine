@@ -612,9 +612,6 @@ function convertToCharacterMap(
       data: {
         name: char.name,
         description: char.description,
-        role: attrs.role as string | undefined,
-        status: attrs.Состояние as string | undefined,
-        gender: attrs.Пол as string | undefined,
         relationCount: relationships.length,
         attributes: attrs,
       },
