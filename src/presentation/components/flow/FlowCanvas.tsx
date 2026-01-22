@@ -18,21 +18,66 @@ import {
   type Viewport,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { GitBranch, Users, MapPin } from 'lucide-react';
+import { GitBranch, Users, MapPin, Package, Link2, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/presentation/components/ui/button';
 import { SceneNode } from './nodes/SceneNode';
 import { CharacterNode } from './nodes/CharacterNode';
 import { LocationNode } from './nodes/LocationNode';
+import { ItemNode } from './nodes/ItemNode';
 import { RelationEdge } from './edges/RelationEdge';
 import { extractScenesFromContent } from '@/presentation/utils/extractScenes';
 import type { Entity, Document } from '@/types/supabase';
 import type { TiptapContent } from '@/core/entities/document';
+
+// Filter state interface
+interface FlowFilters {
+  showCharacters: boolean;
+  showItems: boolean;
+  showLocations: boolean;
+  showRelations: boolean;
+}
 
 type FlowMode = 'plot' | 'characters' | 'locations';
 
 // Storage keys
 const VIEWPORT_STORAGE_KEY = 'flowcanvas-viewport';
 const POSITIONS_STORAGE_KEY = 'flowcanvas-positions';
+const FILTERS_STORAGE_KEY = 'flowcanvas-filters';
+
+// Default filters
+const DEFAULT_FILTERS: FlowFilters = {
+  showCharacters: true,
+  showItems: true,
+  showLocations: true,
+  showRelations: true,
+};
+
+// Filters persistence helpers
+function getFiltersStorageKey(projectId: string, mode: FlowMode): string {
+  return `${FILTERS_STORAGE_KEY}-${projectId}-${mode}`;
+}
+
+function saveFilters(projectId: string, mode: FlowMode, filters: FlowFilters): void {
+  try {
+    const key = getFiltersStorageKey(projectId, mode);
+    localStorage.setItem(key, JSON.stringify(filters));
+  } catch {
+    // localStorage might be unavailable
+  }
+}
+
+function loadFilters(projectId: string, mode: FlowMode): FlowFilters {
+  try {
+    const key = getFiltersStorageKey(projectId, mode);
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      return { ...DEFAULT_FILTERS, ...JSON.parse(stored) };
+    }
+  } catch {
+    // localStorage might be unavailable or corrupted
+  }
+  return DEFAULT_FILTERS;
+}
 
 // Viewport persistence helpers
 function getViewportStorageKey(projectId: string, mode: FlowMode): string {
@@ -109,6 +154,7 @@ const nodeTypes = {
   scene: SceneNode,
   character: CharacterNode,
   location: LocationNode,
+  item: ItemNode,
 };
 
 const edgeTypes = {
@@ -147,6 +193,8 @@ function FlowCanvasInner({
   onNodeClick,
 }: FlowCanvasProps) {
   const [mode, setMode] = useState<FlowMode>('plot');
+  const [filters, setFilters] = useState<FlowFilters>(() => loadFilters(projectId, 'characters'));
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const { setViewport, getViewport } = useReactFlow();
   
   // Refs to access current state in cleanup function
@@ -154,24 +202,33 @@ function FlowCanvasInner({
   const modeRef = useRef<FlowMode>(mode);
   const projectIdRef = useRef(projectId);
 
-  // Convert data to nodes and edges based on mode, applying stored positions
+  // Update filter
+  const updateFilter = useCallback((key: keyof FlowFilters, value: boolean) => {
+    setFilters(prev => {
+      const newFilters = { ...prev, [key]: value };
+      saveFilters(projectId, mode, newFilters);
+      return newFilters;
+    });
+  }, [projectId, mode]);
+
+  // Convert data to nodes and edges based on mode, applying stored positions and filters
   const { initialNodes, initialEdges } = useMemo(() => {
     let result;
     if (mode === 'plot') {
       result = convertToPlotFlow(documents);
     } else if (mode === 'characters') {
-      result = convertToCharacterMap(entities, relations);
+      result = convertToCharacterMap(entities, relations, filters);
     } else {
-      result = convertToLocationMap(entities, relations);
+      result = convertToLocationMap(entities, relations, filters);
     }
     
     // Apply stored positions
     const storedPositions = loadNodePositions(projectId, mode);
     return {
       initialNodes: applyStoredPositions(result.initialNodes, storedPositions),
-      initialEdges: result.initialEdges,
+      initialEdges: filters.showRelations ? result.initialEdges : [],
     };
-  }, [mode, documents, entities, relations, projectId]);
+  }, [mode, documents, entities, relations, projectId, filters]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -228,6 +285,8 @@ function FlowCanvasInner({
     const currentViewport = getViewport();
     saveViewport(projectId, mode, currentViewport);
     saveNodePositions(projectId, mode, nodes);
+    // Load filters for new mode
+    setFilters(loadFilters(projectId, newMode));
     // Change mode
     setMode(newMode);
   }, [projectId, mode, getViewport, nodes]);
@@ -296,6 +355,7 @@ function FlowCanvasInner({
             if (node.type === 'scene') return '#539bf5';
             if (node.type === 'character') return '#60a5fa';
             if (node.type === 'location') return '#4ade80';
+            if (node.type === 'item') return '#f59e0b';
             return '#768390';
           }}
           maskColor="rgba(28, 33, 40, 0.8)"
@@ -335,6 +395,104 @@ function FlowCanvasInner({
           </div>
         </Panel>
 
+        {/* Filters Panel - показываем только в режимах characters и locations */}
+        {(mode === 'characters' || mode === 'locations') && (
+          <Panel position="top-center" className="!m-4">
+            <div className="bg-[#22272e] border border-[#444c56] rounded-lg overflow-hidden">
+              {/* Кнопка раскрытия/сворачивания */}
+              <button
+                onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+                className="flex items-center gap-2 px-3 py-2 text-xs text-[#768390] hover:text-[#adbac7] transition-colors w-full"
+              >
+                <Filter className="w-3.5 h-3.5" />
+                <span>Фильтры</span>
+                {showFiltersPanel ? (
+                  <ChevronUp className="w-3.5 h-3.5 ml-auto" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5 ml-auto" />
+                )}
+              </button>
+              
+              {/* Панель фильтров */}
+              {showFiltersPanel && (
+                <div className="px-3 py-2 border-t border-[#444c56] space-y-2">
+                  {/* Типы сущностей */}
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={filters.showCharacters}
+                        onChange={(e) => updateFilter('showCharacters', e.target.checked)}
+                        className="w-3.5 h-3.5 rounded border-[#444c56] bg-[#2d333b] text-blue-500 focus:ring-blue-500/20"
+                      />
+                      <Users className="w-3.5 h-3.5 text-blue-400" />
+                      <span className="text-xs text-[#768390] group-hover:text-[#adbac7]">
+                        Персонажи
+                      </span>
+                      <span className="text-[10px] text-[#545d68] ml-auto">
+                        {entities.filter((e) => e.type === 'CHARACTER').length}
+                      </span>
+                    </label>
+                    
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={filters.showItems}
+                        onChange={(e) => updateFilter('showItems', e.target.checked)}
+                        className="w-3.5 h-3.5 rounded border-[#444c56] bg-[#2d333b] text-amber-500 focus:ring-amber-500/20"
+                      />
+                      <Package className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="text-xs text-[#768390] group-hover:text-[#adbac7]">
+                        Предметы
+                      </span>
+                      <span className="text-[10px] text-[#545d68] ml-auto">
+                        {entities.filter((e) => e.type === 'ITEM').length}
+                      </span>
+                    </label>
+
+                    {mode === 'locations' && (
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={filters.showLocations}
+                          onChange={(e) => updateFilter('showLocations', e.target.checked)}
+                          className="w-3.5 h-3.5 rounded border-[#444c56] bg-[#2d333b] text-green-500 focus:ring-green-500/20"
+                        />
+                        <MapPin className="w-3.5 h-3.5 text-green-400" />
+                        <span className="text-xs text-[#768390] group-hover:text-[#adbac7]">
+                          Локации
+                        </span>
+                        <span className="text-[10px] text-[#545d68] ml-auto">
+                          {entities.filter((e) => e.type === 'LOCATION').length}
+                        </span>
+                      </label>
+                    )}
+                  </div>
+                  
+                  {/* Разделитель */}
+                  <div className="border-t border-[#373e47] pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={filters.showRelations}
+                        onChange={(e) => updateFilter('showRelations', e.target.checked)}
+                        className="w-3.5 h-3.5 rounded border-[#444c56] bg-[#2d333b] text-purple-500 focus:ring-purple-500/20"
+                      />
+                      <Link2 className="w-3.5 h-3.5 text-purple-400" />
+                      <span className="text-xs text-[#768390] group-hover:text-[#adbac7]">
+                        Связи
+                      </span>
+                      <span className="text-[10px] text-[#545d68] ml-auto">
+                        {relations.length}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Panel>
+        )}
+
         {/* Stats */}
         <Panel position="top-right" className="!m-4">
           <div className="text-xs text-[#768390] bg-[#22272e] border border-[#444c56] rounded-lg px-3 py-2">
@@ -353,10 +511,22 @@ function FlowCanvasInner({
               });
               return `${folders} папок • ${docs} документов • ${sceneCount} сцен`;
             })()}
-            {mode === 'characters' &&
-              `${entities.filter((e) => e.type === 'CHARACTER').length} персонажей`}
-            {mode === 'locations' &&
-              `${entities.filter((e) => e.type === 'LOCATION').length} локаций`}
+            {mode === 'characters' && (() => {
+              const chars = filters.showCharacters ? entities.filter((e) => e.type === 'CHARACTER').length : 0;
+              const items = filters.showItems ? entities.filter((e) => e.type === 'ITEM').length : 0;
+              const parts = [];
+              if (chars > 0) parts.push(`${chars} персонажей`);
+              if (items > 0) parts.push(`${items} предметов`);
+              return parts.join(' • ') || 'Нет элементов';
+            })()}
+            {mode === 'locations' && (() => {
+              const locs = filters.showLocations ? entities.filter((e) => e.type === 'LOCATION').length : 0;
+              const items = filters.showItems ? entities.filter((e) => e.type === 'ITEM').length : 0;
+              const parts = [];
+              if (locs > 0) parts.push(`${locs} локаций`);
+              if (items > 0) parts.push(`${items} предметов`);
+              return parts.join(' • ') || 'Нет элементов';
+            })()}
           </div>
         </Panel>
       </ReactFlow>
@@ -587,22 +757,41 @@ function convertToCharacterMap(
     target_id: string;
     relation_type: string;
     label?: string;
-  }>
+  }>,
+  filters: FlowFilters
 ): { initialNodes: Node[]; initialEdges: Edge[] } {
-  const characters = entities.filter((e) => e.type === 'CHARACTER');
+  const nodes: Node[] = [];
+  const nodeIds = new Set<string>();
 
+  // Фильтруем персонажей
+  const characters = filters.showCharacters 
+    ? entities.filter((e) => e.type === 'CHARACTER')
+    : [];
+  
+  // Фильтруем предметы
+  const items = filters.showItems 
+    ? entities.filter((e) => e.type === 'ITEM')
+    : [];
+
+  // Общее количество элементов для расчета позиций
+  const totalEntities = characters.length + items.length;
+  
   // Arrange in a circle
   const centerX = 400;
   const centerY = 300;
-  const radius = 200;
+  const baseRadius = 200;
+  // Увеличиваем радиус если много элементов
+  const radius = totalEntities > 8 ? baseRadius + (totalEntities - 8) * 15 : baseRadius;
 
-  const nodes: Node[] = characters.map((char, index) => {
-    const angle = (index / characters.length) * 2 * Math.PI;
+  let currentIndex = 0;
+
+  // Добавляем персонажей
+  characters.forEach((char) => {
+    const angle = (currentIndex / totalEntities) * 2 * Math.PI - Math.PI / 2; // Начинаем сверху
     const attrs = (char.attributes || {}) as Record<string, unknown>;
-    // Count relationships
     const relationships = (attrs.relationships || []) as Array<unknown>;
     
-    return {
+    nodes.push({
       id: char.id,
       type: 'character',
       position: {
@@ -615,12 +804,36 @@ function convertToCharacterMap(
         relationCount: relationships.length,
         attributes: attrs,
       },
-    };
+    });
+    nodeIds.add(char.id);
+    currentIndex++;
   });
 
-  const characterIds = new Set(characters.map((c) => c.id));
+  // Добавляем предметы
+  items.forEach((item) => {
+    const angle = (currentIndex / totalEntities) * 2 * Math.PI - Math.PI / 2;
+    const attrs = (item.attributes || {}) as Record<string, unknown>;
+    
+    nodes.push({
+      id: item.id,
+      type: 'item',
+      position: {
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle),
+      },
+      data: {
+        name: item.name,
+        description: item.description,
+        attributes: attrs,
+      },
+    });
+    nodeIds.add(item.id);
+    currentIndex++;
+  });
+
+  // Фильтруем связи только между видимыми нодами
   const edges: Edge[] = relations
-    .filter((r) => characterIds.has(r.source_id) && characterIds.has(r.target_id))
+    .filter((r) => nodeIds.has(r.source_id) && nodeIds.has(r.target_id))
     .map((rel) => ({
       id: rel.id,
       source: rel.source_id,
@@ -643,27 +856,69 @@ function convertToLocationMap(
     target_id: string;
     relation_type: string;
     label?: string;
-  }>
+  }>,
+  filters: FlowFilters
 ): { initialNodes: Node[]; initialEdges: Edge[] } {
-  const locations = entities.filter((e) => e.type === 'LOCATION');
+  const nodes: Node[] = [];
+  const nodeIds = new Set<string>();
 
-  const nodes: Node[] = locations.map((loc, index) => ({
-    id: loc.id,
-    type: 'location',
-    position: {
-      x: (index % 4) * 220 + 50,
-      y: Math.floor(index / 4) * 180 + 50,
-    },
-    data: {
-      name: loc.name,
-      description: loc.description,
-      region: (loc.attributes as any)?.region,
-    },
-  }));
+  // Фильтруем локации
+  const locations = filters.showLocations 
+    ? entities.filter((e) => e.type === 'LOCATION')
+    : [];
+  
+  // Фильтруем предметы
+  const items = filters.showItems 
+    ? entities.filter((e) => e.type === 'ITEM')
+    : [];
 
-  const locationIds = new Set(locations.map((l) => l.id));
+  let currentIndex = 0;
+  const columnsCount = 4;
+
+  // Добавляем локации
+  locations.forEach((loc) => {
+    nodes.push({
+      id: loc.id,
+      type: 'location',
+      position: {
+        x: (currentIndex % columnsCount) * 220 + 50,
+        y: Math.floor(currentIndex / columnsCount) * 180 + 50,
+      },
+      data: {
+        name: loc.name,
+        description: loc.description,
+        region: (loc.attributes as Record<string, unknown>)?.region,
+      },
+    });
+    nodeIds.add(loc.id);
+    currentIndex++;
+  });
+
+  // Добавляем предметы (в отдельной области под локациями)
+  const itemsStartY = Math.ceil(locations.length / columnsCount) * 180 + 100;
+  
+  items.forEach((item, index) => {
+    const attrs = (item.attributes || {}) as Record<string, unknown>;
+    
+    nodes.push({
+      id: item.id,
+      type: 'item',
+      position: {
+        x: (index % columnsCount) * 200 + 60,
+        y: itemsStartY + Math.floor(index / columnsCount) * 150,
+      },
+      data: {
+        name: item.name,
+        description: item.description,
+        attributes: attrs,
+      },
+    });
+    nodeIds.add(item.id);
+  });
+
+  // Фильтруем связи только между видимыми нодами
   const edges: Edge[] = relations
-    .filter((r) => locationIds.has(r.source_id) && locationIds.has(r.target_id))
+    .filter((r) => nodeIds.has(r.source_id) && nodeIds.has(r.target_id))
     .map((rel) => ({
       id: rel.id,
       source: rel.source_id,
