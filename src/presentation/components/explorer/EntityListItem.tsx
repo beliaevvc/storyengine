@@ -63,10 +63,14 @@ export function EntityListItem({
   const handleClick = () => {
     if (isEditing) return;
     
-    // Select entity in sidebar
+    // Select entity in sidebar (single click)
     onSelect();
+  };
+
+  const handleDoubleClick = () => {
+    if (isEditing) return;
     
-    // Open entity profile modal
+    // Open entity profile modal (double click)
     openEntityProfile(entity.id);
   };
 
@@ -95,6 +99,7 @@ export function EntityListItem({
           : 'hover:bg-surface-hover'
       )}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       onContextMenu={(e) => {
         e.preventDefault();
         setShowMenu(true);
