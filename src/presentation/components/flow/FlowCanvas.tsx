@@ -30,9 +30,11 @@ import type { TiptapContent } from '@/core/entities/document';
 
 type FlowMode = 'plot' | 'characters' | 'locations';
 
-// Viewport persistence helpers
+// Storage keys
 const VIEWPORT_STORAGE_KEY = 'flowcanvas-viewport';
+const POSITIONS_STORAGE_KEY = 'flowcanvas-positions';
 
+// Viewport persistence helpers
 function getViewportStorageKey(projectId: string, mode: FlowMode): string {
   return `${VIEWPORT_STORAGE_KEY}-${projectId}-${mode}`;
 }
@@ -57,6 +59,50 @@ function loadViewport(projectId: string, mode: FlowMode): Viewport | null {
     // localStorage might be unavailable or corrupted
   }
   return null;
+}
+
+// Node positions persistence helpers
+type NodePositions = Record<string, { x: number; y: number }>;
+
+function getPositionsStorageKey(projectId: string, mode: FlowMode): string {
+  return `${POSITIONS_STORAGE_KEY}-${projectId}-${mode}`;
+}
+
+function saveNodePositions(projectId: string, mode: FlowMode, nodes: Node[]): void {
+  try {
+    const key = getPositionsStorageKey(projectId, mode);
+    const positions: NodePositions = {};
+    nodes.forEach((node) => {
+      positions[node.id] = { x: node.position.x, y: node.position.y };
+    });
+    localStorage.setItem(key, JSON.stringify(positions));
+  } catch {
+    // localStorage might be unavailable
+  }
+}
+
+function loadNodePositions(projectId: string, mode: FlowMode): NodePositions | null {
+  try {
+    const key = getPositionsStorageKey(projectId, mode);
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      return JSON.parse(stored) as NodePositions;
+    }
+  } catch {
+    // localStorage might be unavailable or corrupted
+  }
+  return null;
+}
+
+function applyStoredPositions(nodes: Node[], storedPositions: NodePositions | null): Node[] {
+  if (!storedPositions) return nodes;
+  return nodes.map((node) => {
+    const storedPos = storedPositions[node.id];
+    if (storedPos) {
+      return { ...node, position: storedPos };
+    }
+    return node;
+  });
 }
 
 const nodeTypes = {
@@ -103,19 +149,32 @@ function FlowCanvasInner({
   const [mode, setMode] = useState<FlowMode>('plot');
   const { setViewport, getViewport } = useReactFlow();
 
-  // Convert data to nodes and edges based on mode
+  // Convert data to nodes and edges based on mode, applying stored positions
   const { initialNodes, initialEdges } = useMemo(() => {
+    let result;
     if (mode === 'plot') {
-      return convertToPlotFlow(documents);
+      result = convertToPlotFlow(documents);
     } else if (mode === 'characters') {
-      return convertToCharacterMap(entities, relations);
+      result = convertToCharacterMap(entities, relations);
     } else {
-      return convertToLocationMap(entities, relations);
+      result = convertToLocationMap(entities, relations);
     }
-  }, [mode, documents, entities, relations]);
+    
+    // Apply stored positions
+    const storedPositions = loadNodePositions(projectId, mode);
+    return {
+      initialNodes: applyStoredPositions(result.initialNodes, storedPositions),
+      initialEdges: result.initialEdges,
+    };
+  }, [mode, documents, entities, relations, projectId]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // Sync nodes when initialNodes change (mode switch or data update)
+  useEffect(() => {
+    setNodes(initialNodes);
+  }, [initialNodes, setNodes]);
 
   // Load saved viewport on initial mount and mode changes
   useEffect(() => {
@@ -130,19 +189,28 @@ function FlowCanvasInner({
     return () => clearTimeout(timer);
   }, [projectId, mode, setViewport]);
 
-  // Save viewport before mode change
+  // Save viewport and positions before mode change
   const handleModeChange = useCallback((newMode: FlowMode) => {
-    // Save current viewport for current mode
+    // Save current viewport and positions for current mode
     const currentViewport = getViewport();
     saveViewport(projectId, mode, currentViewport);
+    saveNodePositions(projectId, mode, nodes);
     // Change mode
     setMode(newMode);
-  }, [projectId, mode, getViewport]);
+  }, [projectId, mode, getViewport, nodes]);
 
   // Save viewport on pan/zoom end
   const handleMoveEnd = useCallback(
     (_event: unknown, viewport: Viewport) => {
       saveViewport(projectId, mode, viewport);
+    },
+    [projectId, mode]
+  );
+
+  // Save node positions after drag
+  const handleNodeDragStop = useCallback(
+    (_event: React.MouseEvent, _node: Node, updatedNodes: Node[]) => {
+      saveNodePositions(projectId, mode, updatedNodes);
     },
     [projectId, mode]
   );
@@ -174,6 +242,7 @@ function FlowCanvasInner({
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={handleNodeClick}
+        onNodeDragStop={handleNodeDragStop}
         onMoveEnd={handleMoveEnd}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
