@@ -203,10 +203,11 @@ function FlowCanvasInner({
     };
   }, [getViewport]);
 
-  // Sync nodes when initialNodes change (mode switch or data update)
+  // Sync nodes and edges when they change (mode switch or data update)
   useEffect(() => {
     setNodes(initialNodes);
-  }, [initialNodes, setNodes]);
+    setEdges(initialEdges);
+  }, [initialNodes, initialEdges, setNodes, setEdges]);
 
   // Load saved viewport on initial mount and mode changes
   useEffect(() => {
