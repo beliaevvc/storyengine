@@ -37,6 +37,7 @@ interface StoredRelationship {
   // New format
   typeId?: string;
   typeName?: string;
+  isReverse?: boolean;
   // Old format
   type?: string;
   description?: string;
@@ -55,6 +56,14 @@ interface FlowRelation {
 function extractRelationsFromEntities(entities: DomainEntity[]): FlowRelation[] {
   const relations: FlowRelation[] = [];
   const seenPairs = new Set<string>();
+  
+  // Build a map of entity relationships for quick lookup
+  const entityRelMap = new Map<string, { entity: DomainEntity; relationships: StoredRelationship[] }>();
+  entities.forEach((entity) => {
+    const attributes = entity.attributes as Record<string, unknown> | null;
+    const relationships = (attributes?.relationships || []) as StoredRelationship[];
+    entityRelMap.set(entity.id, { entity, relationships });
+  });
 
   entities.forEach((entity) => {
     const attributes = entity.attributes as Record<string, unknown> | null;
@@ -71,14 +80,26 @@ function extractRelationsFromEntities(entities: DomainEntity[]): FlowRelation[] 
       if (seenPairs.has(pairKey)) return;
       seenPairs.add(pairKey);
 
-      // Get label from either new format (typeName) or old format (type)
-      const label = rel.typeName || rel.type || '';
+      // Get label from this side
+      const thisLabel = rel.typeName || rel.type || '';
+      
+      // Try to find the reverse relationship to get the other label
+      const targetData = entityRelMap.get(rel.entityId);
+      const reverseRel = targetData?.relationships.find(r => r.entityId === entity.id);
+      const otherLabel = reverseRel?.typeName || reverseRel?.type || '';
+      
+      // Create combined label for asymmetric relationships
+      let label = thisLabel;
+      if (otherLabel && otherLabel !== thisLabel) {
+        // Asymmetric: show both sides "Наставник ↔ Ученик"
+        label = `${thisLabel} ↔ ${otherLabel}`;
+      }
 
       relations.push({
         id: `rel-${entity.id}-${rel.entityId}`,
         source_id: entity.id,
         target_id: rel.entityId,
-        relation_type: label,
+        relation_type: thisLabel,
         label: label,
       });
     });
