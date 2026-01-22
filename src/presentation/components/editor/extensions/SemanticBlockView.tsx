@@ -85,25 +85,34 @@ interface Speaker {
 }
 
 export function SemanticBlockView({ node, deleteNode, editor, getPos, updateAttributes }: NodeViewProps) {
-  const { 
-    blockType = 'description',
-    speakers: rawSpeakers = [],
-    isNew = false,
-  } = node.attrs as { 
-    blockType: SemanticBlockType; 
-    speakers: Speaker[] | unknown;
-    isNew?: boolean;
-  };
+  // Safely extract and validate attributes
+  const rawAttrs = node.attrs || {};
+  const rawBlockType = rawAttrs.blockType;
+  const rawSpeakers = rawAttrs.speakers;
+  const rawIsNew = rawAttrs.isNew;
 
-  // Ensure speakers is always an array of valid objects
+  // Ensure blockType is a valid string
+  const blockType: SemanticBlockType = (
+    typeof rawBlockType === 'string' && 
+    ['empty', 'unmarked', 'dialogue', 'description', 'action', 'thought'].includes(rawBlockType)
+  ) ? rawBlockType as SemanticBlockType : 'description';
+
+  // Ensure speakers is always an array of valid objects with string names
   const speakers: Speaker[] = Array.isArray(rawSpeakers) 
-    ? rawSpeakers.filter((s): s is Speaker => 
-        s && typeof s === 'object' && 'id' in s && 'name' in s && typeof s.name === 'string'
-      )
+    ? rawSpeakers
+        .filter((s): s is Speaker => 
+          s && typeof s === 'object' && 'id' in s && 'name' in s
+        )
+        .map(s => ({
+          id: String(s.id || ''),
+          name: String(s.name || ''),
+        }))
     : [];
 
+  const isNew = rawIsNew === true;
+
   const config = BLOCK_TYPE_CONFIG[blockType] || BLOCK_TYPE_CONFIG.description;
-  console.log('[SemanticBlockView] Rendering block:', blockType, 'speakers:', speakers);
+  console.log('[SemanticBlockView] Rendering block:', blockType, 'speakers:', JSON.stringify(speakers), 'isNew:', isNew);
   const viewMode = useEditorStore((s) => s.viewMode);
   const isCleanMode = viewMode === 'clean';
 
