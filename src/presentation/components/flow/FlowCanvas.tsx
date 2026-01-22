@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState, useEffect } from 'react';
+import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import {
   ReactFlow,
   Background,
@@ -148,6 +148,11 @@ function FlowCanvasInner({
 }: FlowCanvasProps) {
   const [mode, setMode] = useState<FlowMode>('plot');
   const { setViewport, getViewport } = useReactFlow();
+  
+  // Refs to access current state in cleanup function
+  const nodesRef = useRef<Node[]>([]);
+  const modeRef = useRef<FlowMode>(mode);
+  const projectIdRef = useRef(projectId);
 
   // Convert data to nodes and edges based on mode, applying stored positions
   const { initialNodes, initialEdges } = useMemo(() => {
@@ -170,6 +175,33 @@ function FlowCanvasInner({
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // Keep refs updated
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
+  
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+  
+  useEffect(() => {
+    projectIdRef.current = projectId;
+  }, [projectId]);
+
+  // Save state on unmount
+  useEffect(() => {
+    return () => {
+      // Save positions and viewport when component unmounts
+      saveNodePositions(projectIdRef.current, modeRef.current, nodesRef.current);
+      try {
+        const viewport = getViewport();
+        saveViewport(projectIdRef.current, modeRef.current, viewport);
+      } catch {
+        // getViewport might fail if ReactFlow is already unmounted
+      }
+    };
+  }, [getViewport]);
 
   // Sync nodes when initialNodes change (mode switch or data update)
   useEffect(() => {
