@@ -335,7 +335,7 @@ function FlowCanvasInner({
         </Panel>
 
         {/* Stats */}
-        <Panel position="bottom-left" className="!m-4">
+        <Panel position="top-right" className="!m-4">
           <div className="text-xs text-[#768390] bg-[#22272e] border border-[#444c56] rounded-lg px-3 py-2">
             {mode === 'plot' && (() => {
               const folders = documents.filter((d) => d.type === 'FOLDER').length;
